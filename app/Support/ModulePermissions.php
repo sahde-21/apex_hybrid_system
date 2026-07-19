@@ -100,6 +100,17 @@ class ModulePermissions
         'journal-entries.post',
         'journal-entries.reverse',
         'fiscal-periods.manage',
+        'quotations.send',
+        'quotations.reject',
+        'quotations.convert',
+        'sale-orders.submit',
+        'sale-orders.confirm',
+        'sale-orders.invoice',
+        'invoices.issue',
+        'invoices.void',
+        'payments.record',
+        'payments.post',
+        'payments.reverse',
     ];
 
     /**

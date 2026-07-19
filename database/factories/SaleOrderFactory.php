@@ -24,8 +24,12 @@ class SaleOrderFactory extends Factory
             'warehouse_id' => null,
             'order_date' => fake()->date(),
             'delivery_date' => fake()->optional()->date(),
-            'status' => fake()->randomElement(SaleOrderStatus::cases()),
+            'status' => SaleOrderStatus::Draft,
+            'subtotal_amount' => 0,
+            'discount_amount' => 0,
+            'tax_amount' => 0,
             'total_amount' => fake()->randomFloat(2, 0, 10000),
+            'currency_code' => 'IQD',
             'notes' => fake()->optional()->paragraph(),
         ];
     }

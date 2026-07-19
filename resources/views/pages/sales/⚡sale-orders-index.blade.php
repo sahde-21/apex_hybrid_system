@@ -66,9 +66,15 @@ new #[Title('Sale orders')] class extends Component {
 
         $model = SaleOrder::query()->findOrFail($this->saleOrderToDelete);
 
+        if (! $model->status->isEditable()) {
+            $this->saleOrderToDelete = null;
+            $this->showDeleteModal = false;
+            Flux::toast(variant: 'danger', text: __('scf.sales_workflow.immutable_posted'));
+
+            return;
+        }
 
         $this->authorize('delete', $model);
-
 
         $model->delete();
 
@@ -120,7 +126,11 @@ new #[Title('Sale orders')] class extends Component {
             <flux:table.rows>
                 @forelse ($this->saleOrders as $saleOrder)
                     <flux:table.row wire:key="sale-order-{{ $saleOrder->id }}">
-                        <flux:table.cell class="font-medium">{{ $saleOrder->reference_number }}</flux:table.cell>
+                        <flux:table.cell class="font-medium">
+                            <a href="{{ route('sale-orders.show', $saleOrder) }}" wire:navigate class="hover:underline">
+                                {{ $saleOrder->reference_number }}
+                            </a>
+                        </flux:table.cell>
                         <flux:table.cell>{{ $saleOrder->contact?->name ?? '—' }}</flux:table.cell>
                         <flux:table.cell>{{ $saleOrder->warehouse?->name ?? '—' }}</flux:table.cell>
                         <flux:table.cell>{{ $saleOrder->order_date->format('Y-m-d') }}</flux:table.cell>
@@ -130,6 +140,13 @@ new #[Title('Sale orders')] class extends Component {
                         <flux:table.cell>{{ number_format((float) $saleOrder->total_amount, 2) }}</flux:table.cell>
                         <flux:table.cell>
                             <div class="flex items-center gap-2">
+                                <flux:button
+                                    size="sm"
+                                    variant="ghost"
+                                    icon="eye"
+                                    :href="route('sale-orders.show', $saleOrder)"
+                                    wire:navigate
+                                />
                                 <x-print-button type="sale-order" :id="$saleOrder->id" />
                                 
 @can('update', $saleOrder)

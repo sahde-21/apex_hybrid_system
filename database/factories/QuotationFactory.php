@@ -23,8 +23,12 @@ class QuotationFactory extends Factory
             'contact_id' => null,
             'quotation_date' => fake()->date(),
             'valid_until' => fake()->optional()->date(),
-            'status' => fake()->randomElement(QuotationStatus::cases()),
+            'status' => QuotationStatus::Draft,
+            'subtotal_amount' => 0,
+            'discount_amount' => 0,
+            'tax_amount' => 0,
             'total_amount' => fake()->randomFloat(2, 0, 10000),
+            'currency_code' => 'IQD',
             'notes' => fake()->optional()->paragraph(),
         ];
     }

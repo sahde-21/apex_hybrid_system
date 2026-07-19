@@ -33,12 +33,12 @@ test('sale order can be updated via controller', function () {
     $this->put(route('sale-orders.update', $order), [
         'reference_number' => $order->reference_number,
         'order_date' => $order->order_date->toDateString(),
-        'status' => SaleOrderStatus::Confirmed->value,
+        'status' => SaleOrderStatus::Draft->value,
         'total_amount' => 175.25,
         'notes' => 'Updated',
     ])->assertRedirect(route('sale-orders.index'));
 
-    expect($order->fresh()->status)->toBe(SaleOrderStatus::Confirmed)
+    expect($order->fresh()->status)->toBe(SaleOrderStatus::Draft)
         ->and((float) $order->fresh()->total_amount)->toBe(175.25);
 });
 

@@ -66,9 +66,15 @@ new #[Title('Invoices')] class extends Component {
 
         $model = Invoice::query()->findOrFail($this->invoiceToDelete);
 
+        if (! $model->status->isEditable()) {
+            $this->invoiceToDelete = null;
+            $this->showDeleteModal = false;
+            Flux::toast(variant: 'danger', text: __('scf.sales_workflow.immutable_posted'));
+
+            return;
+        }
 
         $this->authorize('delete', $model);
-
 
         $model->delete();
 
@@ -119,7 +125,11 @@ new #[Title('Invoices')] class extends Component {
             <flux:table.rows>
                 @forelse ($this->invoices as $invoice)
                     <flux:table.row wire:key="invoice-{{ $invoice->id }}">
-                        <flux:table.cell class="font-medium">{{ $invoice->reference_number }}</flux:table.cell>
+                        <flux:table.cell class="font-medium">
+                            <a href="{{ route('invoices.show', $invoice) }}" wire:navigate class="hover:underline">
+                                {{ $invoice->reference_number }}
+                            </a>
+                        </flux:table.cell>
                         <flux:table.cell>{{ $invoice->contact?->name ?? '—' }}</flux:table.cell>
                         <flux:table.cell>{{ $invoice->invoice_date->format('Y-m-d') }}</flux:table.cell>
                         <flux:table.cell>{{ $invoice->due_date?->format('Y-m-d') ?? '—' }}</flux:table.cell>
@@ -129,6 +139,13 @@ new #[Title('Invoices')] class extends Component {
                         <flux:table.cell>{{ number_format((float) $invoice->total_amount, 2) }}</flux:table.cell>
                         <flux:table.cell>
                             <div class="flex items-center gap-2">
+                                <flux:button
+                                    size="sm"
+                                    variant="ghost"
+                                    icon="eye"
+                                    :href="route('invoices.show', $invoice)"
+                                    wire:navigate
+                                />
                                 <x-print-button type="invoice" :id="$invoice->id" />
                                 
 @can('update', $invoice)

@@ -66,9 +66,15 @@ new #[Title('Quotations')] class extends Component {
 
         $model = Quotation::query()->findOrFail($this->quotationToDelete);
 
+        if (! $model->status->isEditable()) {
+            $this->quotationToDelete = null;
+            $this->showDeleteModal = false;
+            Flux::toast(variant: 'danger', text: __('scf.sales_workflow.immutable_posted'));
+
+            return;
+        }
 
         $this->authorize('delete', $model);
-
 
         $model->delete();
 
@@ -117,7 +123,11 @@ new #[Title('Quotations')] class extends Component {
             <flux:table.rows>
                 @forelse ($this->quotations as $quotation)
                     <flux:table.row wire:key="quotation-{{ $quotation->id }}">
-                        <flux:table.cell class="font-medium">{{ $quotation->reference_number }}</flux:table.cell>
+                        <flux:table.cell class="font-medium">
+                            <a href="{{ route('quotations.show', $quotation) }}" wire:navigate class="hover:underline">
+                                {{ $quotation->reference_number }}
+                            </a>
+                        </flux:table.cell>
                         <flux:table.cell>{{ $quotation->contact?->name ?? '—' }}</flux:table.cell>
                         <flux:table.cell>{{ $quotation->quotation_date->format('Y-m-d') }}</flux:table.cell>
                         <flux:table.cell>{{ $quotation->valid_until?->format('Y-m-d') ?? '—' }}</flux:table.cell>
@@ -127,6 +137,13 @@ new #[Title('Quotations')] class extends Component {
                         <flux:table.cell>{{ number_format((float) $quotation->total_amount, 2) }}</flux:table.cell>
                         <flux:table.cell>
                             <div class="flex items-center gap-2">
+                                <flux:button
+                                    size="sm"
+                                    variant="ghost"
+                                    icon="eye"
+                                    :href="route('quotations.show', $quotation)"
+                                    wire:navigate
+                                />
                                 <x-print-button type="quotation" :id="$quotation->id" />
                                 
 @can('update', $quotation)

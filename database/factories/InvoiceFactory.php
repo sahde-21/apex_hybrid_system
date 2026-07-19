@@ -18,17 +18,22 @@ class InvoiceFactory extends Factory
      */
     public function definition(): array
     {
+        $subtotal = fake()->randomFloat(2, 10, 5000);
+        $tax = round($subtotal * 0.1, 2);
+
         return [
             'reference_number' => fake()->unique()->bothify('INV-####-??'),
             'contact_id' => null,
             'sale_order_id' => null,
             'invoice_date' => fake()->date(),
             'due_date' => fake()->optional()->date(),
-            'status' => fake()->randomElement(InvoiceStatus::cases()),
-            'subtotal_amount' => fake()->randomFloat(2, 0, 10000),
-            'total_amount' => fake()->randomFloat(2, 0, 10000),
-            'tax_amount' => fake()->randomFloat(2, 0, 1000),
+            'status' => InvoiceStatus::Draft,
+            'subtotal_amount' => $subtotal,
+            'total_amount' => $subtotal + $tax,
+            'tax_amount' => $tax,
             'discount_amount' => 0,
+            'paid_amount' => 0,
+            'currency_code' => 'IQD',
             'notes' => fake()->optional()->paragraph(),
             'source' => 'manual',
         ];

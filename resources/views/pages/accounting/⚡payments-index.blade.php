@@ -67,9 +67,15 @@ new #[Title('Payments')] class extends Component {
 
         $model = Payment::query()->findOrFail($this->paymentToDelete);
 
+        if (! $model->status->isEditable()) {
+            $this->paymentToDelete = null;
+            $this->showDeleteModal = false;
+            Flux::toast(variant: 'danger', text: __('scf.sales_workflow.immutable_posted'));
+
+            return;
+        }
 
         $this->authorize('delete', $model);
-
 
         $model->delete();
 
@@ -118,7 +124,11 @@ new #[Title('Payments')] class extends Component {
             <flux:table.rows>
                 @forelse ($this->payments as $payment)
                     <flux:table.row wire:key="payment-{{ $payment->id }}">
-                        <flux:table.cell class="font-medium">{{ $payment->reference_number }}</flux:table.cell>
+                        <flux:table.cell class="font-medium">
+                            <a href="{{ route('payments.show', $payment) }}" wire:navigate class="hover:underline">
+                                {{ $payment->reference_number }}
+                            </a>
+                        </flux:table.cell>
                         <flux:table.cell>{{ $payment->contact?->name ?? '—' }}</flux:table.cell>
                         <flux:table.cell>{{ $payment->payment_date->format('Y-m-d') }}</flux:table.cell>
                         <flux:table.cell>
@@ -128,6 +138,13 @@ new #[Title('Payments')] class extends Component {
                         <flux:table.cell>{{ $payment->payment_method ?? '—' }}</flux:table.cell>
                         <flux:table.cell>
                             <div class="flex items-center gap-2">
+                                <flux:button
+                                    size="sm"
+                                    variant="ghost"
+                                    icon="eye"
+                                    :href="route('payments.show', $payment)"
+                                    wire:navigate
+                                />
                                 <x-print-button type="payment" :id="$payment->id" />
                                 
 @can('update', $payment)

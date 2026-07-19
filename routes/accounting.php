@@ -61,6 +61,7 @@ Route::middleware(['auth', 'verified'])->prefix('accounting')->group(function ()
     Route::middleware(['can:payments.read'])->name('payments.')->group(function () {
         Route::livewire('payments', 'pages::accounting.payments-index')->name('index');
         Route::livewire('payments/create', 'pages::accounting.payments-create')->middleware('can:payments.create')->name('create');
+        Route::livewire('payments/{payment}', 'pages::accounting.payments-show')->name('show');
         Route::livewire('payments/{payment}/edit', 'pages::accounting.payments-edit')->middleware('can:payments.update')->name('edit');
 
         Route::post('payments', [PaymentController::class, 'store'])->middleware('can:payments.create')->name('store');

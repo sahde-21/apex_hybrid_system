@@ -33,12 +33,12 @@ test('invoice can be updated and deleted', function () {
     $this->put(route('invoices.update', $invoice), [
         'reference_number' => $invoice->reference_number,
         'invoice_date' => $invoice->invoice_date->toDateString(),
-        'status' => InvoiceStatus::Sent->value,
+        'status' => InvoiceStatus::Draft->value,
         'total_amount' => 900,
         'tax_amount' => 90,
     ])->assertRedirect(route('invoices.index'));
 
-    expect($invoice->fresh()->status)->toBe(InvoiceStatus::Sent);
+    expect((float) $invoice->fresh()->total_amount)->toBe(900.0);
 
     Livewire::test('pages::sales.invoices-index')
         ->call('confirmDelete', $invoice->id)

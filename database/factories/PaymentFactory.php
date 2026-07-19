@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\PaymentStatus;
 use App\Enums\PaymentType;
 use App\Models\Payment;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -21,9 +22,11 @@ class PaymentFactory extends Factory
         return [
             'reference_number' => fake()->unique()->bothify('PAY-####-??'),
             'contact_id' => null,
+            'invoice_id' => null,
             'payment_date' => fake()->date(),
             'amount' => fake()->randomFloat(2, 0, 10000),
-            'type' => fake()->randomElement(PaymentType::cases()),
+            'type' => PaymentType::Incoming,
+            'status' => PaymentStatus::Posted,
             'payment_method' => fake()->optional()->word(),
             'notes' => fake()->optional()->paragraph(),
         ];

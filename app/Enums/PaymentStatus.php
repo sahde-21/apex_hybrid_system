@@ -2,14 +2,11 @@
 
 namespace App\Enums;
 
-enum QuotationStatus: string
+enum PaymentStatus: string
 {
     case Draft = 'draft';
-    case Sent = 'sent';
-    case Accepted = 'accepted';
-    case Rejected = 'rejected';
-    case Expired = 'expired';
-    case Converted = 'converted';
+    case Posted = 'posted';
+    case Reversed = 'reversed';
     case Cancelled = 'cancelled';
 
     /** @return array<string, string> */
@@ -24,11 +21,8 @@ enum QuotationStatus: string
     {
         return match ($this) {
             self::Draft => __('scf.sales_workflow.status_draft'),
-            self::Sent => __('scf.sales_workflow.status_sent'),
-            self::Accepted => __('scf.sales_workflow.status_approved'),
-            self::Rejected => __('scf.sales_workflow.status_rejected'),
-            self::Expired => __('scf.sales_workflow.status_expired'),
-            self::Converted => __('scf.sales_workflow.status_converted'),
+            self::Posted => __('scf.sales_workflow.status_posted'),
+            self::Reversed => __('scf.sales_workflow.status_reversed'),
             self::Cancelled => __('scf.sales_workflow.status_cancelled'),
         };
     }
@@ -37,10 +31,8 @@ enum QuotationStatus: string
     {
         return match ($this) {
             self::Draft => 'zinc',
-            self::Sent => 'blue',
-            self::Accepted, self::Converted => 'green',
-            self::Rejected, self::Cancelled => 'red',
-            self::Expired => 'amber',
+            self::Posted => 'green',
+            self::Reversed, self::Cancelled => 'red',
         };
     }
 
@@ -55,10 +47,9 @@ enum QuotationStatus: string
     public function allowedTransitions(): array
     {
         return match ($this) {
-            self::Draft => [self::Sent, self::Cancelled],
-            self::Sent => [self::Accepted, self::Rejected, self::Expired, self::Cancelled],
-            self::Accepted => [self::Converted, self::Cancelled],
-            self::Rejected, self::Expired, self::Converted, self::Cancelled => [],
+            self::Draft => [self::Posted, self::Cancelled],
+            self::Posted => [self::Reversed],
+            self::Reversed, self::Cancelled => [],
         };
     }
 

@@ -2,6 +2,8 @@
 
 namespace App\Services\Accounting;
 
+use App\Enums\PaymentStatus;
+use App\Enums\PaymentType;
 use App\Models\AccountingPosting;
 use App\Models\Bill;
 use App\Models\Expense;
@@ -27,6 +29,11 @@ class AutoPostingService
     public function postInvoice(Invoice $invoice, ?User $user = null): ?JournalEntry
     {
         if (($invoice->source ?? null) === 'pos') {
+            return null;
+        }
+
+        // Draft / void / cancelled invoices must not hit the ledger.
+        if (! $invoice->status->isPosted()) {
             return null;
         }
 
@@ -61,7 +68,16 @@ class AutoPostingService
 
     public function postCustomerPayment(Payment $payment, ?User $user = null): ?JournalEntry
     {
-        if ($payment->type !== \App\Enums\PaymentType::Incoming) {
+        if ($payment->type !== PaymentType::Incoming) {
+            return null;
+        }
+
+        if ($payment->status !== null && $payment->status !== PaymentStatus::Posted) {
+            return null;
+        }
+
+        // Reversal shadow rows are audit-only; journal reverse handles the GL.
+        if ($payment->reversal_of_id) {
             return null;
         }
 
@@ -116,7 +132,16 @@ class AutoPostingService
 
     public function postSupplierPayment(Payment $payment, ?User $user = null): ?JournalEntry
     {
-        if ($payment->type !== \App\Enums\PaymentType::Outgoing) {
+        if ($payment->type !== PaymentType::Outgoing) {
+            return null;
+        }
+
+        if ($payment->status !== null && $payment->status !== PaymentStatus::Posted) {
+            return null;
+        }
+
+        // Reversal shadow rows are audit-only; journal reverse handles the GL.
+        if ($payment->reversal_of_id) {
             return null;
         }
 

@@ -24,12 +24,27 @@ class InvoicePolicy
 
     public function update(User $user, Invoice $invoice): bool
     {
-        return $user->can('invoices.update');
+        return $user->can('invoices.update') && $invoice->status->isEditable();
     }
 
     public function delete(User $user, Invoice $invoice): bool
     {
-        return $user->can('invoices.delete');
+        return $user->can('invoices.delete') && $invoice->status->isEditable();
+    }
+
+    public function issue(User $user, Invoice $invoice): bool
+    {
+        return $user->can('invoices.issue') || $user->can('invoices.approve');
+    }
+
+    public function void(User $user, Invoice $invoice): bool
+    {
+        return $user->can('invoices.void') || $user->can('invoices.approve');
+    }
+
+    public function cancel(User $user, Invoice $invoice): bool
+    {
+        return $user->can('invoices.update');
     }
 
     public function print(User $user, Invoice $invoice): bool
