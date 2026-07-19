@@ -1,0 +1,10 @@
+{
+    "agents": [
+        "cursor",
+        "copilot"
+    ],
+    "cloud": false,
+    "mcp": true,
+    "nightwatch": false,
+    "sail": false
+}

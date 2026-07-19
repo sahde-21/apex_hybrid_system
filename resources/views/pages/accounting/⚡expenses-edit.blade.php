@@ -1,0 +1,85 @@
+<?php
+
+use App\Concerns\ExpenseValidationRules;
+use App\Models\Contact;
+use App\Models\Expense;
+use Flux\Flux;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\Title;
+use Livewire\Component;
+
+new #[Title('Edit expense')] class extends Component {
+    use ExpenseValidationRules;
+
+    public Expense $expense;
+
+    public string $reference_number = '';
+    public ?int $contact_id = null;
+    public string $category = '';
+    public string $description = '';
+    public string $amount = '0';
+    public string $expense_date = '';
+    public string $payment_method = '';
+    public string $notes = '';
+
+    public function mount(Expense $expense): void
+    {
+        $this->expense = $expense;
+        $this->reference_number = $expense->reference_number;
+        $this->contact_id = $expense->contact_id;
+        $this->category = $expense->category;
+        $this->description = $expense->description;
+        $this->amount = (string) $expense->amount;
+        $this->expense_date = $expense->expense_date->format('Y-m-d');
+        $this->payment_method = $expense->payment_method ?? '';
+        $this->notes = $expense->notes ?? '';
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, Contact>
+     */
+    #[Computed]
+    public function contacts()
+    {
+        return Contact::query()->orderBy('name')->get();
+    }
+
+    public function save(): void
+    {
+        $validated = $this->validate($this->expenseRules($this->expense->id));
+
+        $this->expense->update($validated);
+
+        Flux::toast(variant: 'success', text: __('Expense updated successfully.'));
+
+        $this->redirect(route('expenses.index'), navigate: true);
+    }
+}; ?>
+
+<section class="w-full">
+    <div class="mb-6">
+        <flux:heading size="xl">{{ __('Edit expense') }}</flux:heading>
+        <flux:subheading>{{ __('Update expense details') }}</flux:subheading>
+    </div>
+
+    <form wire:submit="save" class="grid max-w-2xl gap-6">
+        <flux:input wire:model="reference_number" :label="__('Reference number')" required />
+        <flux:select wire:model="contact_id" :label="__('Contact')" :placeholder="__('Select contact')">
+            <flux:select.option value="">{{ __('None') }}</flux:select.option>
+            @foreach ($this->contacts as $contact)
+                <flux:select.option :value="$contact->id">{{ $contact->name }}</flux:select.option>
+            @endforeach
+        </flux:select>
+        <flux:input wire:model="category" :label="__('Category')" required />
+        <flux:input wire:model="description" :label="__('Description')" required />
+        <flux:input wire:model="amount" type="number" step="0.01" :label="__('Amount')" required />
+        <flux:input wire:model="expense_date" type="date" :label="__('Expense date')" required />
+        <flux:input wire:model="payment_method" :label="__('Payment method')" />
+        <flux:textarea wire:model="notes" :label="__('Notes')" />
+
+        <div class="flex gap-2">
+            <flux:button type="submit" variant="primary">{{ __('Save changes') }}</flux:button>
+            <flux:button :href="route('expenses.index')" variant="ghost" wire:navigate>{{ __('Cancel') }}</flux:button>
+        </div>
+    </form>
+</section>

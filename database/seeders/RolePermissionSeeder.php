@@ -1,0 +1,117 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\User;
+use App\Support\ModulePermissions;
+use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
+
+class RolePermissionSeeder extends Seeder
+{
+    /** @var array<int, string> */
+    protected array $superAdminEmails = [
+        'admin@scf.com',
+        'test@example.com',
+    ];
+
+    public function run(): void
+    {
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+
+        foreach (ModulePermissions::allPermissions() as $permission) {
+            Permission::findOrCreate($permission, 'web');
+        }
+
+        $allPermissions = Permission::query()->where('guard_name', 'web')->get();
+
+        if ($allPermissions->isEmpty()) {
+            throw new \RuntimeException('RolePermissionSeeder: no permissions were created.');
+        }
+
+        $roleMap = [
+            'super-admin' => $allPermissions->pluck('name')->all(),
+            'owner' => $allPermissions->pluck('name')->all(),
+            'manager' => $this->managerPermissions(),
+            'cashier' => $this->prefixPermissions(['sale-orders', 'quotations', 'invoices', 'payments', 'contacts', 'coupons', 'gift-cards', 'loyalty-programs', 'pos', 'products', 'tax-rates', 'documents']),
+            'warehouse' => $this->prefixPermissions(['products', 'warehouses', 'inventory-adjustments', 'stock-transfers', 'variants', 'shipping-methods', 'delivery-trips', 'documents']),
+            'sales' => $this->prefixPermissions(['sale-orders', 'quotations', 'invoices', 'contacts', 'leads', 'crm-interactions', 'customer-feedback', 'campaigns', 'loyalty-programs', 'coupons', 'pos', 'documents']),
+            'hr' => $this->prefixPermissions(['employees', 'payrolls', 'attendance', 'leave-requests', 'shift-management', 'performance-reviews', 'documents']),
+            'accountant' => array_values(array_unique([
+                ...$this->prefixPermissions(['expenses', 'journal-entries', 'payments', 'tax-rates', 'financial-reports', 'fixed-assets', 'budgeting', 'bank-reconciliation', 'bills', 'invoices', 'documents', 'chart-of-accounts', 'ledgers', 'financial-statements', 'fiscal-periods', 'currencies']),
+                'journal-entries.approve',
+                'journal-entries.post',
+                'journal-entries.reverse',
+                'fiscal-periods.manage',
+            ])),
+            'purchasing' => $this->prefixPermissions(['purchase-orders', 'bills', 'supplier-evaluations', 'contacts', 'documents']),
+            'customer-support' => $this->prefixPermissions(['tickets', 'knowledge-base', 'crm-interactions', 'contacts', 'customer-feedback', 'documents']),
+        ];
+
+        foreach ($roleMap as $roleName => $permissions) {
+            $role = Role::findOrCreate($roleName, 'web');
+            $role->syncPermissions($permissions);
+        }
+
+        $superAdmin = Role::findByName('super-admin', 'web');
+        if ($superAdmin->permissions()->count() === 0) {
+            throw new \RuntimeException('RolePermissionSeeder: super-admin has zero permissions after sync.');
+        }
+
+        $this->assignSuperAdmins();
+
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+    }
+
+    protected function assignSuperAdmins(): void
+    {
+        $superAdmin = Role::findByName('super-admin', 'web');
+
+        // Idempotent: assign role without removing other roles or deleting users.
+        User::query()
+            ->whereIn('email', $this->superAdminEmails)
+            ->each(function (User $user) use ($superAdmin): void {
+                if (! $user->hasRole($superAdmin)) {
+                    $user->assignRole($superAdmin);
+                }
+            });
+
+        // Bootstrap: first user becomes Super Admin if nobody has the role yet.
+        if (! User::role('super-admin')->exists()) {
+            $first = User::query()->orderBy('id')->first();
+            if ($first && ! $first->hasRole($superAdmin)) {
+                $first->assignRole($superAdmin);
+            }
+        }
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function managerPermissions(): array
+    {
+        return collect(ModulePermissions::allPermissions())
+            ->reject(fn (string $p) => str_starts_with($p, 'users.') || str_starts_with($p, 'settings.'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  array<int, string>  $modules
+     * @return array<int, string>
+     */
+    protected function prefixPermissions(array $modules): array
+    {
+        $permissions = ['dashboard.read', 'notifications.read', 'analytics.read'];
+
+        foreach ($modules as $module) {
+            foreach (['read', 'create', 'update', 'print', 'export'] as $action) {
+                $permissions[] = "{$module}.{$action}";
+            }
+        }
+
+        return $permissions;
+    }
+}

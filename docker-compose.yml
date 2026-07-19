@@ -1,0 +1,38 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      pgsql:
+        condition: service_healthy
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: pgsql
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:-scf_erp}
+      DB_USERNAME: ${DB_USERNAME:-scf}
+      DB_PASSWORD: ${DB_PASSWORD:-secret}
+
+  pgsql:
+    image: postgres:16-alpine
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-scf_erp}
+      POSTGRES_USER: ${DB_USERNAME:-scf}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+    volumes:
+      - scf-pgsql:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-scf} -d ${DB_DATABASE:-scf_erp}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  scf-pgsql:

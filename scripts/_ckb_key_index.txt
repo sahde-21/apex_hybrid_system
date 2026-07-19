@@ -1,0 +1,809 @@
+0	2FA recovery codes
+1	A new verification link has been sent to the email address you provided during registration.
+2	A new verification link has been sent to your email address.
+3	Action
+4	Actions
+5	Active
+6	Add
+7	Add CRM interaction
+8	Add a new customer or supplier
+9	Add a new employee record
+10	Add a new product to your inventory
+11	Add a new storage location
+12	Add a new tax rate
+13	Add a passkey to sign in without a password
+14	Add bill
+15	Add contact
+16	Add employee
+17	Add expense
+18	Add financial report
+19	Add inventory adjustment
+20	Add invoice
+21	Add journal entry
+22	Add passkey
+23	Add payment
+24	Add payroll
+25	Add product
+26	Add purchase order
+27	Add quotation
+28	Add sale order
+29	Add tax rate
+30	Add warehouse
+31	Added :time
+32	Address
+33	Adjustment date
+34	All actions
+35	All report types
+36	All statuses
+37	All types
+38	Allocated Amount
+39	Amount
+40	Appearance
+41	Appearance settings
+42	Are you sure you want to delete this CRM interaction? This action cannot be undone.
+43	Are you sure you want to delete this bill? This action cannot be undone.
+44	Are you sure you want to delete this contact? This action cannot be undone.
+45	Are you sure you want to delete this employee? This action cannot be undone.
+46	Are you sure you want to delete this expense? This action cannot be undone.
+47	Are you sure you want to delete this financial report? This action cannot be undone.
+48	Are you sure you want to delete this inventory adjustment? This action cannot be undone.
+49	Are you sure you want to delete this invoice? This action cannot be undone.
+50	Are you sure you want to delete this journal entry? This action cannot be undone.
+51	Are you sure you want to delete this payment? This action cannot be undone.
+52	Are you sure you want to delete this payroll? This action cannot be undone.
+53	Are you sure you want to delete this product?
+54	Are you sure you want to delete this product? This action cannot be undone.
+55	Are you sure you want to delete this purchase order? This action cannot be undone.
+56	Are you sure you want to delete this quotation? This action cannot be undone.
+57	Are you sure you want to delete this sale order? This action cannot be undone.
+58	Are you sure you want to delete this tax rate? This action cannot be undone.
+59	Are you sure you want to delete this warehouse? This action cannot be undone.
+60	Are you sure you want to delete your account?
+61	Are you sure you want to remove the passkey 
+62	Are you sure? This action cannot be undone.
+63	Asset Code
+64	Attendance
+65	Attendance Date
+66	Attendance created successfully.
+67	Attendance deleted successfully.
+68	Attendance updated successfully.
+69	Audit logs
+70	Authenticating...
+71	Authentication code
+72	Back
+73	Bank Name
+74	Bank reconciliation
+75	Bank reconciliation created successfully.
+76	Bank reconciliation deleted successfully.
+77	Bank reconciliation updated successfully.
+78	Barcode
+79	Base Cost
+80	Bill created successfully.
+81	Bill date
+82	Bill deleted successfully.
+83	Bill of materials
+84	Bill of materials created successfully.
+85	Bill of materials deleted successfully.
+86	Bill of materials updated successfully.
+87	Bill updated successfully.
+88	Billing Cycle
+89	Bills
+90	Body
+91	Book Demo
+92	Branch Id
+93	Branches
+94	Branches created successfully.
+95	Branches deleted successfully.
+96	Branches updated successfully.
+97	Budget
+98	Budgeting
+99	Budgeting created successfully.
+100	Budgeting deleted successfully.
+101	Budgeting updated successfully.
+102	Bulk actions
+103	CRM interaction created successfully.
+104	CRM interaction deleted successfully.
+105	CRM interaction updated successfully.
+106	CRM interactions
+107	Campaigns
+108	Campaigns created successfully.
+109	Campaigns deleted successfully.
+110	Campaigns updated successfully.
+111	Cancel
+112	Carrier
+113	Category
+114	Channel
+115	Check In
+116	Check Out
+117	Click here to re-send the verification email.
+118	Close
+119	Closing Balance
+120	Code
+121	Comments
+122	Company
+123	Company name
+124	Component Product Id
+125	Configure tax rates for billing and accounting
+126	Confirm
+127	Confirm password
+128	Contact
+129	Contact Id
+130	Contact created successfully.
+131	Contact deleted successfully.
+132	Contact updated successfully.
+133	Contacts
+134	Content
+135	Continue
+136	Contract Id
+137	Contracts
+138	Contracts created successfully.
+139	Contracts deleted successfully.
+140	Contracts updated successfully.
+141	Cost
+142	Coupons
+143	Coupons created successfully.
+144	Coupons deleted successfully.
+145	Coupons updated successfully.
+146	Create
+147	Create Attendance
+148	Create Bank reconciliation
+149	Create Bill of materials
+150	Create Branches
+151	Create Budgeting
+152	Create CRM interaction
+153	Create Campaigns
+154	Create Contracts
+155	Create Coupons
+156	Create Customer feedback
+157	Create Delivery trips
+158	Create Fixed assets
+159	Create Floor plans
+160	Create Gift cards
+161	Create Knowledge base
+162	Create Lead management
+163	Create Leave requests
+164	Create Loyalty programs
+165	Create Notification templates
+166	Create Performance reviews
+167	Create Price lists
+168	Create Production orders
+169	Create Project tasks
+170	Create Quality control
+171	Create Shift management
+172	Create Shipping methods
+173	Create Stock transfers
+174	Create Subscriptions
+175	Create Supplier evaluations
+176	Create Tickets
+177	Create Time logs
+178	Create Variants
+179	Create Vehicle maintenance
+180	Create and manage customer price quotes
+181	Create bill
+182	Create contact
+183	Create employee
+184	Create expense
+185	Create financial report
+186	Create inventory adjustment
+187	Create invoice
+188	Create journal entry
+189	Create payment
+190	Create payroll
+191	Create product
+192	Create purchase order
+193	Create quotation
+194	Create sale order
+195	Create tax rate
+196	Create warehouse
+197	Created
+198	Created successfully.
+199	Credit
+200	Currency
+201	Current Balance
+202	Current Value
+203	Current password
+204	Customer
+205	Customer feedback
+206	Customer feedback created successfully.
+207	Customer feedback deleted successfully.
+208	Customer feedback updated successfully.
+209	Dark
+210	Dashboard
+211	Date
+212	Debit
+213	Deductions
+214	Delete
+215	Delete CRM interaction
+216	Delete account
+217	Delete bill
+218	Delete contact
+219	Delete employee
+220	Delete expense
+221	Delete financial report
+222	Delete inventory adjustment
+223	Delete invoice
+224	Delete journal entry
+225	Delete payment
+226	Delete payroll
+227	Delete product
+228	Delete purchase order
+229	Delete quotation
+230	Delete sale order
+231	Delete tax rate
+232	Delete warehouse
+233	Delete your account and all of its resources
+234	Deleted
+235	Deleted successfully.
+236	Delivery
+237	Delivery Score
+238	Delivery date
+239	Delivery trips
+240	Delivery trips created successfully.
+241	Delivery trips deleted successfully.
+242	Delivery trips updated successfully.
+243	Department
+244	Description
+245	Disable 2FA
+246	Discount Type
+247	Discount Value
+248	Documentation
+249	Driver Name
+250	Due
+251	Due Date
+252	Due date
+253	Each recovery code can be used once to access your account and will be removed after use. If you need more, click Regenerate codes above.
+254	Edit
+255	Edit Attendance
+256	Edit Bank reconciliation
+257	Edit Bill of materials
+258	Edit Branches
+259	Edit Budgeting
+260	Edit CRM interaction
+261	Edit Campaigns
+262	Edit Contracts
+263	Edit Coupons
+264	Edit Customer feedback
+265	Edit Delivery trips
+266	Edit Fixed assets
+267	Edit Floor plans
+268	Edit Gift cards
+269	Edit Knowledge base
+270	Edit Lead management
+271	Edit Leave requests
+272	Edit Loyalty programs
+273	Edit Notification templates
+274	Edit Performance reviews
+275	Edit Price lists
+276	Edit Production orders
+277	Edit Project tasks
+278	Edit Quality control
+279	Edit Shift management
+280	Edit Shipping methods
+281	Edit Stock transfers
+282	Edit Subscriptions
+283	Edit Supplier evaluations
+284	Edit Tickets
+285	Edit Time logs
+286	Edit Variants
+287	Edit Vehicle maintenance
+288	Edit bill
+289	Edit contact
+290	Edit employee
+291	Edit expense
+292	Edit financial report
+293	Edit inventory adjustment
+294	Edit invoice
+295	Edit journal entry
+296	Edit payment
+297	Edit payroll
+298	Edit product
+299	Edit purchase order
+300	Edit quotation
+301	Edit sale order
+302	Edit tax rate
+303	Edit warehouse
+304	Email
+305	Email address
+306	Email password reset link
+307	Email verification
+308	Employee
+309	Employee Id
+310	Employee created successfully.
+311	Employee deleted successfully.
+312	Employee number
+313	Employee updated successfully.
+314	Employees
+315	Enable 2FA
+316	Enable two-factor authentication
+317	End Date
+318	End Time
+319	Ensure your account is using a long, random password to stay secure
+320	Enter the 6-digit code from your authenticator app.
+321	Enter the authentication code provided by your authenticator application.
+322	Enter your email and password below to log in
+323	Enter your email to receive a password reset link
+324	Entry date
+325	Estimated Value
+326	Evaluation Date
+327	Expected
+328	Expected date
+329	Expense created successfully.
+330	Expense date
+331	Expense deleted successfully.
+332	Expense updated successfully.
+333	Expenses
+334	Expires At
+335	Export
+336	Export CSV
+337	Export Excel
+338	Export PDF
+339	Failed Quantity
+340	Feedback
+341	Feedback Date
+342	Filter
+343	Filters
+344	Financial report created successfully.
+345	Financial report deleted successfully.
+346	Financial report updated successfully.
+347	Financial reports
+348	First name
+349	Fixed assets
+350	Fixed assets created successfully.
+351	Fixed assets deleted successfully.
+352	Fixed assets updated successfully.
+353	Floor plans
+354	Floor plans created successfully.
+355	Floor plans deleted successfully.
+356	Floor plans updated successfully.
+357	Follow-up date
+358	Forgot password
+359	Forgot your password?
+360	From Warehouse Id
+361	Generate a new financial report
+362	Generate and review profit, balance, and cash flow reports
+363	Gift cards
+364	Gift cards created successfully.
+365	Gift cards deleted successfully.
+366	Gift cards updated successfully.
+367	Give this passkey a name to help you identify it later.
+368	Gross
+369	Gross amount
+370	Height
+371	Hide recovery codes
+372	Hire date
+373	Hours
+374	IP address
+375	Inactive
+376	Initial Balance
+377	Inspection Date
+378	Interaction date
+379	Interaction type
+380	Inventory adjustment created successfully.
+381	Inventory adjustment deleted successfully.
+382	Inventory adjustment updated successfully.
+383	Inventory adjustments
+384	Invoice created successfully.
+385	Invoice date
+386	Invoice deleted successfully.
+387	Invoice updated successfully.
+388	Invoices
+389	Is Active
+390	Is Published
+391	JSON
+392	Job title
+393	Journal entries
+394	Journal entry created successfully.
+395	Journal entry deleted successfully.
+396	Journal entry updated successfully.
+397	Knowledge base
+398	Knowledge base created successfully.
+399	Knowledge base deleted successfully.
+400	Knowledge base updated successfully.
+401	Last name
+402	Last used :time
+403	Layout Data
+404	Lead management
+405	Lead management created successfully.
+406	Lead management deleted successfully.
+407	Lead management updated successfully.
+408	Leave Type
+409	Leave requests
+410	Leave requests created successfully.
+411	Leave requests deleted successfully.
+412	Leave requests updated successfully.
+413	Light
+414	Log Date
+415	Log a new customer interaction
+416	Log in
+417	Log in to your account
+418	Log out
+419	Low stock
+420	Loyalty programs
+421	Loyalty programs created successfully.
+422	Loyalty programs deleted successfully.
+423	Loyalty programs updated successfully.
+424	Maintenance Date
+425	Maintenance Type
+426	Manage Attendance
+427	Manage Bank reconciliation
+428	Manage Bill of materials
+429	Manage Branches
+430	Manage Budgeting
+431	Manage Campaigns
+432	Manage Contracts
+433	Manage Coupons
+434	Manage Customer feedback
+435	Manage Delivery trips
+436	Manage Fixed assets
+437	Manage Floor plans
+438	Manage Gift cards
+439	Manage Knowledge base
+440	Manage Lead management
+441	Manage Leave requests
+442	Manage Loyalty programs
+443	Manage Notification templates
+444	Manage Performance reviews
+445	Manage Price lists
+446	Manage Production orders
+447	Manage Project tasks
+448	Manage Quality control
+449	Manage Shift management
+450	Manage Shipping methods
+451	Manage Stock transfers
+452	Manage Subscriptions
+453	Manage Supplier evaluations
+454	Manage Tickets
+455	Manage Time logs
+456	Manage Variants
+457	Manage Vehicle maintenance
+458	Manage customer billing and receivables
+459	Manage customer orders and outgoing sales
+460	Manage customers and suppliers across your business
+461	Manage general ledger journal entries
+462	Manage products and inventory levels
+463	Manage staff records and employment details
+464	Manage storage locations and inventory hubs
+465	Manage supplier bills and payables
+466	Manage your passkeys for passwordless sign-in
+467	Manage your profile and account settings
+468	Manage your two-factor authentication settings
+469	Method
+470	Min. level
+471	Minimum stock level
+472	Model
+473	Name
+474	Net
+475	Net amount
+476	New
+477	New password
+478	Next
+479	No
+480	No CRM interactions found.
+481	No audit logs found.
+482	No bills found.
+483	No contacts found.
+484	No employees found.
+485	No expenses found.
+486	No financial reports found.
+487	No inventory adjustments found.
+488	No invoices found.
+489	No journal entries found.
+490	No passkeys yet
+491	No payments found.
+492	No payrolls found.
+493	No products found.
+494	No purchase orders found.
+495	No quotations found.
+496	No records found.
+497	No sale orders found.
+498	No tax rates found.
+499	No warehouses found.
+500	None
+501	Notes
+502	Notification templates
+503	Notification templates created successfully.
+504	Notification templates deleted successfully.
+505	Notification templates updated successfully.
+506	Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.
+507	Opening Balance
+508	Opening balance
+509	Or continue with email
+510	Or, return to
+511	Order date
+512	Overall Score
+513	Passed Quantity
+514	Passkey name
+515	Passkeys
+516	Passkeys are not supported in this browser.
+517	Password
+518	Password updated.
+519	Pay period
+520	Pay period end
+521	Pay period start
+522	Payment created successfully.
+523	Payment date
+524	Payment deleted successfully.
+525	Payment method
+526	Payment updated successfully.
+527	Payments
+528	Payroll created successfully.
+529	Payroll deleted successfully.
+530	Payroll updated successfully.
+531	Payrolls
+532	Performance reviews
+533	Performance reviews created successfully.
+534	Performance reviews deleted successfully.
+535	Performance reviews updated successfully.
+536	Period
+537	Period End
+538	Period Start
+539	Period end
+540	Period start
+541	Phone
+542	Plan Name
+543	Platform
+544	Please confirm access to your account by entering one of your emergency recovery codes.
+545	Please enter your new password below
+546	Please verify your email address by clicking on the link we just emailed to you.
+547	Points Per Currency
+548	Positive values indicate receivable (they owe you). Negative values indicate payable (you owe them).
+549	Previous
+550	Price Score
+551	Price lists
+552	Price lists created successfully.
+553	Price lists deleted successfully.
+554	Price lists updated successfully.
+555	Print
+556	Priority
+557	Process employee pay periods and compensation
+558	Product
+559	Product Id
+560	Product created successfully.
+561	Product deleted successfully.
+562	Product updated successfully.
+563	Production Order Id
+564	Production orders
+565	Production orders created successfully.
+566	Production orders deleted successfully.
+567	Production orders updated successfully.
+568	Products
+569	Profile
+570	Profile settings
+571	Profile updated.
+572	Project Task Id
+573	Project tasks
+574	Project tasks created successfully.
+575	Project tasks deleted successfully.
+576	Project tasks updated successfully.
+577	Purchase Cost
+578	Purchase Date
+579	Purchase Price
+580	Purchase order created successfully.
+581	Purchase order deleted successfully.
+582	Purchase order updated successfully.
+583	Purchase orders
+584	Purchase price
+585	Quality Score
+586	Quality control
+587	Quality control created successfully.
+588	Quality control deleted successfully.
+589	Quality control updated successfully.
+590	Quantity
+591	Quantity change
+592	Quotation created successfully.
+593	Quotation date
+594	Quotation deleted successfully.
+595	Quotation updated successfully.
+596	Quotations
+597	Rate
+598	Rating
+599	Reason
+600	Receipt
+601	Record ID
+602	Record a new business expense
+603	Record a new customer sale order
+604	Record a new employee payroll
+605	Record a new general ledger entry
+606	Record a new payment transaction
+607	Record a new sales invoice
+608	Record a new sales quotation
+609	Record a new supplier bill
+610	Record a new supplier purchase order
+611	Record a stock quantity adjustment
+612	Record and track business expenses
+613	Record incoming and outgoing payments
+614	Recovery code
+615	Recovery codes
+616	Recovery codes let you regain access if you lose your 2FA device. Store them in a secure password manager.
+617	Reference
+618	Reference Number
+619	Reference number
+620	Regenerate codes
+621	Register passkey
+622	Registering...
+623	Remember me
+624	Remove passkey
+625	Report type
+626	Repository
+627	Resend verification email
+628	Reset password
+629	Restored
+630	Revenue
+631	Review Date
+632	SKU
+633	SKU / Barcode
+634	Salary
+635	Sale Price
+636	Sale order
+637	Sale order created successfully.
+638	Sale order deleted successfully.
+639	Sale order updated successfully.
+640	Sale orders
+641	Sale price
+642	Save
+643	Save changes
+644	Search
+645	Search by employee number, name, email, department, or job title...
+646	Search by name, SKU, or description...
+647	Search by name, code, address, or phone...
+648	Search by name, code, or description...
+649	Search by name, company, email, phone, or tax number...
+650	Search by reference, category, description, or contact...
+651	Search by reference, contact, payment method, or notes...
+652	Search by reference, customer, or notes...
+653	Search by reference, description, or notes...
+654	Search by reference, employee, or notes...
+655	Search by reference, name, or notes...
+656	Search by reference, product, warehouse, reason, or notes...
+657	Search by reference, supplier, or notes...
+658	Search by subject, description, or contact...
+659	Search by user, action, or model...
+660	Search...
+661	Security
+662	Security settings
+663	Select
+664	Select contact
+665	Select customer
+666	Select employee
+667	Select product
+668	Select sale order
+669	Select supplier
+670	Select warehouse
+671	Settings
+672	Shift management
+673	Shift management created successfully.
+674	Shift management deleted successfully.
+675	Shift management updated successfully.
+676	Shipping Method Id
+677	Shipping methods
+678	Shipping methods created successfully.
+679	Shipping methods deleted successfully.
+680	Shipping methods updated successfully.
+681	Show low stock only
+682	Showing
+683	Sign in with a passkey
+684	Sku
+685	Slug
+686	Source
+687	Spent Amount
+688	Start Date
+689	Start Free Trial
+690	Start Time
+691	Statement Date
+692	Status
+693	Stock
+694	Stock Quantity
+695	Stock quantity
+696	Stock transfers
+697	Stock transfers created successfully.
+698	Stock transfers deleted successfully.
+699	Stock transfers updated successfully.
+700	Subject
+701	Subscriptions
+702	Subscriptions created successfully.
+703	Subscriptions deleted successfully.
+704	Subscriptions updated successfully.
+705	Supplier
+706	Supplier evaluations
+707	Supplier evaluations created successfully.
+708	Supplier evaluations deleted successfully.
+709	Supplier evaluations updated successfully.
+710	System
+711	Tax
+712	Tax amount
+713	Tax number
+714	Tax rate created successfully.
+715	Tax rate deleted successfully.
+716	Tax rate updated successfully.
+717	Tax rates
+718	Tickets
+719	Tickets created successfully.
+720	Tickets deleted successfully.
+721	Tickets updated successfully.
+722	Time logs
+723	Time logs created successfully.
+724	Time logs deleted successfully.
+725	Time logs updated successfully.
+726	Title
+727	To Warehouse Id
+728	To finish enabling two-factor authentication, scan the QR code or enter the setup key in your authenticator app.
+729	Total
+730	Total amount
+731	Total credit
+732	Total debit
+733	Total expenses
+734	Total revenue
+735	Track customer calls, emails, meetings, and notes
+736	Track stock corrections and quantity changes
+737	Track supplier orders and incoming inventory
+738	Transfer Date
+739	Trip Date
+740	Two-factor authentication
+741	Two-factor authentication enabled
+742	Two-factor authentication is now enabled. Scan the QR code or enter the setup key in your authenticator app.
+743	Type
+744	Unit
+745	Update CRM interaction details
+746	Update bill details
+747	Update customer or supplier details
+748	Update employee details
+749	Update expense details
+750	Update financial report details
+751	Update inventory adjustment details
+752	Update invoice details
+753	Update journal entry details
+754	Update password
+755	Update payment details
+756	Update payroll details
+757	Update product and inventory details
+758	Update purchase order details
+759	Update quotation details
+760	Update sale order details
+761	Update tax rate details
+762	Update the appearance settings for your account
+763	Update warehouse details
+764	Update your name and email address
+765	Updated
+766	Updated successfully.
+767	Usage Limit
+768	User
+769	Valid From
+770	Valid Until
+771	Valid until
+772	Value
+773	Variants
+774	Variants created successfully.
+775	Variants deleted successfully.
+776	Variants updated successfully.
+777	Vehicle Plate
+778	Vehicle maintenance
+779	Vehicle maintenance created successfully.
+780	Vehicle maintenance deleted successfully.
+781	Vehicle maintenance updated successfully.
+782	Verify authentication code
+783	View recovery codes
+784	View system activity and change history
+785	Warehouse
+786	Warehouse Id
+787	Warehouse created successfully.
+788	Warehouse deleted successfully.
+789	Warehouse updated successfully.
+790	Warehouses
+791	When you enable two-factor authentication, you will be prompted for a secure pin during login. This pin can be retrieved from a TOTP-supported application on your phone.
+792	Width
+793	Yes
+794	You will be prompted for a secure, random pin during login, which you can retrieve from the TOTP-supported application on your phone.
+795	Your email address is unverified.
+796	Contacted
+797	Qualified
+798	Converted
+799	Lost
+800	e.g., MacBook Pro, iPhone
+801	log in
+802	login using a recovery code
+803	login using an authentication code
+804	of
+805	or you can
+806	or, enter the code manually
+807	results
+808	to
