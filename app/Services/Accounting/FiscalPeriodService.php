@@ -6,6 +6,7 @@ use App\Enums\FiscalPeriodStatus;
 use App\Enums\FiscalYearStatus;
 use App\Models\FiscalPeriod;
 use App\Models\FiscalYear;
+use App\Models\JournalEntry;
 use App\Models\User;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
@@ -77,9 +78,102 @@ class FiscalPeriodService
         });
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function create(User $user, array $data): FiscalPeriod
+    {
+        $this->assertCanManage($user);
+        $this->assertValidDateRange($data);
+        $this->assertNoOverlap((int) $data['fiscal_year_id'], $data['starts_on'], $data['ends_on']);
+
+        $period = FiscalPeriod::query()->create([
+            'fiscal_year_id' => $data['fiscal_year_id'],
+            'name' => $data['name'],
+            'period_number' => $data['period_number'],
+            'starts_on' => $data['starts_on'],
+            'ends_on' => $data['ends_on'],
+            'status' => FiscalPeriodStatus::Open,
+        ]);
+
+        $this->audit->log('period.created', $period, $user);
+
+        return $period;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function update(FiscalPeriod $period, User $user, array $data): FiscalPeriod
+    {
+        $this->assertCanManage($user);
+
+        if ($period->status !== FiscalPeriodStatus::Open) {
+            throw ValidationException::withMessages([
+                'period' => [__('scf.accounting_engine.period_must_be_open_to_edit')],
+            ]);
+        }
+
+        $starts = $data['starts_on'] ?? $period->starts_on->toDateString();
+        $ends = $data['ends_on'] ?? $period->ends_on->toDateString();
+
+        $this->assertValidDateRange([
+            'starts_on' => $starts,
+            'ends_on' => $ends,
+        ]);
+        $this->assertNoOverlap(
+            (int) ($data['fiscal_year_id'] ?? $period->fiscal_year_id),
+            $starts,
+            $ends,
+            $period->id,
+        );
+
+        $period->update(collect($data)->only([
+            'fiscal_year_id',
+            'name',
+            'period_number',
+            'starts_on',
+            'ends_on',
+        ])->all());
+
+        $this->audit->log('period.updated', $period, $user);
+
+        return $period->refresh();
+    }
+
+    public function delete(FiscalPeriod $period, User $user): void
+    {
+        $this->assertCanManage($user);
+
+        if ($period->status !== FiscalPeriodStatus::Open) {
+            throw ValidationException::withMessages([
+                'period' => [__('scf.accounting_engine.period_must_be_open_to_delete')],
+            ]);
+        }
+
+        if (JournalEntry::query()->where('fiscal_period_id', $period->id)->exists()) {
+            throw ValidationException::withMessages([
+                'period' => [__('scf.accounting_engine.period_has_journals')],
+            ]);
+        }
+
+        $this->audit->log('period.deleted', $period, $user, [
+            'name' => $period->name,
+            'period_number' => $period->period_number,
+        ]);
+
+        $period->delete();
+    }
+
     public function closePeriod(FiscalPeriod $period, User $user): FiscalPeriod
     {
-        abort_unless($user->can('fiscal-periods.manage') || $user->hasAnyRole(['super-admin', 'owner']), 403);
+        $this->assertCanManage($user);
+
+        if ($period->status !== FiscalPeriodStatus::Open) {
+            throw ValidationException::withMessages([
+                'period' => [__('scf.accounting_engine.period_must_be_open_to_close')],
+            ]);
+        }
 
         $period->update([
             'status' => FiscalPeriodStatus::Closed,
@@ -92,9 +186,36 @@ class FiscalPeriodService
         return $period->refresh();
     }
 
+    public function lockPeriod(FiscalPeriod $period, User $user): FiscalPeriod
+    {
+        $this->assertCanManage($user);
+
+        if ($period->status !== FiscalPeriodStatus::Open) {
+            throw ValidationException::withMessages([
+                'period' => [__('scf.accounting_engine.period_must_be_open_to_lock')],
+            ]);
+        }
+
+        $period->update([
+            'status' => FiscalPeriodStatus::Locked,
+            'closed_by' => $user->id,
+            'closed_at' => now(),
+        ]);
+
+        $this->audit->log('period.locked', $period, $user);
+
+        return $period->refresh();
+    }
+
     public function reopenPeriod(FiscalPeriod $period, User $user): FiscalPeriod
     {
-        abort_unless($user->hasAnyRole(['super-admin', 'owner']), 403);
+        $this->assertCanManage($user);
+
+        if (! in_array($period->status, [FiscalPeriodStatus::Closed, FiscalPeriodStatus::Locked], true)) {
+            throw ValidationException::withMessages([
+                'period' => [__('scf.accounting_engine.period_must_be_closed_or_locked_to_reopen')],
+            ]);
+        }
 
         $period->update([
             'status' => FiscalPeriodStatus::Open,
@@ -105,5 +226,52 @@ class FiscalPeriodService
         $this->audit->log('period.reopened', $period, $user);
 
         return $period->refresh();
+    }
+
+    public function currentPeriod(?CarbonInterface $date = null): ?FiscalPeriod
+    {
+        $date ??= now();
+
+        return FiscalPeriod::query()
+            ->with('fiscalYear')
+            ->whereDate('starts_on', '<=', $date->toDateString())
+            ->whereDate('ends_on', '>=', $date->toDateString())
+            ->first();
+    }
+
+    protected function assertCanManage(User $user): void
+    {
+        abort_unless(
+            $user->can('fiscal-periods.manage') || $user->hasAnyRole(['super-admin', 'owner']),
+            403
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    protected function assertValidDateRange(array $data): void
+    {
+        if (strtotime((string) $data['ends_on']) < strtotime((string) $data['starts_on'])) {
+            throw ValidationException::withMessages([
+                'ends_on' => [__('scf.accounting_engine.period_invalid_dates')],
+            ]);
+        }
+    }
+
+    protected function assertNoOverlap(int $fiscalYearId, string $startsOn, string $endsOn, ?int $ignoreId = null): void
+    {
+        $overlap = FiscalPeriod::query()
+            ->where('fiscal_year_id', $fiscalYearId)
+            ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
+            ->whereDate('starts_on', '<=', $endsOn)
+            ->whereDate('ends_on', '>=', $startsOn)
+            ->exists();
+
+        if ($overlap) {
+            throw ValidationException::withMessages([
+                'starts_on' => [__('scf.accounting_engine.period_overlap')],
+            ]);
+        }
     }
 }

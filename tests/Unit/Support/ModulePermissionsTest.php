@@ -8,13 +8,17 @@ it('defines the expected erp actions', function () {
 
 it('generates a permission for every module and action', function () {
     $permissions = ModulePermissions::allPermissions();
+    $expected = count(ModulePermissions::MODULES) * count(ModulePermissions::ACTIONS)
+        + count(ModulePermissions::EXTRA_PERMISSIONS);
 
-    expect(count($permissions))->toBe(count(ModulePermissions::MODULES) * count(ModulePermissions::ACTIONS))
+    expect(count($permissions))->toBe($expected)
         ->and($permissions)->toContain('dashboard.read')
         ->and($permissions)->toContain('products.export')
         ->and($permissions)->toContain('invoices.print')
         ->and($permissions)->toContain('pos.create')
-        ->and($permissions)->toContain('users.approve');
+        ->and($permissions)->toContain('users.approve')
+        ->and($permissions)->toContain('journal-entries.post')
+        ->and($permissions)->toContain('fiscal-periods.manage');
 });
 
 it('returns unique permission names', function () {

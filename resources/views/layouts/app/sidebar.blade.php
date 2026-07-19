@@ -191,6 +191,16 @@
                             {{ __('scf.accounting_engine.coa_title') }}
                         </flux:sidebar.item>
                     @endif
+                    @if (Route::has('fiscal-periods.index') && \App\Support\Navigation::canAccessRoute('fiscal-periods.index'))
+                        <flux:sidebar.item icon="calendar-days" :href="route('fiscal-periods.index')" :current="request()->routeIs('fiscal-periods.*')" wire:navigate>
+                            {{ __('scf.accounting_engine.fiscal_periods_title') }}
+                        </flux:sidebar.item>
+                    @endif
+                    @if (Route::has('currencies.index') && \App\Support\Navigation::canAccessRoute('currencies.index'))
+                        <flux:sidebar.item icon="currency-dollar" :href="route('currencies.index')" :current="request()->routeIs('currencies.*')" wire:navigate>
+                            {{ __('scf.accounting_engine.currencies_title') }}
+                        </flux:sidebar.item>
+                    @endif
                     @if (Route::has('expenses.index') && \App\Support\Navigation::canAccessRoute('expenses.index'))
                         <flux:sidebar.item icon="banknotes" :href="route('expenses.index')" :current="request()->routeIs('expenses.*')" wire:navigate>
                             {{ __('scf.expenses') }}

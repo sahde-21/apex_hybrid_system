@@ -11,8 +11,23 @@ use App\Http\Controllers\TaxRateController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->prefix('accounting')->group(function () {
-    Route::middleware(['can:chart-of-accounts.read'])->group(function () {
-        Route::livewire('chart-of-accounts', 'pages::accounting.chart-of-accounts-index')->name('chart-of-accounts.index');
+    Route::middleware(['can:chart-of-accounts.read'])->name('chart-of-accounts.')->group(function () {
+        Route::livewire('chart-of-accounts', 'pages::accounting.chart-of-accounts-index')->name('index');
+        Route::livewire('chart-of-accounts/create', 'pages::accounting.chart-of-accounts-create')->middleware('can:chart-of-accounts.create')->name('create');
+        Route::livewire('chart-of-accounts/{account}/edit', 'pages::accounting.chart-of-accounts-edit')->middleware('can:chart-of-accounts.update')->name('edit');
+    });
+
+    Route::middleware(['can:fiscal-periods.read'])->name('fiscal-periods.')->group(function () {
+        Route::livewire('fiscal-periods', 'pages::accounting.fiscal-periods-index')->name('index');
+        Route::livewire('fiscal-periods/create', 'pages::accounting.fiscal-periods-create')->middleware('can:fiscal-periods.create')->name('create');
+        Route::livewire('fiscal-periods/{fiscalPeriod}/edit', 'pages::accounting.fiscal-periods-edit')->middleware('can:fiscal-periods.update')->name('edit');
+    });
+
+    Route::middleware(['can:currencies.read'])->name('currencies.')->group(function () {
+        Route::livewire('currencies', 'pages::accounting.currencies-index')->name('index');
+        Route::livewire('currencies/create', 'pages::accounting.currencies-create')->middleware('can:currencies.create')->name('create');
+        Route::livewire('currencies/{currency}/edit', 'pages::accounting.currencies-edit')->middleware('can:currencies.update')->name('edit');
+        Route::livewire('currencies/{currency}/rates', 'pages::accounting.currencies-rates')->middleware('can:currencies.update')->name('rates');
     });
 
     Route::middleware(['can:ledgers.read'])->group(function () {

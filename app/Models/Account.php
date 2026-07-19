@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
     'code',
@@ -24,12 +25,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'allow_manual_entry',
     'system_key',
     'description',
+    'opening_balance',
     'created_by',
     'updated_by',
 ])]
 class Account extends Model
 {
-    use Auditable, HasFactory;
+    use Auditable, HasFactory, SoftDeletes;
 
     /**
      * @return array<string, string>
@@ -42,6 +44,7 @@ class Account extends Model
             'is_active' => 'boolean',
             'is_system' => 'boolean',
             'allow_manual_entry' => 'boolean',
+            'opening_balance' => 'decimal:2',
         ];
     }
 

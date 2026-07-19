@@ -44,6 +44,8 @@ class Navigation
             str_starts_with($routeName, 'shifts.') => 'shift-management.read',
             str_starts_with($routeName, 'performance-reviews.') => 'performance-reviews.read',
             str_starts_with($routeName, 'chart-of-accounts.') => 'chart-of-accounts.read',
+            str_starts_with($routeName, 'fiscal-periods.') => 'fiscal-periods.read',
+            str_starts_with($routeName, 'currencies.') => 'currencies.read',
             str_starts_with($routeName, 'ledger.') => 'ledgers.read',
             str_starts_with($routeName, 'statements.') => 'financial-statements.read',
             str_starts_with($routeName, 'expenses.') => 'expenses.read',

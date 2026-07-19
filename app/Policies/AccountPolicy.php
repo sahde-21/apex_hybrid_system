@@ -31,4 +31,14 @@ class AccountPolicy
     {
         return $user->can('chart-of-accounts.delete') && ! $account->is_system;
     }
+
+    public function restore(User $user, Account $account): bool
+    {
+        return $user->can('chart-of-accounts.update') && $account->trashed();
+    }
+
+    public function forceDelete(User $user, Account $account): bool
+    {
+        return $user->can('chart-of-accounts.delete') && ! $account->is_system;
+    }
 }
