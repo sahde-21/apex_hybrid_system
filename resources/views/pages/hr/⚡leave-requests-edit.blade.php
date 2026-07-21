@@ -22,6 +22,7 @@ new #[Title('Edit Leave requests')] class extends Component {
 
     public function mount(LeaveRequest $leaveRequest): void
     {
+        $this->authorize('update', $leaveRequest);
         $this->leaveRequest = $leaveRequest;
         $this->employee_id = $leaveRequest->employee_id;
         $this->leave_type = $leaveRequest->leave_type ?? '';
@@ -40,12 +41,14 @@ new #[Title('Edit Leave requests')] class extends Component {
     public function save(): void
     {
         $validated = $this->validate($this->leaveRequestUpdateRules($this->leaveRequest->id));
+        unset($validated['status']);
+        $validated['status'] = $this->leaveRequest->status;
 
         $this->leaveRequest->update($validated);
 
         Flux::toast(variant: 'success', text: __('Leave requests updated successfully.'));
 
-        $this->redirect(route('leave-requests.index'), navigate: true);
+        $this->redirect(route('leave-requests.show', $this->leaveRequest), navigate: true);
     }
 }; ?>
 
@@ -64,16 +67,15 @@ new #[Title('Edit Leave requests')] class extends Component {
         <flux:input wire:model="leave_type" :label="__('Leave Type')" required />
         <flux:input wire:model="start_date" type="date" :label="__('Start Date')" required />
         <flux:input wire:model="end_date" type="date" :label="__('End Date')" required />
-        <flux:select wire:model="status" :label="__('Status')">
-            @foreach (LeaveRequestStatus::options() as $value => $label)
-                <flux:select.option :value="$value">{{ $label }}</flux:select.option>
-            @endforeach
-        </flux:select>
+        <div>
+            <flux:text class="mb-1 text-sm text-zinc-500">{{ __('Status') }}</flux:text>
+            <x-workflow.status-badge :label="$leaveRequest->status->label()" :color="$leaveRequest->status->color()" />
+        </div>
         <flux:textarea wire:model="reason" :label="__('Reason')" />
 
         <div class="flex gap-2">
             <flux:button type="submit" variant="primary">{{ __('Save changes') }}</flux:button>
-            <flux:button :href="route('leave-requests.index')" variant="ghost" wire:navigate>{{ __('Cancel') }}</flux:button>
+            <flux:button :href="route('leave-requests.show', $leaveRequest)" variant="ghost" wire:navigate>{{ __('Cancel') }}</flux:button>
         </div>
     </form>
 </section>

@@ -54,6 +54,11 @@ new #[Title('Bills')] class extends Component {
 
     public function confirmDelete(int $billId): void
     {
+        $model = Bill::query()->findOrFail($billId);
+        if (! $model->status->isEditable()) {
+            Flux::toast(variant: 'danger', text: __('scf.purchase_workflow.immutable_posted'));
+            return;
+        }
         $this->billToDelete = $billId;
         $this->showDeleteModal = true;
     }
@@ -65,11 +70,7 @@ new #[Title('Bills')] class extends Component {
         }
 
         $model = Bill::query()->findOrFail($this->billToDelete);
-
-
         $this->authorize('delete', $model);
-
-
         $model->delete();
 
         $this->billToDelete = null;
@@ -117,7 +118,15 @@ new #[Title('Bills')] class extends Component {
             <flux:table.rows>
                 @forelse ($this->bills as $bill)
                     <flux:table.row wire:key="bill-{{ $bill->id }}">
-                        <flux:table.cell class="font-medium">{{ $bill->reference_number }}</flux:table.cell>
+                        <flux:table.cell class="font-medium">
+                            @if (Route::has('bills.show'))
+                                <a href="{{ route('bills.show', $bill) }}" wire:navigate class="hover:underline">
+                                    {{ $bill->reference_number }}
+                                </a>
+                            @else
+                                {{ $bill->reference_number }}
+                            @endif
+                        </flux:table.cell>
                         <flux:table.cell>{{ $bill->contact?->name ?? '—' }}</flux:table.cell>
                         <flux:table.cell>{{ $bill->bill_date->format('Y-m-d') }}</flux:table.cell>
                         <flux:table.cell>{{ $bill->due_date?->format('Y-m-d') ?? '—' }}</flux:table.cell>
@@ -128,24 +137,19 @@ new #[Title('Bills')] class extends Component {
                         <flux:table.cell>
                             <div class="flex items-center gap-2">
                                 <x-print-button type="bill" :id="$bill->id" />
-                                
-@can('update', $bill)
-                                <flux:button
-                                    size="sm"
-                                    variant="ghost"
-                                    icon="pencil-square"
-                                    :href="route('bills.edit', $bill)"
-                                    wire:navigate
-                                />
-                                
-@endcan
+                                @if (Route::has('bills.show'))
+                                    <flux:button size="sm" variant="ghost" icon="eye"
+                                        :href="route('bills.show', $bill)" wire:navigate />
+                                @endif
+                                @can('update', $bill)
+                                    @if ($bill->status->isEditable())
+                                        <flux:button size="sm" variant="ghost" icon="pencil-square"
+                                            :href="route('bills.edit', $bill)" wire:navigate />
+                                    @endif
+                                @endcan
                                 @can('delete', $bill)
-                                <flux:button
-                                    size="sm"
-                                    variant="ghost"
-                                    icon="trash"
-                                    wire:click="confirmDelete({{ $bill->id }})"
-                                />
+                                    <flux:button size="sm" variant="ghost" icon="trash"
+                                        wire:click="confirmDelete({{ $bill->id }})" />
                                 @endcan
                             </div>
                         </flux:table.cell>

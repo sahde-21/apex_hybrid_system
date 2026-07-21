@@ -19,6 +19,8 @@ class Navigation
             str_starts_with($routeName, 'quotations.') => 'quotations.read',
             str_starts_with($routeName, 'invoices.') => 'invoices.read',
             str_starts_with($routeName, 'purchase-orders.') => 'purchase-orders.read',
+            str_starts_with($routeName, 'purchase-requests.') => 'purchase-requests.read',
+            str_starts_with($routeName, 'rfqs.') => 'rfqs.read',
             str_starts_with($routeName, 'bills.') => 'bills.read',
             str_starts_with($routeName, 'supplier-evaluations.') => 'supplier-evaluations.read',
             str_starts_with($routeName, 'products.') => 'products.read',
@@ -73,6 +75,7 @@ class Navigation
             str_starts_with($routeName, 'analytics.') => 'analytics.read',
             str_starts_with($routeName, 'documents.') => 'documents.read',
             str_starts_with($routeName, 'audit-logs.') => 'audit-logs.read',
+            str_starts_with($routeName, 'activities.') => 'activities.read',
             str_starts_with($routeName, 'contacts.') => 'contacts.read',
             default => null,
         };

@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Concerns\Auditable;
+use App\Concerns\HasWorkflow;
+use App\Contracts\Workflow\Workflowable;
 use App\Enums\LeaveRequestStatus;
 use Database\Factories\LeaveRequestFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -36,10 +38,10 @@ use Illuminate\Support\Carbon;
     'created_by',
     'updated_by',
 ])]
-class LeaveRequest extends Model
+class LeaveRequest extends Model implements Workflowable
 {
     /** @use HasFactory<LeaveRequestFactory> */
-    use Auditable, HasFactory, SoftDeletes;
+    use Auditable, HasFactory, HasWorkflow, SoftDeletes;
 
     /**
      * @return array<string, string>
@@ -51,6 +53,11 @@ class LeaveRequest extends Model
             'end_date' => 'date',
             'status' => LeaveRequestStatus::class,
         ];
+    }
+
+    public function workflowDefinitionKey(): string
+    {
+        return 'leave-requests';
     }
 
     /**

@@ -54,6 +54,11 @@ new #[Title('Purchase orders')] class extends Component {
 
     public function confirmDelete(int $purchaseOrderId): void
     {
+        $model = PurchaseOrder::query()->findOrFail($purchaseOrderId);
+        if (! $model->status->isEditable()) {
+            Flux::toast(variant: 'danger', text: __('scf.purchase_workflow.immutable_posted'));
+            return;
+        }
         $this->purchaseOrderToDelete = $purchaseOrderId;
         $this->showDeleteModal = true;
     }
@@ -65,11 +70,7 @@ new #[Title('Purchase orders')] class extends Component {
         }
 
         $model = PurchaseOrder::query()->findOrFail($this->purchaseOrderToDelete);
-
-
         $this->authorize('delete', $model);
-
-
         $model->delete();
 
         $this->purchaseOrderToDelete = null;
@@ -117,7 +118,15 @@ new #[Title('Purchase orders')] class extends Component {
             <flux:table.rows>
                 @forelse ($this->purchaseOrders as $purchaseOrder)
                     <flux:table.row wire:key="purchase-order-{{ $purchaseOrder->id }}">
-                        <flux:table.cell class="font-medium">{{ $purchaseOrder->reference_number }}</flux:table.cell>
+                        <flux:table.cell class="font-medium">
+                            @if (Route::has('purchase-orders.show'))
+                                <a href="{{ route('purchase-orders.show', $purchaseOrder) }}" wire:navigate class="hover:underline">
+                                    {{ $purchaseOrder->reference_number }}
+                                </a>
+                            @else
+                                {{ $purchaseOrder->reference_number }}
+                            @endif
+                        </flux:table.cell>
                         <flux:table.cell>{{ $purchaseOrder->contact?->name ?? '—' }}</flux:table.cell>
                         <flux:table.cell>{{ $purchaseOrder->warehouse?->name ?? '—' }}</flux:table.cell>
                         <flux:table.cell>{{ $purchaseOrder->order_date->format('Y-m-d') }}</flux:table.cell>
@@ -128,24 +137,19 @@ new #[Title('Purchase orders')] class extends Component {
                         <flux:table.cell>
                             <div class="flex items-center gap-2">
                                 <x-print-button type="purchase-order" :id="$purchaseOrder->id" />
-                                
-@can('update', $purchaseOrder)
-                                <flux:button
-                                    size="sm"
-                                    variant="ghost"
-                                    icon="pencil-square"
-                                    :href="route('purchase-orders.edit', $purchaseOrder)"
-                                    wire:navigate
-                                />
-                                
-@endcan
+                                @if (Route::has('purchase-orders.show'))
+                                    <flux:button size="sm" variant="ghost" icon="eye"
+                                        :href="route('purchase-orders.show', $purchaseOrder)" wire:navigate />
+                                @endif
+                                @can('update', $purchaseOrder)
+                                    @if ($purchaseOrder->status->isEditable())
+                                        <flux:button size="sm" variant="ghost" icon="pencil-square"
+                                            :href="route('purchase-orders.edit', $purchaseOrder)" wire:navigate />
+                                    @endif
+                                @endcan
                                 @can('delete', $purchaseOrder)
-                                <flux:button
-                                    size="sm"
-                                    variant="ghost"
-                                    icon="trash"
-                                    wire:click="confirmDelete({{ $purchaseOrder->id }})"
-                                />
+                                    <flux:button size="sm" variant="ghost" icon="trash"
+                                        wire:click="confirmDelete({{ $purchaseOrder->id }})" />
                                 @endcan
                             </div>
                         </flux:table.cell>

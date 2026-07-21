@@ -16,4 +16,19 @@ class AuditLogPolicy
     {
         return $user->can('audit-logs.read');
     }
+
+    public function create(User $user): bool
+    {
+        return false;
+    }
+
+    public function update(User $user, AuditLog $auditLog): bool
+    {
+        return false;
+    }
+
+    public function delete(User $user, AuditLog $auditLog): bool
+    {
+        return false;
+    }
 }

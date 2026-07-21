@@ -15,13 +15,14 @@ new #[Title('Create Leave requests')] class extends Component {
     public string $leave_type = '';
     public string $start_date = '';
     public string $end_date = '';
-    public string $status = 'pending';
+    public string $status = 'draft';
     public string $reason = '';
 
     public function mount(): void
     {
         $this->start_date = now()->format('Y-m-d');
         $this->end_date = now()->format('Y-m-d');
+        $this->status = LeaveRequestStatus::Draft->value;
     }
 
     #[Computed]
@@ -33,12 +34,13 @@ new #[Title('Create Leave requests')] class extends Component {
     public function save(): void
     {
         $validated = $this->validate($this->leaveRequestRules());
+        $validated['status'] = LeaveRequestStatus::Draft;
 
-        LeaveRequest::query()->create($validated);
+        $leaveRequest = LeaveRequest::query()->create($validated);
 
         Flux::toast(variant: 'success', text: __('Leave requests created successfully.'));
 
-        $this->redirect(route('leave-requests.index'), navigate: true);
+        $this->redirect(route('leave-requests.show', $leaveRequest), navigate: true);
     }
 }; ?>
 
@@ -57,11 +59,7 @@ new #[Title('Create Leave requests')] class extends Component {
         <flux:input wire:model="leave_type" :label="__('Leave Type')" required />
         <flux:input wire:model="start_date" type="date" :label="__('Start Date')" required />
         <flux:input wire:model="end_date" type="date" :label="__('End Date')" required />
-        <flux:select wire:model="status" :label="__('Status')">
-            @foreach (LeaveRequestStatus::options() as $value => $label)
-                <flux:select.option :value="$value">{{ $label }}</flux:select.option>
-            @endforeach
-        </flux:select>
+        <input type="hidden" wire:model="status" value="draft" />
         <flux:textarea wire:model="reason" :label="__('Reason')" />
 
         <div class="flex gap-2">

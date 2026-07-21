@@ -46,7 +46,12 @@ Route::middleware(['auth', 'verified'])->prefix('administration')->group(functio
         Route::livewire('notifications', 'pages::administration.notifications-index')->name('index');
     });
 
+    Route::middleware(['can:activities.read'])->name('activities.')->group(function () {
+        Route::livewire('activities', 'pages::administration.activities-index')->name('index');
+    });
+
     Route::middleware(['can:audit-logs.read'])->name('audit-logs.')->group(function () {
         Route::livewire('audit-logs', 'pages::administration.audit-logs-index')->name('index');
+        Route::livewire('audit-logs/{auditLog}', 'pages::administration.audit-logs-show')->name('show');
     });
 });

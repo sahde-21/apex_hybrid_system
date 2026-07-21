@@ -24,8 +24,18 @@ class LeaveRequestFactory extends Factory
             'leave_type' => 'general',
             'start_date' => fake()->date(),
             'end_date' => fake()->date(),
-            'status' => fake()->randomElement(array_column(LeaveRequestStatus::cases(), 'value')),
+            'status' => LeaveRequestStatus::Draft,
             'reason' => fake()->paragraph(),
         ];
+    }
+
+    public function pending(): static
+    {
+        return $this->state(fn () => ['status' => LeaveRequestStatus::Pending]);
+    }
+
+    public function approved(): static
+    {
+        return $this->state(fn () => ['status' => LeaveRequestStatus::Approved]);
     }
 }

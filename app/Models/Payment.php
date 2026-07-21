@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
     'reference_number',
     'contact_id',
     'invoice_id',
+    'bill_id',
     'gift_card_id',
     'payment_date',
     'amount',
@@ -58,6 +59,11 @@ class Payment extends Model
     public function invoice(): BelongsTo
     {
         return $this->belongsTo(Invoice::class);
+    }
+
+    public function bill(): BelongsTo
+    {
+        return $this->belongsTo(Bill::class);
     }
 
     public function giftCard(): BelongsTo

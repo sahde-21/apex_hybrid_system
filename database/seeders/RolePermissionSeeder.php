@@ -58,7 +58,34 @@ class RolePermissionSeeder extends Seeder
                 'quotations.approve',
                 'invoices.approve',
             ])),
-            'hr' => $this->prefixPermissions(['employees', 'payrolls', 'attendance', 'leave-requests', 'shift-management', 'performance-reviews', 'documents']),
+            'hr' => array_values(array_unique([
+                ...$this->prefixPermissions(['employees', 'payrolls', 'attendance', 'leave-requests', 'shift-management', 'performance-reviews', 'documents']),
+                'leave-requests.approve',
+                'leave-requests.delete',
+                'workflow.submit',
+                'workflow.approve',
+                'workflow.reject',
+                'workflow.cancel',
+                'workflow.reopen',
+                'workflow.archive',
+            ])),
+            'purchasing' => array_values(array_unique([
+                ...$this->prefixPermissions(['purchase-orders', 'purchase-requests', 'rfqs', 'bills', 'supplier-evaluations', 'contacts', 'documents', 'payments']),
+                'purchase-requests.submit',
+                'purchase-requests.convert',
+                'purchase-requests.approve',
+                'rfqs.send',
+                'rfqs.accept',
+                'rfqs.approve',
+                'purchase-orders.submit',
+                'purchase-orders.confirm',
+                'purchase-orders.approve',
+                'purchase-orders.bill',
+                'bills.issue',
+                'bills.approve',
+                'payments.record',
+                'payments.post',
+            ])),
             'accountant' => array_values(array_unique([
                 ...$this->prefixPermissions(['expenses', 'journal-entries', 'payments', 'tax-rates', 'financial-reports', 'fixed-assets', 'budgeting', 'bank-reconciliation', 'bills', 'invoices', 'documents', 'chart-of-accounts', 'ledgers', 'financial-statements', 'fiscal-periods', 'currencies']),
                 'journal-entries.approve',
@@ -67,13 +94,37 @@ class RolePermissionSeeder extends Seeder
                 'fiscal-periods.manage',
                 'invoices.issue',
                 'invoices.void',
+                'bills.issue',
+                'bills.void',
                 'payments.record',
                 'payments.post',
                 'payments.reverse',
             ])),
-            'purchasing' => $this->prefixPermissions(['purchase-orders', 'bills', 'supplier-evaluations', 'contacts', 'documents']),
             'customer-support' => $this->prefixPermissions(['tickets', 'knowledge-base', 'crm-interactions', 'contacts', 'customer-feedback', 'documents']),
         ];
+
+        $activityExtras = [
+            'activities.comment',
+            'activities.edit_own',
+            'activities.delete_own',
+        ];
+
+        foreach (['manager', 'sales', 'purchasing', 'accountant', 'hr', 'cashier'] as $roleName) {
+            if (isset($roleMap[$roleName])) {
+                $roleMap[$roleName] = array_values(array_unique([
+                    ...$roleMap[$roleName],
+                    ...$this->prefixPermissions(['activities']),
+                    ...$activityExtras,
+                    'activities.internal_note',
+                ]));
+            }
+        }
+
+        $roleMap['manager'] = array_values(array_unique([
+            ...$roleMap['manager'],
+            'activities.view_all',
+            'activities.manage',
+        ]));
 
         foreach ($roleMap as $roleName => $permissions) {
             $role = Role::findOrCreate($roleName, 'web');

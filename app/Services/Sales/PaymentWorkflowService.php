@@ -2,15 +2,18 @@
 
 namespace App\Services\Sales;
 
+use App\Enums\BillStatus;
 use App\Enums\InvoiceStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\PaymentType;
 use App\Models\AccountingPosting;
+use App\Models\Bill;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\User;
 use App\Services\Accounting\AutoPostingService;
 use App\Services\Accounting\JournalEngineService;
+use App\Services\Purchasing\BillWorkflowService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -21,6 +24,7 @@ class PaymentWorkflowService
         protected InvoiceWorkflowService $invoices,
         protected AutoPostingService $posting,
         protected JournalEngineService $journals,
+        protected BillWorkflowService $bills,
     ) {}
 
     /**
@@ -38,22 +42,30 @@ class PaymentWorkflowService
                 $this->assertInvoicePayable($invoice, (float) $data['amount']);
             }
 
+            $bill = null;
+            if (! empty($data['bill_id'])) {
+                /** @var Bill $bill */
+                $bill = Bill::query()->whereKey($data['bill_id'])->lockForUpdate()->firstOrFail();
+                $this->assertBillPayable($bill, (float) $data['amount']);
+            }
+
             $payment = Payment::query()->create([
                 'reference_number' => $data['reference_number'],
-                'contact_id' => $data['contact_id'] ?? $invoice?->contact_id,
+                'contact_id' => $data['contact_id'] ?? $invoice?->contact_id ?? $bill?->contact_id,
                 'invoice_id' => $invoice?->id,
+                'bill_id' => $bill?->id,
                 'payment_date' => $data['payment_date'],
                 'amount' => $data['amount'],
-                'type' => $data['type'] ?? PaymentType::Incoming->value,
+                'type' => $data['type'] ?? ($bill ? PaymentType::Outgoing->value : PaymentType::Incoming->value),
                 'status' => PaymentStatus::Draft,
                 'payment_method' => $data['payment_method'] ?? null,
                 'account_label' => $data['account_label'] ?? null,
                 'notes' => $data['notes'] ?? null,
             ]);
 
-            $this->events->log($payment, 'created', $user, null, PaymentStatus::Draft->value, null, (float) $payment->amount, $invoice);
+            $this->events->log($payment, 'created', $user, null, PaymentStatus::Draft->value, null, (float) $payment->amount, $invoice ?? $bill);
 
-            return $payment->fresh(['invoice', 'contact']);
+            return $payment->fresh(['invoice', 'bill', 'contact']);
         });
     }
 
@@ -78,6 +90,11 @@ class PaymentWorkflowService
                 $this->assertInvoicePayable($invoice, (float) $locked->amount);
             }
 
+            if ($locked->bill_id) {
+                $bill = Bill::query()->lockForUpdate()->findOrFail($locked->bill_id);
+                $this->assertBillPayable($bill, (float) $locked->amount);
+            }
+
             $from = $locked->status->value;
             $locked->update([
                 'status' => PaymentStatus::Posted,
@@ -95,9 +112,13 @@ class PaymentWorkflowService
                 $this->invoices->refreshPaymentStatus(Invoice::query()->findOrFail($locked->invoice_id));
             }
 
-            $this->events->log($locked, 'posted', $user, $from, PaymentStatus::Posted->value, null, (float) $locked->amount, $locked->invoice);
+            if ($locked->bill_id) {
+                $this->bills->refreshPaymentStatus(Bill::query()->findOrFail($locked->bill_id));
+            }
 
-            return $locked->fresh(['invoice', 'contact']);
+            $this->events->log($locked, 'posted', $user, $from, PaymentStatus::Posted->value, null, (float) $locked->amount, $locked->invoice ?? $locked->bill);
+
+            return $locked->fresh(['invoice', 'bill', 'contact']);
         });
     }
 
@@ -121,6 +142,7 @@ class PaymentWorkflowService
                 'reference_number' => $locked->reference_number.'-REV',
                 'contact_id' => $locked->contact_id,
                 'invoice_id' => $locked->invoice_id,
+                'bill_id' => $locked->bill_id,
                 'payment_date' => now()->toDateString(),
                 'amount' => $locked->amount,
                 'type' => $locked->type === PaymentType::Incoming ? PaymentType::Outgoing : PaymentType::Incoming,
@@ -155,9 +177,13 @@ class PaymentWorkflowService
                 $this->invoices->refreshPaymentStatus(Invoice::query()->findOrFail($locked->invoice_id));
             }
 
+            if ($locked->bill_id) {
+                $this->bills->refreshPaymentStatus(Bill::query()->findOrFail($locked->bill_id));
+            }
+
             $this->events->log($locked, 'reversed', $user, $from, PaymentStatus::Reversed->value, $reason, (float) $locked->amount, $reversal);
 
-            return $locked->fresh(['invoice', 'contact']);
+            return $locked->fresh(['invoice', 'bill', 'contact']);
         });
     }
 
@@ -213,6 +239,41 @@ class PaymentWorkflowService
         if ($amount - $balance > 0.01) {
             throw ValidationException::withMessages([
                 'amount' => [__('scf.sales_workflow.overpayment_blocked')],
+            ]);
+        }
+    }
+
+    protected function assertBillPayable(Bill $bill, float $amount): void
+    {
+        if ($bill->status === BillStatus::Draft) {
+            throw ValidationException::withMessages([
+                'bill_id' => [__('scf.purchase_workflow.bill_must_be_issued')],
+            ]);
+        }
+
+        if (in_array($bill->status, [BillStatus::Void, BillStatus::Cancelled], true)) {
+            throw ValidationException::withMessages([
+                'bill_id' => [__('scf.purchase_workflow.bill_not_payable')],
+            ]);
+        }
+
+        if ($bill->status === BillStatus::Paid) {
+            throw ValidationException::withMessages([
+                'amount' => [__('scf.purchase_workflow.overpayment_blocked')],
+            ]);
+        }
+
+        if (! $bill->status->isPosted()) {
+            throw ValidationException::withMessages([
+                'bill_id' => [__('scf.purchase_workflow.bill_not_payable')],
+            ]);
+        }
+
+        $balance = max(0, round((float) $bill->total_amount - (float) $bill->paid_amount, 2));
+
+        if ($amount - $balance > 0.01) {
+            throw ValidationException::withMessages([
+                'amount' => [__('scf.purchase_workflow.overpayment_blocked')],
             ]);
         }
     }

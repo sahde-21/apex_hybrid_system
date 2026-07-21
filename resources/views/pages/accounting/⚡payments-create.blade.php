@@ -1,7 +1,9 @@
 <?php
 
+use App\Enums\BillStatus;
 use App\Enums\InvoiceStatus;
 use App\Enums\PaymentType;
+use App\Models\Bill;
 use App\Models\Contact;
 use App\Models\Invoice;
 use App\Services\Sales\PaymentWorkflowService;
@@ -15,6 +17,7 @@ new #[Title('Create payment')] class extends Component {
     public string $reference_number = '';
     public ?int $contact_id = null;
     public ?int $invoice_id = null;
+    public ?int $bill_id = null;
     public string $payment_date = '';
     public string $amount = '0';
     public string $type = 'incoming';
@@ -50,6 +53,22 @@ new #[Title('Create payment')] class extends Component {
             ->get();
     }
 
+    /** @return \Illuminate\Database\Eloquent\Collection<int, Bill> */
+    #[Computed]
+    public function openBills()
+    {
+        return Bill::query()
+            ->whereIn('status', [
+                BillStatus::Received->value,
+                BillStatus::PartiallyPaid->value,
+                BillStatus::Overdue->value,
+            ])
+            ->with('contact')
+            ->orderBy('bill_date', 'desc')
+            ->limit(200)
+            ->get();
+    }
+
     public function updatedInvoiceId($value): void
     {
         if ($value) {
@@ -58,8 +77,29 @@ new #[Title('Create payment')] class extends Component {
                 $this->contact_id = $invoice->contact_id;
                 $balance = max(0, round((float) $invoice->total_amount - (float) $invoice->paid_amount, 2));
                 $this->amount = (string) $balance;
+                $this->bill_id = null;
             }
         }
+    }
+
+    public function updatedBillId($value): void
+    {
+        if ($value) {
+            $bill = Bill::find($value);
+            if ($bill) {
+                $this->contact_id = $bill->contact_id;
+                $balance = max(0, round((float) $bill->total_amount - (float) $bill->paid_amount, 2));
+                $this->amount = (string) $balance;
+                $this->invoice_id = null;
+            }
+        }
+    }
+
+    public function updatedType(): void
+    {
+        // Reset document links when type changes
+        $this->invoice_id = null;
+        $this->bill_id = null;
     }
 
     public function save(): void
@@ -68,6 +108,7 @@ new #[Title('Create payment')] class extends Component {
             'reference_number' => 'required|string|max:255',
             'contact_id' => 'nullable|integer|exists:contacts,id',
             'invoice_id' => 'nullable|integer|exists:invoices,id',
+            'bill_id' => 'nullable|integer|exists:bills,id',
             'payment_date' => 'required|date',
             'amount' => 'required|numeric|min:0.01',
             'type' => 'required|in:incoming,outgoing',
@@ -81,6 +122,7 @@ new #[Title('Create payment')] class extends Component {
                 'reference_number' => $this->reference_number,
                 'contact_id' => $this->contact_id,
                 'invoice_id' => $this->invoice_id,
+                'bill_id' => $this->bill_id,
                 'payment_date' => $this->payment_date,
                 'amount' => $this->amount,
                 'type' => $this->type,
@@ -110,7 +152,7 @@ new #[Title('Create payment')] class extends Component {
         <div class="scf-card grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <flux:input wire:model="reference_number" :label="__('Reference number')" required />
 
-            <flux:select wire:model="type" :label="__('Type')">
+            <flux:select wire:model.live="type" :label="__('Type')">
                 @foreach (PaymentType::options() as $value => $label)
                     <flux:select.option :value="$value">{{ $label }}</flux:select.option>
                 @endforeach
@@ -118,7 +160,7 @@ new #[Title('Create payment')] class extends Component {
 
             <flux:input wire:model="payment_date" type="date" :label="__('Payment date')" required />
 
-            {{-- Invoice select (for incoming payments) --}}
+            {{-- Invoice / Bill select based on payment type --}}
             @if ($type === 'incoming')
                 <flux:select wire:model.live="invoice_id" :label="__('Invoice (open)')" :placeholder="__('None — standalone payment')">
                     <flux:select.option value="">{{ __('None') }}</flux:select.option>
@@ -126,6 +168,16 @@ new #[Title('Create payment')] class extends Component {
                         <flux:select.option :value="$inv->id">
                             {{ $inv->reference_number }} — {{ $inv->contact?->name ?? '—' }}
                             ({{ __('Balance') }}: {{ number_format(max(0, (float) $inv->total_amount - (float) $inv->paid_amount), 2) }})
+                        </flux:select.option>
+                    @endforeach
+                </flux:select>
+            @else
+                <flux:select wire:model.live="bill_id" :label="__('Bill (open)')" :placeholder="__('None — standalone payment')">
+                    <flux:select.option value="">{{ __('None') }}</flux:select.option>
+                    @foreach ($this->openBills as $bill)
+                        <flux:select.option :value="$bill->id">
+                            {{ $bill->reference_number }} — {{ $bill->contact?->name ?? '—' }}
+                            ({{ __('Balance') }}: {{ number_format(max(0, (float) $bill->total_amount - (float) $bill->paid_amount), 2) }})
                         </flux:select.option>
                     @endforeach
                 </flux:select>

@@ -15,14 +15,14 @@ trait Auditable
     {
         static::creating(function (Model $model): void {
             $userId = static::staffUserId();
-            if ($model->isFillable('created_by') && $userId) {
+            if (in_array('created_by', $model->getFillable(), true) && $userId) {
                 $model->created_by = $userId;
             }
         });
 
         static::updating(function (Model $model): void {
             $userId = static::staffUserId();
-            if ($model->isFillable('updated_by') && $userId) {
+            if (in_array('updated_by', $model->getFillable(), true) && $userId) {
                 $model->updated_by = $userId;
             }
         });

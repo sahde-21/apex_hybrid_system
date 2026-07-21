@@ -18,6 +18,8 @@ require __DIR__.'/inventory.php';
 require __DIR__.'/warehouses.php';
 require __DIR__.'/contacts.php';
 require __DIR__.'/purchase_orders.php';
+require __DIR__.'/purchase_requests.php';
+require __DIR__.'/rfqs.php';
 require __DIR__.'/sale_orders.php';
 require __DIR__.'/sales_documents.php';
 require __DIR__.'/purchasing_documents.php';

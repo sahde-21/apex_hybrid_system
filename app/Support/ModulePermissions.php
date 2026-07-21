@@ -39,6 +39,8 @@ class ModulePermissions
         'variants',
         'price-lists',
         'purchase-orders',
+        'purchase-requests',
+        'rfqs',
         'bills',
         'supplier-evaluations',
         'sale-orders',
@@ -93,6 +95,7 @@ class ModulePermissions
         'currencies',
         'users',
         'settings',
+        'activities',
     ];
 
     /** @var array<int, string> */
@@ -111,6 +114,27 @@ class ModulePermissions
         'payments.record',
         'payments.post',
         'payments.reverse',
+        'purchase-requests.submit',
+        'purchase-requests.convert',
+        'rfqs.send',
+        'rfqs.accept',
+        'purchase-orders.submit',
+        'purchase-orders.confirm',
+        'purchase-orders.bill',
+        'bills.issue',
+        'bills.void',
+        'workflow.submit',
+        'workflow.approve',
+        'workflow.reject',
+        'workflow.cancel',
+        'workflow.reopen',
+        'workflow.archive',
+        'activities.view_all',
+        'activities.comment',
+        'activities.internal_note',
+        'activities.edit_own',
+        'activities.delete_own',
+        'activities.manage',
     ];
 
     /**

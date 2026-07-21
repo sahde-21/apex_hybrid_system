@@ -121,7 +121,10 @@ new #[Title('Leave requests')] class extends Component {
                         <flux:table.cell>{{ $leaveRequest->end_date?->format('Y-m-d') ?? '—' }}</flux:table.cell>
                         <flux:table.cell>
                             <div class="flex items-center gap-2">
+                                <flux:button size="sm" variant="ghost" icon="eye" :href="route('leave-requests.show', $leaveRequest)" wire:navigate />
+                                @can('update', $leaveRequest)
                                 <flux:button size="sm" variant="ghost" icon="pencil-square" :href="route('leave-requests.edit', $leaveRequest)" wire:navigate />
+                                @endcan
                                 @can('delete', $leaveRequest)
                                 <flux:button size="sm" variant="ghost" icon="trash" wire:click="confirmDelete({{ $leaveRequest->id }})" />
                                 @endcan

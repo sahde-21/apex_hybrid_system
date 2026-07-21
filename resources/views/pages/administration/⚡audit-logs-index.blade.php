@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\AuditLog;
+use App\Models\User;
+use App\Services\Audit\AuditLogService;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -16,24 +18,35 @@ new #[Title('Audit logs')] class extends Component {
     #[Url]
     public string $action = '';
 
-    /**
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator<int, AuditLog>
-     */
+    #[Url]
+    public string $model = '';
+
+    #[Url]
+    public string $user_id = '';
+
+    #[Url]
+    public string $date_from = '';
+
+    #[Url]
+    public string $date_to = '';
+
     #[Computed]
     public function auditLogs()
     {
-        return AuditLog::query()
-            ->with('user')
-            ->when($this->search, function ($query) {
-                $query->where(function ($query) {
-                    $query->where('auditable_type', 'like', "%{$this->search}%")
-                        ->orWhere('action', 'like', "%{$this->search}%")
-                        ->orWhereHas('user', fn ($q) => $q->where('name', 'like', "%{$this->search}%"));
-                });
-            })
-            ->when($this->action, fn ($query) => $query->where('action', $this->action))
-            ->latest()
-            ->paginate(15);
+        return app(AuditLogService::class)->paginate(auth()->user(), [
+            'search' => $this->search ?: null,
+            'action' => $this->action ?: null,
+            'model' => $this->model ?: null,
+            'user_id' => $this->user_id !== '' ? (int) $this->user_id : null,
+            'date_from' => $this->date_from ?: null,
+            'date_to' => $this->date_to ?: null,
+        ], 20);
+    }
+
+    #[Computed]
+    public function users()
+    {
+        return User::query()->where('is_active', true)->orderBy('name')->limit(200)->get(['id', 'name']);
     }
 
     public function updatedSearch(): void
@@ -45,24 +58,43 @@ new #[Title('Audit logs')] class extends Component {
     {
         $this->resetPage();
     }
+
+    public function updatedModel(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedUserId(): void
+    {
+        $this->resetPage();
+    }
 }; ?>
 
-<section class="scf-page">
+<section class="scf-page space-y-6" dir="auto">
     <x-page-header
-        :title="__('Audit logs')"
-        :subtitle="__('View system activity and change history')"
+        :title="__('scf.activity.audit_title')"
+        :subtitle="__('scf.activity.audit_subtitle')"
     />
 
-    <div class="mt-6 grid gap-4 md:grid-cols-2">
-        <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" :placeholder="__('Search by user, action, or model...')" />
-
-        <flux:select wire:model.live="action" :placeholder="__('All actions')">
-            <flux:select.option value="">{{ __('All actions') }}</flux:select.option>
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" :placeholder="__('scf.activity.audit_search')" />
+        <flux:select wire:model.live="action" :placeholder="__('scf.activity.filter_action')">
+            <flux:select.option value="">{{ __('scf.activity.filter_action') }}</flux:select.option>
             <flux:select.option value="created">{{ __('Created') }}</flux:select.option>
             <flux:select.option value="updated">{{ __('Updated') }}</flux:select.option>
             <flux:select.option value="deleted">{{ __('Deleted') }}</flux:select.option>
             <flux:select.option value="restored">{{ __('Restored') }}</flux:select.option>
+            <flux:select.option value="notification.dispatched">notification.dispatched</flux:select.option>
         </flux:select>
+        <flux:input wire:model.live.debounce.300ms="model" :placeholder="__('scf.activity.filter_model')" />
+        <flux:select wire:model.live="user_id" :placeholder="__('scf.activity.filter_user')">
+            <flux:select.option value="">{{ __('scf.activity.filter_user') }}</flux:select.option>
+            @foreach ($this->users as $user)
+                <flux:select.option :value="$user->id">{{ $user->name }}</flux:select.option>
+            @endforeach
+        </flux:select>
+        <flux:input type="date" wire:model.live="date_from" :label="__('scf.activity.date_from')" />
+        <flux:input type="date" wire:model.live="date_to" :label="__('scf.activity.date_to')" />
     </div>
 
     <div class="scf-table-wrap">
@@ -74,13 +106,14 @@ new #[Title('Audit logs')] class extends Component {
                 <flux:table.column>{{ __('Model') }}</flux:table.column>
                 <flux:table.column>{{ __('Record ID') }}</flux:table.column>
                 <flux:table.column>{{ __('IP address') }}</flux:table.column>
+                <flux:table.column></flux:table.column>
             </flux:table.columns>
 
             <flux:table.rows>
                 @forelse ($this->auditLogs as $auditLog)
                     <flux:table.row wire:key="audit-log-{{ $auditLog->id }}">
                         <flux:table.cell>{{ $auditLog->created_at?->format('Y-m-d H:i') ?? '—' }}</flux:table.cell>
-                        <flux:table.cell>{{ $auditLog->user?->name ?? __('System') }}</flux:table.cell>
+                        <flux:table.cell>{{ $auditLog->user?->name ?? __('scf.activity.system') }}</flux:table.cell>
                         <flux:table.cell>
                             <flux:badge size="sm" :color="match($auditLog->action) {
                                 'created' => 'green',
@@ -88,16 +121,21 @@ new #[Title('Audit logs')] class extends Component {
                                 'deleted' => 'red',
                                 'restored' => 'amber',
                                 default => 'zinc',
-                            }">{{ ucfirst($auditLog->action) }}</flux:badge>
+                            }">{{ $auditLog->action }}</flux:badge>
                         </flux:table.cell>
                         <flux:table.cell class="font-mono text-xs">{{ class_basename($auditLog->auditable_type) }}</flux:table.cell>
                         <flux:table.cell>{{ $auditLog->auditable_id }}</flux:table.cell>
                         <flux:table.cell>{{ $auditLog->ip_address ?? '—' }}</flux:table.cell>
+                        <flux:table.cell>
+                            <flux:button size="sm" variant="ghost" :href="route('audit-logs.show', $auditLog)" wire:navigate>
+                                {{ __('scf.activity.view') }}
+                            </flux:button>
+                        </flux:table.cell>
                     </flux:table.row>
                 @empty
                     <flux:table.row>
-                        <flux:table.cell colspan="6">
-                            <x-empty-state icon="inbox" :title="__('No audit logs found.')" />
+                        <flux:table.cell colspan="7">
+                            <x-empty-state icon="inbox" :title="__('scf.activity.audit_empty')" />
                         </flux:table.cell>
                     </flux:table.row>
                 @endforelse

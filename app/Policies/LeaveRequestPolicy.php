@@ -24,11 +24,21 @@ class LeaveRequestPolicy
 
     public function update(User $user, LeaveRequest $leaveRequest): bool
     {
-        return $user->can('leave-requests.update');
+        return $user->can('leave-requests.update') && $leaveRequest->status->isEditable();
     }
 
     public function delete(User $user, LeaveRequest $leaveRequest): bool
     {
-        return $user->can('leave-requests.delete');
+        return $user->can('leave-requests.delete') && $leaveRequest->status->isEditable();
+    }
+
+    public function approve(User $user, LeaveRequest $leaveRequest): bool
+    {
+        return $user->can('leave-requests.approve') || $user->can('workflow.approve');
+    }
+
+    public function submit(User $user, LeaveRequest $leaveRequest): bool
+    {
+        return $user->can('workflow.submit') || $user->can('leave-requests.update');
     }
 }

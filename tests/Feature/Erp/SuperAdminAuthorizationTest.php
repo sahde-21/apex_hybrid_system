@@ -66,6 +66,7 @@ it('allows super-admin to visit every ERP module index', function (string $route
     'tickets.index',
     'knowledge-base.index',
     'audit-logs.index',
+    'activities.index',
     'notification-templates.index',
 ]);
 

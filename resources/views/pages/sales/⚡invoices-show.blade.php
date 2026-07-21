@@ -304,35 +304,7 @@ new #[Title('Invoice')] class extends Component {
                 :journal-entry="$this->journalEntry"
             />
 
-            {{-- Activity --}}
-            <div class="scf-card">
-                <flux:heading size="lg" class="mb-4">{{ __('Activity') }}</flux:heading>
-                <div class="divide-y divide-zinc-100 dark:divide-zinc-800">
-                    @forelse ($invoice->events->sortByDesc('created_at') as $event)
-                        <div class="py-3 text-sm">
-                            <div class="flex items-start justify-between gap-2">
-                                <div>
-                                    <span class="font-medium capitalize">{{ str_replace('_', ' ', $event->event) }}</span>
-                                    @if ($event->reason)
-                                        <span class="text-zinc-500"> — {{ $event->reason }}</span>
-                                    @endif
-                                    @if ($event->from_status && $event->to_status)
-                                        <span class="ml-1 text-xs text-zinc-400">
-                                            ({{ $event->from_status }} → {{ $event->to_status }})
-                                        </span>
-                                    @endif
-                                </div>
-                                <span class="shrink-0 text-xs text-zinc-400">{{ $event->created_at?->diffForHumans() }}</span>
-                            </div>
-                            @if ($event->user)
-                                <p class="mt-0.5 text-xs text-zinc-500">{{ $event->user->name }}</p>
-                            @endif
-                        </div>
-                    @empty
-                        <p class="py-4 text-sm text-zinc-500">{{ __('No activity yet.') }}</p>
-                    @endforelse
-                </div>
-            </div>
+            <livewire:activity.activity-timeline :subject="$invoice" :key="'activity-invoice-'.$invoice->id" />
         </div>
     </div>
 

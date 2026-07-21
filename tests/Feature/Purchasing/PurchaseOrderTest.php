@@ -32,11 +32,12 @@ test('purchase order can be updated via controller', function () {
     $this->put(route('purchase-orders.update', $order), [
         'reference_number' => $order->reference_number,
         'order_date' => $order->order_date->toDateString(),
-        'status' => PurchaseOrderStatus::Confirmed->value,
+        'status' => PurchaseOrderStatus::Draft->value,
         'total_amount' => 1500,
     ])->assertRedirect(route('purchase-orders.index'));
 
-    expect($order->fresh()->status)->toBe(PurchaseOrderStatus::Confirmed);
+    expect($order->fresh()->status)->toBe(PurchaseOrderStatus::Draft)
+        ->and((float) $order->fresh()->total_amount)->toBe(1500.0);
 });
 
 test('purchase order can be deleted via livewire', function () {

@@ -104,6 +104,11 @@ class AutoPostingService
 
     public function postBill(Bill $bill, ?User $user = null): ?JournalEntry
     {
+        // Draft, void, or cancelled bills must not hit the ledger.
+        if (! $bill->status->isPosted()) {
+            return null;
+        }
+
         return $this->idempotent($bill, 'bill.posted', $user, function (User $actor) use ($bill) {
             $tax = (float) $bill->tax_amount;
             $net = max(0, (float) $bill->total_amount - $tax);

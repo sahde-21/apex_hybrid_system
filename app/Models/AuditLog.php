@@ -37,6 +37,17 @@ class AuditLog extends Model
 
     const UPDATED_AT = null;
 
+    protected static function booted(): void
+    {
+        static::updating(function (): void {
+            throw new \LogicException('Audit logs are immutable and cannot be updated.');
+        });
+
+        static::deleting(function (): void {
+            throw new \LogicException('Audit logs are immutable and cannot be deleted.');
+        });
+    }
+
     /**
      * @return array<string, string>
      */
@@ -62,5 +73,31 @@ class AuditLog extends Model
     public function auditable(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    /**
+     * Meaningful field diffs excluding technical noise.
+     *
+     * @return array<string, array{old: mixed, new: mixed}>
+     */
+    public function meaningfulChanges(): array
+    {
+        $ignored = config('activity.ignored_audit_fields', [
+            'updated_at', 'created_at', 'deleted_at', 'remember_token',
+        ]);
+
+        $old = collect($this->old_values ?? [])->except($ignored);
+        $new = collect($this->new_values ?? [])->except($ignored);
+        $keys = $old->keys()->merge($new->keys())->unique();
+
+        $changes = [];
+        foreach ($keys as $key) {
+            $changes[$key] = [
+                'old' => $old->get($key),
+                'new' => $new->get($key),
+            ];
+        }
+
+        return $changes;
     }
 }

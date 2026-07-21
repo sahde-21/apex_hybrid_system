@@ -42,6 +42,7 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->group(function () {
     Route::middleware(['can:leave-requests.read'])->name('leave-requests.')->group(function () {
         Route::livewire('leave-requests', 'pages::hr.leave-requests-index')->name('index');
         Route::livewire('leave-requests/create', 'pages::hr.leave-requests-create')->middleware('can:leave-requests.create')->name('create');
+        Route::livewire('leave-requests/{leaveRequest}', 'pages::hr.leave-requests-show')->name('show');
         Route::livewire('leave-requests/{leaveRequest}/edit', 'pages::hr.leave-requests-edit')->middleware('can:leave-requests.update')->name('edit');
 
         Route::post('leave-requests', [LeaveRequestController::class, 'store'])->middleware('can:leave-requests.create')->name('store');

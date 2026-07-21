@@ -9,6 +9,7 @@ enum NotificationCategory: string
     case Error = 'error';
     case Information = 'information';
     case Critical = 'critical';
+    case Workflow = 'workflow';
 
     /**
      * @return array<string, string>
@@ -28,6 +29,7 @@ enum NotificationCategory: string
             self::Error => __('scf.notification_center.category_error'),
             self::Information => __('scf.notification_center.category_information'),
             self::Critical => __('scf.notification_center.category_critical'),
+            self::Workflow => __('scf.workflow.category_workflow'),
         };
     }
 
@@ -39,6 +41,7 @@ enum NotificationCategory: string
             self::Error => 'red',
             self::Information => 'sky',
             self::Critical => 'rose',
+            self::Workflow => 'indigo',
         };
     }
 
@@ -50,6 +53,7 @@ enum NotificationCategory: string
             self::Error => 'x-circle',
             self::Information => 'information-circle',
             self::Critical => 'shield-exclamation',
+            self::Workflow => 'arrows-right-left',
         };
     }
 }

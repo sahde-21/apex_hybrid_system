@@ -43,6 +43,16 @@
                 </flux:sidebar.group>
 
                 <flux:sidebar.group :heading="__('scf.purchasing')" class="grid">
+                    @if (Route::has('purchase-requests.index') && \App\Support\Navigation::canAccessRoute('purchase-requests.index'))
+                        <flux:sidebar.item icon="clipboard-document-list" :href="route('purchase-requests.index')" :current="request()->routeIs('purchase-requests.*')" wire:navigate>
+                            {{ __('scf.purchase_requests') }}
+                        </flux:sidebar.item>
+                    @endif
+                    @if (Route::has('rfqs.index') && \App\Support\Navigation::canAccessRoute('rfqs.index'))
+                        <flux:sidebar.item icon="envelope-open" :href="route('rfqs.index')" :current="request()->routeIs('rfqs.*')" wire:navigate>
+                            {{ __('scf.rfqs') }}
+                        </flux:sidebar.item>
+                    @endif
                     @if (Route::has('purchase-orders.index') && \App\Support\Navigation::canAccessRoute('purchase-orders.index'))
                         <flux:sidebar.item icon="truck" :href="route('purchase-orders.index')" :current="request()->routeIs('purchase-orders.*')" wire:navigate>
                             {{ __('scf.purchase_orders') }}
@@ -349,6 +359,11 @@
                     @if (Route::has('notification-templates.index') && \App\Support\Navigation::canAccessRoute('notification-templates.index'))
                         <flux:sidebar.item icon="bell" :href="route('notification-templates.index')" :current="request()->routeIs('notification-templates.*')" wire:navigate>
                             {{ __('scf.notification_templates') }}
+                        </flux:sidebar.item>
+                    @endif
+                    @if (Route::has('activities.index') && \App\Support\Navigation::canAccessRoute('activities.index'))
+                        <flux:sidebar.item icon="clock" :href="route('activities.index')" :current="request()->routeIs('activities.*')" wire:navigate>
+                            {{ __('scf.activity.center_title') }}
                         </flux:sidebar.item>
                     @endif
                     @if (Route::has('audit-logs.index') && \App\Support\Navigation::canAccessRoute('audit-logs.index'))
