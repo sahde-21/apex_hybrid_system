@@ -43,4 +43,5 @@ require __DIR__.'/pos.php';
 require __DIR__.'/portal.php';
 require __DIR__.'/supplier-portal.php';
 require __DIR__.'/analytics.php';
+require __DIR__.'/intelligence.php';
 require __DIR__.'/documents.php';

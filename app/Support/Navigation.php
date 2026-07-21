@@ -73,6 +73,7 @@ class Navigation
             str_starts_with($routeName, 'notification-templates.') => 'notification-templates.read',
             str_starts_with($routeName, 'notifications.') => 'notifications.read',
             str_starts_with($routeName, 'analytics.') => 'analytics.read',
+            str_starts_with($routeName, 'intelligence.') => 'intelligence.view',
             str_starts_with($routeName, 'documents.') => 'documents.read',
             str_starts_with($routeName, 'audit-logs.') => 'audit-logs.read',
             str_starts_with($routeName, 'system-information.') => 'settings.read',

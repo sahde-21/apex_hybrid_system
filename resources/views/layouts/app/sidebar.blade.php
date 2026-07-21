@@ -341,6 +341,37 @@
                     @endif
                 </flux:sidebar.group>
 
+                <flux:sidebar.group :heading="__('scf.intelligence.nav_group')" class="grid">
+                    @php
+                        $intelligenceNav = [
+                            ['route' => 'intelligence.executive', 'icon' => 'sparkles', 'label' => 'executive_title', 'permission' => 'intelligence.executive.view'],
+                            ['route' => 'intelligence.financial', 'icon' => 'banknotes', 'label' => 'financial_title', 'permission' => 'intelligence.financial.view'],
+                            ['route' => 'intelligence.sales', 'icon' => 'shopping-cart', 'label' => 'sales_title', 'permission' => 'intelligence.sales.view'],
+                            ['route' => 'intelligence.purchasing', 'icon' => 'truck', 'label' => 'purchasing_title', 'permission' => 'intelligence.purchasing.view'],
+                            ['route' => 'intelligence.inventory', 'icon' => 'cube', 'label' => 'inventory_title', 'permission' => 'intelligence.inventory.view'],
+                            ['route' => 'intelligence.customers', 'icon' => 'user-group', 'label' => 'customers_title', 'permission' => 'intelligence.customers.view'],
+                            ['route' => 'intelligence.suppliers', 'icon' => 'building-storefront', 'label' => 'suppliers_title', 'permission' => 'intelligence.suppliers.view'],
+                            ['route' => 'intelligence.operations', 'icon' => 'cog-6-tooth', 'label' => 'operations_title', 'permission' => 'intelligence.operations.view'],
+                            ['route' => 'intelligence.forecasts', 'icon' => 'chart-bar', 'label' => 'forecasts_title', 'permission' => 'intelligence.forecasts.view'],
+                            ['route' => 'intelligence.alerts', 'icon' => 'bell-alert', 'label' => 'alerts_title', 'permission' => 'intelligence.alerts.view'],
+                            ['route' => 'intelligence.recommendations', 'icon' => 'light-bulb', 'label' => 'recommendations_title', 'permission' => 'intelligence.recommendations.view'],
+                            ['route' => 'intelligence.assistant', 'icon' => 'chat-bubble-left-right', 'label' => 'assistant_title', 'permission' => 'intelligence.assistant.use'],
+                        ];
+                    @endphp
+                    @foreach ($intelligenceNav as $item)
+                        @if (Route::has($item['route']) && auth()->user()?->can($item['permission']))
+                            <flux:sidebar.item
+                                :icon="$item['icon']"
+                                :href="route($item['route'])"
+                                :current="request()->routeIs($item['route'])"
+                                wire:navigate
+                            >
+                                {{ __('scf.intelligence.'.$item['label']) }}
+                            </flux:sidebar.item>
+                        @endif
+                    @endforeach
+                </flux:sidebar.group>
+
                 <flux:sidebar.group :heading="__('scf.administration')" class="grid">
                     @if (Route::has('documents.index') && \App\Support\Navigation::canAccessRoute('documents.index'))
                         <flux:sidebar.item icon="folder-open" :href="route('documents.index')" :current="request()->routeIs('documents.*')" wire:navigate>

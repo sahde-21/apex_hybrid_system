@@ -18,6 +18,10 @@ final class ApiAbilities
     public const PURCHASING_WRITE = 'purchasing.write';
     public const ACCOUNTING_READ = 'accounting.read';
 
+    public const INTELLIGENCE_READ = 'intelligence.read';
+
+    public const INTELLIGENCE_MANAGE = 'intelligence.manage';
+
     /**
      * @return list<string>
      */
@@ -35,6 +39,8 @@ final class ApiAbilities
             self::PURCHASING_READ,
             self::PURCHASING_WRITE,
             self::ACCOUNTING_READ,
+            self::INTELLIGENCE_READ,
+            self::INTELLIGENCE_MANAGE,
         ];
     }
 }

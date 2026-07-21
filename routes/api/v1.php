@@ -145,4 +145,19 @@ Route::middleware(['auth:sanctum', 'api.active', 'throttle:api', 'api.idempotent
         ->name('vendor-payments.post');
     Route::post('vendor-payments/{payment}/reverse', [VendorPaymentController::class, 'reverse'])->name('vendor-payments.reverse');
     Route::post('vendor-payments/{payment}/cancel', [VendorPaymentController::class, 'cancel'])->name('vendor-payments.cancel');
+
+    Route::prefix('intelligence')->name('intelligence.')->middleware('throttle:api')->group(function (): void {
+        Route::get('executive', [\App\Http\Controllers\Api\V1\IntelligenceController::class, 'executive'])->name('executive');
+        Route::get('health-score', [\App\Http\Controllers\Api\V1\IntelligenceController::class, 'healthScore'])->name('health-score');
+        Route::get('forecasts', [\App\Http\Controllers\Api\V1\IntelligenceController::class, 'forecasts'])->name('forecasts');
+        Route::get('alerts', [\App\Http\Controllers\Api\V1\IntelligenceController::class, 'alerts'])->name('alerts');
+        Route::get('recommendations', [\App\Http\Controllers\Api\V1\IntelligenceController::class, 'recommendations'])->name('recommendations');
+        Route::get('{domain}', [\App\Http\Controllers\Api\V1\IntelligenceController::class, 'domain'])
+            ->whereIn('domain', ['financial', 'sales', 'purchasing', 'inventory', 'customers', 'suppliers', 'operations'])
+            ->name('domain');
+        Route::post('alerts/{alert}/acknowledge', [\App\Http\Controllers\Api\V1\IntelligenceController::class, 'acknowledgeAlert'])->name('alerts.acknowledge');
+        Route::post('alerts/{alert}/dismiss', [\App\Http\Controllers\Api\V1\IntelligenceController::class, 'dismissAlert'])->name('alerts.dismiss');
+        Route::post('recommendations/{recommendation}/acknowledge', [\App\Http\Controllers\Api\V1\IntelligenceController::class, 'acknowledgeRecommendation'])->name('recommendations.acknowledge');
+        Route::post('recommendations/{recommendation}/dismiss', [\App\Http\Controllers\Api\V1\IntelligenceController::class, 'dismissRecommendation'])->name('recommendations.dismiss');
+    });
 });

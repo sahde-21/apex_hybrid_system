@@ -124,6 +124,22 @@ class RolePermissionSeeder extends Seeder
             ...$roleMap['manager'],
             'activities.view_all',
             'activities.manage',
+            'intelligence.view',
+            'intelligence.executive.view',
+            'intelligence.financial.view',
+            'intelligence.sales.view',
+            'intelligence.purchasing.view',
+            'intelligence.inventory.view',
+            'intelligence.customers.view',
+            'intelligence.suppliers.view',
+            'intelligence.operations.view',
+            'intelligence.forecasts.view',
+            'intelligence.alerts.view',
+            'intelligence.alerts.manage',
+            'intelligence.recommendations.view',
+            'intelligence.recommendations.manage',
+            'intelligence.assistant.use',
+            'intelligence.export',
         ]));
 
         foreach ($roleMap as $roleName => $permissions) {

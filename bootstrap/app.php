@@ -53,6 +53,30 @@ return Application::configure(basePath: dirname(__DIR__))
             ->withoutOverlapping()
             ->name('warm-performance-cache')
             ->when(fn () => config('performance.scheduler.warm_cache', true));
+
+        $schedule->job(new \App\Jobs\EvaluateSmartAlertsJob)
+            ->hourly()
+            ->withoutOverlapping()
+            ->name('evaluate-smart-alerts')
+            ->when(fn () => config('intelligence.enabled', true));
+
+        $schedule->job(new \App\Jobs\RefreshRecommendationsJob)
+            ->daily()
+            ->withoutOverlapping()
+            ->name('refresh-recommendations')
+            ->when(fn () => config('intelligence.enabled', true));
+
+        $schedule->job(new \App\Jobs\GenerateDailyExecutiveSnapshotJob)
+            ->dailyAt('03:30')
+            ->withoutOverlapping()
+            ->name('executive-intelligence-snapshot')
+            ->when(fn () => config('intelligence.enabled', true));
+
+        $schedule->job(new \App\Jobs\PruneExpiredIntelligenceSnapshotsJob)
+            ->weekly()
+            ->withoutOverlapping()
+            ->name('prune-intelligence-snapshots')
+            ->when(fn () => config('intelligence.enabled', true));
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [

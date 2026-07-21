@@ -82,6 +82,7 @@ final class OpenApiSpec
                 self::resourcePaths('purchase-orders', 'Purchase Orders', ['purchasing.read'], ['purchasing.write']),
                 self::resourcePaths('bills', 'Vendor Bills', ['purchasing.read', 'accounting.read'], ['purchasing.write']),
                 self::resourcePaths('vendor-payments', 'Vendor Payments', ['purchasing.read', 'accounting.read'], ['purchasing.write']),
+                self::intelligencePaths(),
             ),
             'tags' => [
                 ['name' => 'Authentication'],
@@ -91,6 +92,7 @@ final class OpenApiSpec
                 ['name' => 'Sales'],
                 ['name' => 'Purchasing'],
                 ['name' => 'Accounting'],
+                ['name' => 'Intelligence'],
             ],
         ];
     }
@@ -207,5 +209,97 @@ final class OpenApiSpec
                 ],
             ],
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function intelligencePaths(): array
+    {
+        $domains = ['financial', 'sales', 'purchasing', 'inventory', 'customers', 'suppliers', 'operations'];
+        $paths = [
+            '/intelligence/executive' => [
+                'get' => [
+                    'tags' => ['Intelligence'],
+                    'summary' => 'Executive intelligence dashboard',
+                    'responses' => ['200' => ['description' => 'KPIs, charts, health score, forecasts']],
+                    'description' => 'Required abilities: intelligence.read',
+                ],
+            ],
+            '/intelligence/health-score' => [
+                'get' => [
+                    'tags' => ['Intelligence'],
+                    'summary' => 'Business health score',
+                    'responses' => ['200' => ['description' => 'Explainable health score']],
+                ],
+            ],
+            '/intelligence/forecasts' => [
+                'get' => [
+                    'tags' => ['Intelligence'],
+                    'summary' => 'Statistical forecasts',
+                    'responses' => ['200' => ['description' => 'Local statistical estimates']],
+                ],
+            ],
+            '/intelligence/alerts' => [
+                'get' => [
+                    'tags' => ['Intelligence'],
+                    'summary' => 'List active smart alerts',
+                    'responses' => ['200' => ['description' => 'Alert list']],
+                ],
+            ],
+            '/intelligence/recommendations' => [
+                'get' => [
+                    'tags' => ['Intelligence'],
+                    'summary' => 'List active recommendations',
+                    'responses' => ['200' => ['description' => 'Recommendation list']],
+                ],
+            ],
+            '/intelligence/alerts/{id}/acknowledge' => [
+                'post' => [
+                    'tags' => ['Intelligence'],
+                    'summary' => 'Acknowledge an alert',
+                    'parameters' => [['name' => 'id', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'integer']]],
+                    'responses' => ['200' => ['description' => 'Acknowledged']],
+                    'description' => 'Required abilities: intelligence.manage',
+                ],
+            ],
+            '/intelligence/alerts/{id}/dismiss' => [
+                'post' => [
+                    'tags' => ['Intelligence'],
+                    'summary' => 'Dismiss an alert',
+                    'parameters' => [['name' => 'id', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'integer']]],
+                    'responses' => ['200' => ['description' => 'Dismissed']],
+                ],
+            ],
+            '/intelligence/recommendations/{id}/acknowledge' => [
+                'post' => [
+                    'tags' => ['Intelligence'],
+                    'summary' => 'Acknowledge a recommendation',
+                    'parameters' => [['name' => 'id', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'integer']]],
+                    'responses' => ['200' => ['description' => 'Acknowledged']],
+                ],
+            ],
+            '/intelligence/recommendations/{id}/dismiss' => [
+                'post' => [
+                    'tags' => ['Intelligence'],
+                    'summary' => 'Dismiss a recommendation',
+                    'parameters' => [['name' => 'id', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'integer']]],
+                    'responses' => ['200' => ['description' => 'Dismissed']],
+                ],
+            ],
+        ];
+
+        foreach ($domains as $domain) {
+            $paths['/intelligence/'.$domain] = [
+                'get' => [
+                    'tags' => ['Intelligence'],
+                    'summary' => ucfirst($domain).' intelligence analytics',
+                    'responses' => ['200' => ['description' => 'Domain analytics payload']],
+                    'description' => 'Required abilities: intelligence.read',
+                ],
+            ];
+        }
+
+        return $paths;
     }
 }
