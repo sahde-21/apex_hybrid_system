@@ -30,6 +30,29 @@ return [
     'rate_limits' => [
         'api' => (int) env('API_RATE_LIMIT', 60),
         'auth' => (int) env('API_AUTH_RATE_LIMIT', 10),
+        'write' => (int) env('API_WRITE_RATE_LIMIT', 30),
+        'workflow' => (int) env('API_WORKFLOW_RATE_LIMIT', 30),
+        'posting' => (int) env('API_POSTING_RATE_LIMIT', 20),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Idempotency
+    |--------------------------------------------------------------------------
+    */
+
+    'idempotency' => [
+        'ttl_hours' => (int) env('API_IDEMPOTENCY_TTL_HOURS', 24),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Audit
+    |--------------------------------------------------------------------------
+    */
+
+    'audit' => [
+        'activity_enabled' => filter_var(env('API_AUDIT_ACTIVITY', true), FILTER_VALIDATE_BOOLEAN),
     ],
 
     /*

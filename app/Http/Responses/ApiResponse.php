@@ -23,10 +23,7 @@ class ApiResponse
             'success' => true,
             'message' => $message,
             'data' => $data,
-            'meta' => (object) array_merge([
-                'version' => config('api.version', 'v1'),
-                'timestamp' => now()->toIso8601String(),
-            ], $meta),
+            'meta' => (object) array_merge(self::baseMeta(), $meta),
         ], $status);
     }
 
@@ -45,11 +42,22 @@ class ApiResponse
             'message' => $message,
             'data' => null,
             'errors' => $errors,
-            'meta' => (object) array_merge([
-                'version' => config('api.version', 'v1'),
-                'timestamp' => now()->toIso8601String(),
-            ], $meta),
+            'meta' => (object) array_merge(self::baseMeta(), $meta),
         ], $status);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected static function baseMeta(): array
+    {
+        $request = request();
+
+        return array_filter([
+            'version' => config('api.version', 'v1'),
+            'timestamp' => now()->toIso8601String(),
+            'request_id' => $request?->attributes->get('request_id'),
+        ], fn ($value) => $value !== null && $value !== '');
     }
 
     /**

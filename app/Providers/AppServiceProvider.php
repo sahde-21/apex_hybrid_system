@@ -150,6 +150,30 @@ class AppServiceProvider extends ServiceProvider
             );
         });
 
+        RateLimiter::for('api-write', function (Request $request) {
+            $limit = (int) config('api.rate_limits.write', 30);
+
+            return Limit::perMinute($limit)->by(
+                ($request->user()?->getAuthIdentifier() ?: $request->ip()).'|api-write'
+            );
+        });
+
+        RateLimiter::for('api-workflow', function (Request $request) {
+            $limit = (int) config('api.rate_limits.workflow', 30);
+
+            return Limit::perMinute($limit)->by(
+                ($request->user()?->getAuthIdentifier() ?: $request->ip()).'|api-workflow'
+            );
+        });
+
+        RateLimiter::for('api-posting', function (Request $request) {
+            $limit = (int) config('api.rate_limits.posting', 20);
+
+            return Limit::perMinute($limit)->by(
+                ($request->user()?->getAuthIdentifier() ?: $request->ip()).'|api-posting'
+            );
+        });
+
         RateLimiter::for('exports', function (Request $request) {
             return Limit::perMinute(10)->by(
                 ($request->user()?->getAuthIdentifier() ?: $request->ip()).'|exports'

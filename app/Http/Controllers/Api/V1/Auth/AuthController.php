@@ -9,11 +9,16 @@ use App\Http\Responses\ApiResponse;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Services\Api\ApiAuditService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    public function __construct(
+        protected ApiAuditService $audit,
+    ) {}
+
     public function login(LoginRequest $request): JsonResponse
     {
         /** @var User|null $user */
@@ -48,6 +53,8 @@ class AuthController extends Controller
 
         $user->loadMissing(['roles', 'permissions']);
 
+        $this->audit->tokenCreated($user, $token->accessToken->id, $deviceName);
+
         return ApiResponse::success([
             'token' => $token->plainTextToken,
             'token_type' => 'Bearer',
@@ -76,6 +83,7 @@ class AuthController extends Controller
         $currentToken = $user->currentAccessToken();
 
         if ($currentToken !== null) {
+            $this->audit->tokenRevoked($user, $currentToken->id);
             $currentToken->delete();
         }
 

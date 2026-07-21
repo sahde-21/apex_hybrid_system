@@ -8,6 +8,7 @@ use App\Http\Requests\Api\V1\StoreTokenRequest;
 use App\Http\Resources\V1\TokenResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\User;
+use App\Services\Api\ApiAuditService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -15,6 +16,10 @@ use Laravel\Sanctum\PersonalAccessToken;
 class TokenController extends Controller
 {
     use ResolvesApiPagination;
+
+    public function __construct(
+        protected ApiAuditService $audit,
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -48,6 +53,7 @@ class TokenController extends Controller
             : $this->defaultExpiration();
 
         $token = $user->createToken($name, $abilities, $expiresAt);
+        $this->audit->tokenCreated($user, $token->accessToken->id, $name);
 
         return ApiResponse::success([
             'token' => $token->plainTextToken,
@@ -69,6 +75,7 @@ class TokenController extends Controller
     public function destroy(Request $request, string $token): JsonResponse
     {
         $accessToken = $this->findOwnedToken($request, $token);
+        $this->audit->tokenRevoked($request->user(), $accessToken->id);
         $accessToken->delete();
 
         return ApiResponse::success(null, __('Token revoked successfully.'));

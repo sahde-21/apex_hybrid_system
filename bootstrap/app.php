@@ -1,5 +1,7 @@
 <?php
 
+use App\Exceptions\Api\BusinessConflictException;
+use App\Exceptions\Api\IdempotencyConflictException;
 use App\Http\Middleware\EnsureApiUserIsActive;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\ForceJsonResponse;
@@ -35,6 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->api(prepend: [
             ForceJsonResponse::class,
+            \App\Http\Middleware\AssignRequestId::class,
         ]);
 
         $middleware->api(append: [
@@ -46,6 +49,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'api.active' => EnsureApiUserIsActive::class,
+            'api.ability' => \App\Http\Middleware\EnsureApiTokenAbility::class,
+            'api.idempotent' => \App\Http\Middleware\HandleIdempotency::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [
@@ -88,11 +93,34 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (ValidationException $e, Request $request) {
             if ($request->is('api/*')) {
+                $businessKeys = [
+                    'quotation', 'invoice', 'payment', 'bill', 'status', 'purchase_request',
+                    'rfq', 'purchase_order', 'sale_order', 'contact_id', 'amount',
+                ];
+
+                $status = collect(array_keys($e->errors()))
+                    ->intersect($businessKeys)
+                    ->isNotEmpty() ? 409 : $e->status;
+
                 return ApiResponse::error(
-                    message: __('Validation failed.'),
-                    status: $e->status,
+                    message: $status === 409
+                        ? __('scf.api.business_conflict')
+                        : __('Validation failed.'),
+                    status: $status,
                     errors: $e->errors(),
                 );
+            }
+        });
+
+        $exceptions->render(function (IdempotencyConflictException $e, Request $request) {
+            if ($request->is('api/*')) {
+                return ApiResponse::error($e->getMessage(), 409);
+            }
+        });
+
+        $exceptions->render(function (BusinessConflictException $e, Request $request) {
+            if ($request->is('api/*')) {
+                return ApiResponse::error($e->getMessage(), 409, $e->errors());
             }
         });
 
