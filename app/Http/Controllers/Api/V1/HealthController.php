@@ -23,6 +23,7 @@ class HealthController extends Controller
             'status' => $healthy ? 'ok' : 'degraded',
             'service' => config('app.name'),
             'version' => config('api.version', 'v1'),
+            'release' => \App\Support\Release\ReleaseMetadata::public(),
             'checks' => $result['checks'],
             'timestamp' => now()->toIso8601String(),
         ];

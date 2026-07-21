@@ -377,6 +377,11 @@
                             {{ __('scf.audit_logs') }}
                         </flux:sidebar.item>
                     @endif
+                    @if (Route::has('system-information.index') && \App\Support\Navigation::canAccessRoute('system-information.index'))
+                        <flux:sidebar.item icon="server-stack" :href="route('system-information.index')" :current="request()->routeIs('system-information.*')" wire:navigate>
+                            {{ __('scf.release.system_info_title') }}
+                        </flux:sidebar.item>
+                    @endif
                 </flux:sidebar.group>
 
                 <flux:sidebar.group :heading="__('scf.contacts')" class="grid">

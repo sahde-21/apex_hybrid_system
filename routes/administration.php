@@ -54,4 +54,8 @@ Route::middleware(['auth', 'verified'])->prefix('administration')->group(functio
         Route::livewire('audit-logs', 'pages::administration.audit-logs-index')->name('index');
         Route::livewire('audit-logs/{auditLog}', 'pages::administration.audit-logs-show')->name('show');
     });
+
+    Route::middleware(['can:settings.read'])->name('system-information.')->group(function () {
+        Route::livewire('system-information', 'pages::administration.system-information')->name('index');
+    });
 });

@@ -75,6 +75,7 @@ class Navigation
             str_starts_with($routeName, 'analytics.') => 'analytics.read',
             str_starts_with($routeName, 'documents.') => 'documents.read',
             str_starts_with($routeName, 'audit-logs.') => 'audit-logs.read',
+            str_starts_with($routeName, 'system-information.') => 'settings.read',
             str_starts_with($routeName, 'activities.') => 'activities.read',
             str_starts_with($routeName, 'contacts.') => 'contacts.read',
             default => null,

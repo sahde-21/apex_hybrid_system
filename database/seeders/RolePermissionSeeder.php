@@ -154,8 +154,8 @@ class RolePermissionSeeder extends Seeder
                 }
             });
 
-        // Bootstrap: first user becomes Super Admin if nobody has the role yet.
-        if (! User::role('super-admin')->exists()) {
+        // Bootstrap: first user becomes Super Admin if nobody has the role yet (non-production only).
+        if (! app()->isProduction() && ! User::role('super-admin')->exists()) {
             $first = User::query()->orderBy('id')->first();
             if ($first && ! $first->hasRole($superAdmin)) {
                 $first->assignRole($superAdmin);
