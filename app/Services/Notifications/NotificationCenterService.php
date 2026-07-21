@@ -4,6 +4,7 @@ namespace App\Services\Notifications;
 
 use App\Enums\NotificationCategory;
 use App\Enums\NotificationPriority;
+use App\Jobs\DeliverNotificationJob;
 use App\Models\AuditLog;
 use App\Models\DatabaseNotification;
 use App\Models\User;
@@ -46,7 +47,21 @@ class NotificationCenterService
             meta: $meta,
         );
 
-        Notification::send($users, $notification);
+        if ($this->shouldQueueNotifications()) {
+            DeliverNotificationJob::dispatch(
+                recipientIds: $users->pluck('id')->all(),
+                event: $event,
+                title: $title,
+                body: $body,
+                category: $category->value,
+                priority: $priority->value,
+                module: $module,
+                actionUrl: $actionUrl,
+                meta: $meta,
+            );
+        } else {
+            Notification::send($users, $notification);
+        }
 
         $this->audit('notification.dispatched', [
             'event' => $event,
@@ -176,6 +191,15 @@ class NotificationCenterService
         }
 
         return collect($recipients)->filter(fn ($r) => $r instanceof User)->values();
+    }
+
+    protected function shouldQueueNotifications(): bool
+    {
+        if (! config('performance.queue.notifications', true)) {
+            return false;
+        }
+
+        return config('queue.default') !== 'sync';
     }
 
     /**

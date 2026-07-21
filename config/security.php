@@ -20,6 +20,7 @@ return [
         ),
         'cross_origin_opener_policy' => env('SECURITY_COOP', 'same-origin'),
         'cross_origin_resource_policy' => env('SECURITY_CORP', 'same-site'),
+        'content_security_policy_report_only' => env('SECURITY_CSP_REPORT_ONLY'),
     ],
 
     /*

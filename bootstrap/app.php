@@ -28,11 +28,38 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule): void {
+        $schedule->job(new \App\Jobs\MaintainDocumentStatusesJob)
+            ->hourly()
+            ->withoutOverlapping()
+            ->name('maintain-document-statuses')
+            ->when(fn () => config('performance.scheduler.overdue_documents', true)
+                || config('performance.scheduler.expire_documents', true));
+
+        $schedule->job(new \App\Jobs\PruneExpiredIdempotencyKeysJob)
+            ->daily()
+            ->withoutOverlapping()
+            ->name('prune-idempotency-keys')
+            ->when(fn () => config('performance.scheduler.prune_idempotency', true));
+
+        $schedule->command('db:backup --prune')
+            ->dailyAt('02:00')
+            ->withoutOverlapping()
+            ->name('database-backup')
+            ->when(fn () => config('performance.scheduler.prune_backups', true));
+
+        $schedule->command('scf:warm-cache')
+            ->hourly()
+            ->withoutOverlapping()
+            ->name('warm-performance-cache')
+            ->when(fn () => config('performance.scheduler.warm_cache', true));
+    })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
             SetLocale::class,
             EnsureUserIsActive::class,
             SecurityHeaders::class,
+            \App\Http\Middleware\MeasureRequestPerformance::class,
         ]);
 
         $middleware->api(prepend: [
@@ -42,6 +69,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->api(append: [
             SecurityHeaders::class,
+            \App\Http\Middleware\MeasureRequestPerformance::class,
         ]);
 
         $middleware->statefulApi();

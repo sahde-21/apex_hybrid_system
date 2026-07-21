@@ -18,6 +18,7 @@ use App\Models\SaleOrder;
 use App\Models\StockTransfer;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Support\Performance\PerformanceCache;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -44,10 +45,13 @@ class DashboardMetricsService
     public function metrics(?User $user = null): array
     {
         $user ??= Auth::user();
-        $ttl = (int) config('bi.cache_ttl', 300);
-        $cacheKey = config('bi.cache_prefix', 'scf:bi:').'dashboard-metrics:'.($user?->id ?? 'guest');
+        $ttl = (int) config('performance.cache.dashboard_ttl', config('bi.cache_ttl', 120));
 
-        return Cache::remember($cacheKey, $ttl, function () use ($user) {
+        if ($user === null) {
+            return $this->emptyMetrics();
+        }
+
+        return Cache::remember(PerformanceCache::dashboardKey($user), $ttl, function () use ($user) {
             return [
                 'products' => $this->allowed($user, 'products.read') ? Product::query()->count() : 0,
                 'contacts' => $this->allowed($user, 'contacts.read') ? Contact::query()->count() : 0,
@@ -70,6 +74,28 @@ class DashboardMetricsService
                 'stock_transfers' => $this->allowed($user, 'stock-transfers.read') ? StockTransfer::query()->count() : 0,
             ];
         });
+    }
+
+    /**
+     * @return array<string, int|float>
+     */
+    protected function emptyMetrics(): array
+    {
+        return [
+            'products' => 0,
+            'contacts' => 0,
+            'sale_orders' => 0,
+            'invoices' => 0,
+            'expenses_total' => 0.0,
+            'employees' => 0,
+            'open_tickets' => 0,
+            'low_stock_products' => 0,
+            'purchase_orders' => 0,
+            'payments_total' => 0.0,
+            'open_leads' => 0,
+            'production_orders' => 0,
+            'stock_transfers' => 0,
+        ];
     }
 
     /**
@@ -108,8 +134,9 @@ class DashboardMetricsService
         }
 
         return AuditLog::query()
-            ->with('user')
-            ->latest()
+            ->select(['id', 'user_id', 'auditable_type', 'auditable_id', 'action', 'created_at'])
+            ->with(['user:id,name'])
+            ->latest('created_at')
             ->limit($limit)
             ->get();
     }

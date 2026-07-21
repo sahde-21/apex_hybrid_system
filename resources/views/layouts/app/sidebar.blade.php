@@ -10,6 +10,12 @@
                 <flux:sidebar.collapse class="lg:hidden" />
             </flux:sidebar.header>
 
+            @auth
+            <div class="border-b border-zinc-100 px-3 py-3 dark:border-zinc-800/80">
+                <livewire:global-search />
+            </div>
+            @endauth
+
             <flux:sidebar.nav>
                 <flux:sidebar.group :heading="__('scf.platform')" class="grid">
                     @can('dashboard.read')

@@ -40,6 +40,12 @@ class SecurityHeaders
             );
         }
 
+        $csp = config('security.headers.content_security_policy_report_only');
+
+        if (is_string($csp) && $csp !== '') {
+            $response->headers->set('Content-Security-Policy-Report-Only', $csp);
+        }
+
         return $response;
     }
 }

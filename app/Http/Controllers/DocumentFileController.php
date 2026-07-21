@@ -20,10 +20,15 @@ class DocumentFileController extends Controller
         $this->authorize('download', $managedDocument);
         $this->activity->log($managedDocument, DocumentActivityAction::Download, $request->user());
 
-        return Storage::disk($managedDocument->disk)->download(
-            $managedDocument->path,
-            $managedDocument->original_name,
-        );
+        return response()->streamDownload(function () use ($managedDocument): void {
+            $stream = Storage::disk($managedDocument->disk)->readStream($managedDocument->path);
+            if (is_resource($stream)) {
+                fpassthru($stream);
+                fclose($stream);
+            }
+        }, $managedDocument->original_name, [
+            'Content-Type' => $managedDocument->mime_type ?? 'application/octet-stream',
+        ]);
     }
 
     public function preview(Request $request, ManagedDocument $managedDocument)

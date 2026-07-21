@@ -13,6 +13,7 @@ use App\Models\Payroll;
 use App\Observers\AccountingDocumentObserver;
 use App\Observers\DomainNotificationObserver;
 use App\Policies\DatabaseNotificationPolicy;
+use App\Support\Logging\RequestLogContext;
 use App\Support\PermissionCache;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Failed;
@@ -26,6 +27,7 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -50,6 +52,7 @@ class AppServiceProvider extends ServiceProvider
         $this->configureRateLimiting();
         $this->configureNotifications();
         $this->configureAccounting();
+        $this->configurePerformanceInstrumentation();
 
         // Repair empty Spatie permission cache that still has DB records.
         PermissionCache::healIfStale();
@@ -196,6 +199,38 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(60)->by(
                 ($request->user()?->getAuthIdentifier() ?: $request->ip()).'|settings'
             );
+        });
+    }
+
+    protected function configurePerformanceInstrumentation(): void
+    {
+        if (! config('performance.database.log_slow_queries', false)
+            && ! config('performance.database.log_query_count', false)
+            && ! config('performance.instrumentation.enabled', false)) {
+            return;
+        }
+
+        DB::listen(function ($query): void {
+            if (config('performance.database.log_query_count', false)
+                || config('performance.instrumentation.enabled', false)) {
+                RequestLogContext::incrementQueryCount();
+            }
+
+            if (! config('performance.database.log_slow_queries', false)) {
+                return;
+            }
+
+            $threshold = (int) config('performance.database.slow_query_ms', 500);
+
+            if ($query->time < $threshold) {
+                return;
+            }
+
+            Log::warning('database.slow_query', array_merge(RequestLogContext::base(), [
+                'duration_ms' => round((float) $query->time, 2),
+                'sql' => $query->sql,
+                'connection' => $query->connectionName,
+            ]));
         });
     }
 

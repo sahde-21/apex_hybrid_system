@@ -8,21 +8,26 @@ use Throwable;
 
 class DatabaseBackupCommand extends Command
 {
-    protected $signature = 'db:backup {--label=manual : Label appended to the backup filename}';
+    protected $signature = 'db:backup {--label=manual : Label appended to the backup filename} {--prune : Remove backups older than retention policy}';
 
-    protected $description = 'Create a timestamped backup of the local SQLite database';
+    protected $description = 'Create a timestamped local database backup';
 
     public function handle(DatabaseBackupService $backups): int
     {
         try {
-            $path = $backups->backupSqlite((string) $this->option('label'));
+            $path = $backups->backup((string) $this->option('label'));
         } catch (Throwable $e) {
             $this->error($e->getMessage());
 
             return self::FAILURE;
         }
 
-        $this->info("Database backup created: {$path}");
+        $this->info(__('scf.performance.backup_created', ['path' => basename($path)]));
+
+        if ($this->option('prune')) {
+            $removed = $backups->pruneOldBackups();
+            $this->info(__('scf.performance.backup_pruned', ['count' => $removed]));
+        }
 
         return self::SUCCESS;
     }
