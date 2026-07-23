@@ -127,7 +127,7 @@ class SmartAssistantService
             ],
             'forecast' => [
                 'title' => __('scf.intelligence.assistant_forecast'),
-                'value' => app(ExecutiveAnalyticsService::class)->dashboard($user, $filter)['revenue_forecast'] ?? [],
+                'value' => app(ExecutiveAnalyticsService::class)->forecasts($user, $filter)['revenue_forecast'] ?? [],
                 'link' => route('intelligence.forecasts'),
                 'is_estimate' => true,
             ],

@@ -55,6 +55,28 @@ class ExecutiveAnalyticsService
     }
 
     /**
+     * @return array<string, mixed>
+     */
+    public function forecasts(User $user, AnalyticsFilter $filter): array
+    {
+        $this->requirePermission($user, config('intelligence.permissions.forecasts'));
+
+        return Cache::remember($filter->cacheKey($user, 'forecasts'), config('intelligence.cache_ttl'), function () use ($user, $filter) {
+            $bi = $this->bi->dashboard($user, $filter->bi);
+            $revenueSeries = $this->extractSeries($bi['charts']['revenue_trend'] ?? []);
+            $trend = $this->trends->analyze($revenueSeries);
+            $forecast = $this->forecasting->forecast($revenueSeries, (int) config('intelligence.forecast_horizon_periods', 3));
+
+            return [
+                'filter' => $filter->toArray(),
+                'revenue_trend' => $trend->toArray(),
+                'revenue_forecast' => $forecast->toArray(),
+                'meta' => $this->metadata(__('scf.intelligence.forecasts_title'), __('scf.intelligence.estimated_value')),
+            ];
+        });
+    }
+
+    /**
      * @param  array<string, mixed>  $chart
      * @return list<float>
      */

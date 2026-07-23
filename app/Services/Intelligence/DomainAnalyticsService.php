@@ -40,6 +40,9 @@ class DomainAnalyticsService
      */
     public function forDomain(User $user, string $domain, AnalyticsFilter $filter): array
     {
+        $allowed = ['financial', 'sales', 'purchasing', 'inventory', 'customers', 'suppliers', 'operations'];
+        abort_unless(in_array($domain, $allowed, true), 404);
+
         $permission = config("intelligence.permissions.{$domain}", config('intelligence.permissions.view'));
         $this->requirePermission($user, $permission);
 
@@ -52,7 +55,6 @@ class DomainAnalyticsService
                 'customers' => $this->customers($user, $filter),
                 'suppliers' => $this->suppliers($user, $filter),
                 'operations' => $this->operations($user, $filter),
-                default => ['error' => 'unknown_domain'],
             };
         });
     }
@@ -234,33 +236,43 @@ class DomainAnalyticsService
      */
     protected function rfmSegments(AnalyticsFilter $filter): array
     {
-        $from = $filter->from();
-        $customers = Contact::query()->whereIn('type', [ContactType::Customer->value, ContactType::Both->value])->pluck('id');
+        $from = $filter->from()->toDateString();
+        $statuses = [InvoiceStatus::Sent, InvoiceStatus::Paid, InvoiceStatus::Overdue];
+
+        $customerIds = Contact::query()
+            ->whereIn('type', [ContactType::Customer->value, ContactType::Both->value])
+            ->pluck('id');
+
+        $totalCustomers = $customerIds->count();
+
+        if ($totalCustomers === 0) {
+            return [
+                'active' => 0,
+                'segments' => ['champions' => 0, 'loyal' => 0, 'at_risk' => 0, 'dormant' => 0],
+            ];
+        }
+
+        $aggregated = Invoice::query()
+            ->whereIn('contact_id', $customerIds)
+            ->whereIn('status', $statuses)
+            ->where('invoice_date', '>=', $from)
+            ->groupBy('contact_id')
+            ->selectRaw('contact_id, COUNT(*) as frequency, SUM(total_amount) as monetary, MAX(invoice_date) as last_invoice_date')
+            ->get()
+            ->keyBy('contact_id');
+
         $segments = [
             'champions' => 0,
             'loyal' => 0,
             'at_risk' => 0,
-            'dormant' => 0,
+            'dormant' => max(0, $totalCustomers - $aggregated->count()),
         ];
-        $active = 0;
+        $active = $aggregated->count();
 
-        foreach ($customers as $customerId) {
-            $invoices = Invoice::query()
-                ->where('contact_id', $customerId)
-                ->whereIn('status', [InvoiceStatus::Sent, InvoiceStatus::Paid, InvoiceStatus::Overdue])
-                ->where('invoice_date', '>=', $from->toDateString())
-                ->get(['total_amount', 'invoice_date']);
-
-            if ($invoices->isEmpty()) {
-                $segments['dormant']++;
-
-                continue;
-            }
-
-            $active++;
-            $monetary = $invoices->sum('total_amount');
-            $frequency = $invoices->count();
-            $recencyDays = now()->diffInDays($invoices->max('invoice_date'));
+        foreach ($aggregated as $row) {
+            $monetary = (float) $row->monetary;
+            $frequency = (int) $row->frequency;
+            $recencyDays = now()->diffInDays($row->last_invoice_date);
 
             if ($monetary > 1000 && $frequency >= 3 && $recencyDays <= 30) {
                 $segments['champions']++;

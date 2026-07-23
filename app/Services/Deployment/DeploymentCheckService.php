@@ -581,7 +581,7 @@ class DeploymentCheckService
   protected function checkViewsCompile(): array
   {
     try {
-      View::make('errors::503');
+      View::make('errors.503');
 
       return $this->result('views_compile', 'pass', __('scf.release.check_views_ok'), 'cache');
     } catch (Throwable) {

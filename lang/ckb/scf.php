@@ -1284,6 +1284,7 @@ return [
         'idempotency_payload_mismatch' => 'The idempotency key matches a previous request with different data.',
         'insufficient_token_ability' => 'The access token does not have the required ability for this action.',
         'audit_event' => 'API event: :event',
+        'docs_retrieved' => 'بەڵگەنامەی API بە سەرکەوتوویی وەرگیرا.',
         'products' => [
             'listed' => 'Products retrieved successfully.',
             'retrieved' => 'Product retrieved successfully.',
@@ -1716,5 +1717,33 @@ return [
         'api_forecasts' => 'پێشبینیەکان گەڕێنرایەوە.',
         'api_alerts' => 'ئاگاداریەکان گەڕێنرایەوە.',
         'api_recommendations' => 'ڕاسپاردەکان گەڕێنرایەوە.',
+    ],
+
+    'ui' => [
+        'loading' => 'بارکردن…',
+        'skip_to_main' => 'بچۆ بۆ ناوەڕۆکی سەرەکی',
+        'breadcrumb' => 'ڕێڕەو',
+        'view_details' => 'وردەکاری ببینە',
+    ],
+
+    'errors' => [
+        'skip_to_content' => 'بچۆ بۆ ناوەڕۆک',
+        'return_dashboard' => 'گەڕانەوە بۆ داشبۆرد',
+        'sign_in' => 'چوونەژوورەوە',
+        'go_back' => 'گەڕانەوە',
+        'no_permission_title' => 'دەستگەیشتن سنووردارە',
+        'no_permission_message' => 'مۆڵەتت نییە ئەم زانیارییە ببینیت.',
+        'title_403' => 'دەستگەیشتن ڕەتکرایەوە',
+        'message_403' => 'مۆڵەتت نییە ئەم پەڕەیە ببینیت.',
+        'title_404' => 'پەڕە نەدۆزرایەوە',
+        'message_404' => 'ئەو پەڕەیەی داوات کرد نەدۆزرایەوە.',
+        'title_419' => 'دانیشتن بەسەرچوو',
+        'message_419' => 'دانیشتنەکەت بەسەرچوو. تکایە پەڕە نوێ بکەرەوە و دووبارە هەوڵ بدە.',
+        'title_429' => 'داواکاری زۆر',
+        'message_429' => 'داواکاری زۆرت نارد. تکایە ماوەیەک چاوەڕێ بکە.',
+        'title_500' => 'هەڵەیەک ڕوویدا',
+        'message_500' => 'هەڵەیەکی چاوەڕواننەکراو ڕوویدا. تۆمار کرا.',
+        'title_503' => 'خزمەتگوزاری بەردەست نییە',
+        'message_503' => 'سیستەم بۆ ماوەیەک بەردەست نییە. دواتر هەوڵ بدە.',
     ],
 ];

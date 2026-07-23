@@ -13,8 +13,11 @@ Use this checklist before Version 1.0 production promotion.
 ## Transport and headers
 
 - [ ] HTTPS termination configured on the reverse proxy
+- [ ] `APP_URL` uses `https://`
+- [ ] `TRUSTED_PROXIES` set when behind Nginx/Apache/LB (`*` or proxy IPs)
 - [ ] `SESSION_SECURE_COOKIE=true` under HTTPS
 - [ ] Security headers enabled (`SECURITY_HEADERS_ENABLED=true`)
+- [ ] HSTS issued by app when production + HTTPS (`SecurityHeaders` middleware)
 - [ ] Review CSP report-only config before enforcement
 
 ## Authentication and sessions

@@ -1,11 +1,13 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/livewire-starter-kit",
+    "name": "sahdi/scf-enterprise-suite",
     "type": "project",
-    "description": "The official Laravel starter kit for Livewire.",
+    "description": "SCF Enterprise Suite — Sahdi Create Future hybrid ERP (Version 1.0).",
     "keywords": [
+        "scf",
+        "erp",
         "laravel",
-        "framework"
+        "livewire"
     ],
     "license": "MIT",
     "require": {

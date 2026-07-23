@@ -73,7 +73,7 @@ class Navigation
             str_starts_with($routeName, 'notification-templates.') => 'notification-templates.read',
             str_starts_with($routeName, 'notifications.') => 'notifications.read',
             str_starts_with($routeName, 'analytics.') => 'analytics.read',
-            str_starts_with($routeName, 'intelligence.') => 'intelligence.view',
+            str_starts_with($routeName, 'intelligence.') => self::intelligencePermissionForRoute($routeName),
             str_starts_with($routeName, 'documents.') => 'documents.read',
             str_starts_with($routeName, 'audit-logs.') => 'audit-logs.read',
             str_starts_with($routeName, 'system-information.') => 'settings.read',
@@ -96,5 +96,27 @@ class Navigation
         }
 
         return auth()->user()->can($permission);
+    }
+
+    public static function intelligencePermissionForRoute(string $routeName): string
+    {
+        $map = [
+            'intelligence.executive' => 'intelligence.executive.view',
+            'intelligence.financial' => 'intelligence.financial.view',
+            'intelligence.sales' => 'intelligence.sales.view',
+            'intelligence.purchasing' => 'intelligence.purchasing.view',
+            'intelligence.inventory' => 'intelligence.inventory.view',
+            'intelligence.customers' => 'intelligence.customers.view',
+            'intelligence.suppliers' => 'intelligence.suppliers.view',
+            'intelligence.operations' => 'intelligence.operations.view',
+            'intelligence.forecasts' => 'intelligence.forecasts.view',
+            'intelligence.alerts' => 'intelligence.alerts.view',
+            'intelligence.recommendations' => 'intelligence.recommendations.view',
+            'intelligence.assistant' => 'intelligence.assistant.use',
+            'intelligence.export.csv' => 'intelligence.export',
+            'intelligence.export.pdf' => 'intelligence.export',
+        ];
+
+        return $map[$routeName] ?? 'intelligence.view';
     }
 }

@@ -13,6 +13,20 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class IntelligenceExportController extends Controller
 {
+    /**
+     * @var list<string>
+     */
+    private const DOMAINS = [
+        'executive',
+        'financial',
+        'sales',
+        'purchasing',
+        'inventory',
+        'customers',
+        'suppliers',
+        'operations',
+    ];
+
     public function __construct(
         protected ExportService $exports,
         protected ExecutiveAnalyticsService $executive,
@@ -49,10 +63,13 @@ class IntelligenceExportController extends Controller
      */
     protected function buildReport(Request $request, string $domain): array
     {
+        abort_unless(in_array($domain, self::DOMAINS, true), 404);
+
         $filter = AnalyticsFilter::fromRequest($request);
         $user = $request->user();
 
         if ($domain === 'executive') {
+            abort_unless($user?->can(config('intelligence.permissions.executive')), 403);
             $data = $this->executive->dashboard($user, $filter);
             $headers = [__('Metric'), __('Value')];
             $rows = collect($data['kpis'] ?? [])->map(fn ($v, $k) => [$k, $v])->values()->all();

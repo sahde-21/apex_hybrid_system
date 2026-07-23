@@ -35,5 +35,6 @@
         <env name="NIGHTWATCH_ENABLED" value="false" force="true"/>
         <env name="NOTIFICATIONS_DOMAIN" value="false" force="true"/>
         <env name="ALLOW_DESTRUCTIVE_DB" value="false" force="true"/>
+        <ini name="memory_limit" value="256M"/>
     </php>
 </phpunit>

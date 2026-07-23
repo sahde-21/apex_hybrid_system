@@ -1719,4 +1719,32 @@ return [
         'api_alerts' => 'Alerts retrieved.',
         'api_recommendations' => 'Recommendations retrieved.',
     ],
+
+    'ui' => [
+        'loading' => 'Loading…',
+        'skip_to_main' => 'Skip to main content',
+        'breadcrumb' => 'Breadcrumb',
+        'view_details' => 'View details',
+    ],
+
+    'errors' => [
+        'skip_to_content' => 'Skip to content',
+        'return_dashboard' => 'Return to dashboard',
+        'sign_in' => 'Sign in',
+        'go_back' => 'Go back',
+        'no_permission_title' => 'Access restricted',
+        'no_permission_message' => 'You do not have permission to view this information.',
+        'title_403' => 'Access denied',
+        'message_403' => 'You do not have permission to access this page.',
+        'title_404' => 'Page not found',
+        'message_404' => 'We could not find the page you requested.',
+        'title_419' => 'Session expired',
+        'message_419' => 'Your session has expired. Please refresh the page and try again.',
+        'title_429' => 'Too many requests',
+        'message_429' => 'You have made too many requests. Please wait a moment and try again.',
+        'title_500' => 'Something went wrong',
+        'message_500' => 'An unexpected error occurred. The issue has been logged.',
+        'title_503' => 'Service unavailable',
+        'message_503' => 'The system is temporarily unavailable. Please try again shortly.',
+    ],
 ];

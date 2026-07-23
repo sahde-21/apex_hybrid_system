@@ -2,6 +2,17 @@
 
 This plan covers common operational incidents for self-hosted SCF Enterprise Suite deployments. It does not guarantee zero data loss unless verified backups exist.
 
+## Recovery objectives (defaults)
+
+| Objective | Target | Notes |
+|-----------|--------|-------|
+| **RTO** (Recovery Time Objective) | ≤ 4 hours for Critical DB/app restore on Recommended hardware | Depends on backup size and staff readiness |
+| **RPO** (Recovery Point Objective) | ≤ 24 hours with default daily 02:00 backup | Improve with more frequent `db:backup` or DB PITR |
+| Backup verification | Weekly + after incidents | `scf:backup:verify` |
+| Off-site copy | Customer policy | Required for site-loss scenarios |
+
+Tighten RPO with hourly backups or managed PostgreSQL PITR when the business requires it.
+
 ## Database corruption
 
 | Item | Guidance |

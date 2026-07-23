@@ -8,7 +8,7 @@ trait ScopesAnalytics
 {
     protected function canView(User $user, string $permission): bool
     {
-        return $user->can($permission) || $user->can('intelligence.view');
+        return $user->can($permission);
     }
 
     protected function requirePermission(User $user, string $permission): void

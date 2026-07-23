@@ -79,6 +79,19 @@ return Application::configure(basePath: dirname(__DIR__))
             ->when(fn () => config('intelligence.enabled', true));
     })
     ->withMiddleware(function (Middleware $middleware): void {
+        // Production reverse proxies (Nginx/Apache/LB): set TRUSTED_PROXIES in .env
+        // to "*" or a comma-separated list of proxy IPs. Leave empty for direct PHP-FPM
+        // without a proxy (development). Required for correct HTTPS, client IP, and HSTS.
+        $trustedProxies = env('TRUSTED_PROXIES');
+
+        if (is_string($trustedProxies) && $trustedProxies !== '') {
+            $middleware->trustProxies(
+                at: $trustedProxies === '*'
+                    ? '*'
+                    : array_values(array_filter(array_map('trim', explode(',', $trustedProxies)))),
+            );
+        }
+
         $middleware->web(append: [
             SetLocale::class,
             EnsureUserIsActive::class,

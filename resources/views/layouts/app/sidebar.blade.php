@@ -4,6 +4,7 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-zinc-50 antialiased dark:bg-zinc-950 lg:flex">
+        <a href="#scf-main-content" class="scf-skip-link">{{ __('scf.ui.skip_to_main') }}</a>
         <flux:sidebar sticky collapsible="mobile" class="scf-sidebar border-e border-zinc-200/90 bg-white/95 dark:border-zinc-800 dark:bg-zinc-950/95">
             <flux:sidebar.header class="border-b border-zinc-100 px-2 dark:border-zinc-800/80">
                 <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
@@ -357,9 +358,13 @@
                             ['route' => 'intelligence.recommendations', 'icon' => 'light-bulb', 'label' => 'recommendations_title', 'permission' => 'intelligence.recommendations.view'],
                             ['route' => 'intelligence.assistant', 'icon' => 'chat-bubble-left-right', 'label' => 'assistant_title', 'permission' => 'intelligence.assistant.use'],
                         ];
+                        $visibleIntelligenceNav = array_values(array_filter(
+                            $intelligenceNav,
+                            fn (array $item) => Route::has($item['route']) && auth()->user()?->can($item['permission'])
+                        ));
                     @endphp
-                    @foreach ($intelligenceNav as $item)
-                        @if (Route::has($item['route']) && auth()->user()?->can($item['permission']))
+                    @if (count($visibleIntelligenceNav) > 0)
+                    @foreach ($visibleIntelligenceNav as $item)
                             <flux:sidebar.item
                                 :icon="$item['icon']"
                                 :href="route($item['route'])"
@@ -368,8 +373,8 @@
                             >
                                 {{ __('scf.intelligence.'.$item['label']) }}
                             </flux:sidebar.item>
-                        @endif
                     @endforeach
+                    @endif
                 </flux:sidebar.group>
 
                 <flux:sidebar.group :heading="__('scf.administration')" class="grid">
@@ -441,7 +446,7 @@
             </div>
         </flux:sidebar>
 
-        <div class="min-w-0 flex-1">
+        <div class="min-w-0 flex-1" id="scf-main-content" tabindex="-1">
             <header class="scf-topbar">
                 <div class="scf-topbar-inner">
                     <flux:sidebar.toggle class="lg:hidden" icon="bars-3" inset="left" />

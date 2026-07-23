@@ -145,6 +145,21 @@ test('intelligence translations exist in en ar ckb', function () {
     }
 });
 
+test('users with only base intelligence permission cannot access financial domain analytics', function () {
+    $user = actingAsUserWithPermissions(['intelligence.view', 'analytics.read']);
+    Sanctum::actingAs($user, ['intelligence.read']);
+
+    $this->getJson('/api/v1/intelligence/financial')
+        ->assertForbidden();
+});
+
+test('intelligence export rejects unknown domain', function () {
+    actingAsUserWithPermissions(['intelligence.view', 'intelligence.export', 'intelligence.executive.view']);
+
+    $this->get(route('intelligence.export.csv', ['domain' => 'invalid-domain']))
+        ->assertNotFound();
+});
+
 test('alert acknowledge requires manage permission', function () {
     $alert = IntelligenceAlert::query()->create([
         'rule_key' => 'test',

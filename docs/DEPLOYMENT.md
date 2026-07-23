@@ -103,3 +103,11 @@ Laravel Sail is available in `require-dev` only. It is optional and not required
 **FREE / BUILT-IN / SELF-HOSTED:** Laravel commands, database queue, scheduler, local backups, local logs, native server deployment.
 
 **OPTIONAL COSTS — NOT PURCHASED OR ENABLED:** domain, VPS, managed DB/Redis, paid CDN, paid backups, paid email/SMS, paid monitoring, paid scanners, paid registries.
+
+## Infrastructure references (G4.2)
+
+- Server sizing: `PRODUCTION_SERVER_REQUIREMENTS.md`
+- Clean install: `INSTALLATION_GUIDE.md`
+- Nginx TLS reverse proxy: `infrastructure/NGINX_EXAMPLE.md`
+- Queue Supervisor: `infrastructure/SUPERVISOR_EXAMPLE.md`
+- Behind a proxy set `TRUSTED_PROXIES=*` (or specific IPs) in `.env`

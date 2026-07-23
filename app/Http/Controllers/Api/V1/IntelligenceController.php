@@ -54,10 +54,8 @@ class IntelligenceController extends ApiController
     {
         $this->authorizeApiRead(ApiAbilities::INTELLIGENCE_READ);
 
-        $data = $executive->dashboard($this->actor($request), AnalyticsFilter::fromRequest($request));
-
         return $this->respond(
-            $data['revenue_forecast'] ?? [],
+            $executive->forecasts($this->actor($request), AnalyticsFilter::fromRequest($request)),
             __('scf.intelligence.api_forecasts'),
             $request,
         );

@@ -59,7 +59,8 @@ new #[Title('Intelligence')] class extends Component {
         $user = auth()->user();
 
         return match ($this->tab) {
-            'executive', 'forecasts' => app(ExecutiveAnalyticsService::class)->dashboard($user, $this->filter),
+            'executive' => app(ExecutiveAnalyticsService::class)->dashboard($user, $this->filter),
+            'forecasts' => app(ExecutiveAnalyticsService::class)->forecasts($user, $this->filter),
             'alerts' => ['items' => app(SmartAlertService::class)->activeForUser($user)->all(), 'meta' => ['generated_at' => now()->toIso8601String()]],
             'recommendations' => ['items' => app(RecommendationEngine::class)->activeForUser($user)->all(), 'meta' => ['generated_at' => now()->toIso8601String()]],
             default => app(DomainAnalyticsService::class)->forDomain($user, $this->tab, $this->filter),
@@ -102,16 +103,23 @@ new #[Title('Intelligence')] class extends Component {
     $meta = $data['meta'] ?? ['generated_at' => now()->toIso8601String()];
 @endphp
 
-<section class="scf-page space-y-6" dir="auto">
+<section class="scf-page scf-page--loading space-y-6" dir="auto" wire:loading.class="opacity-90">
+    <x-loading-state />
+
     <x-page-header
         :title="__('scf.intelligence.'.$tab.'_title')"
         :subtitle="__('scf.intelligence.'.$tab.'_subtitle')"
+        :breadcrumbs="[
+            ['label' => __('scf.dashboard'), 'href' => route('dashboard')],
+            ['label' => __('scf.intelligence.nav_group')],
+            ['label' => __('scf.intelligence.'.$tab.'_title')],
+        ]"
     />
 
     @if (! in_array($tab, ['alerts', 'recommendations', 'assistant']))
         <div class="grid gap-4 md:grid-cols-4">
-            <flux:input type="date" wire:model.live="from" :label="__('scf.intelligence.date_from')" />
-            <flux:input type="date" wire:model.live="to" :label="__('scf.intelligence.date_to')" />
+            <flux:input type="date" wire:model.live.debounce.400ms="from" :label="__('scf.intelligence.date_from')" />
+            <flux:input type="date" wire:model.live.debounce.400ms="to" :label="__('scf.intelligence.date_to')" />
             <flux:select wire:model.live="branch_id" :label="__('scf.intelligence.branch')">
                 <flux:select.option value="">{{ __('scf.intelligence.all_branches') }}</flux:select.option>
                 @foreach ($this->branches as $branch)
@@ -132,13 +140,29 @@ new #[Title('Intelligence')] class extends Component {
         <flux:card class="space-y-4">
             <flux:text>{{ __('scf.intelligence.assistant_disclaimer') }}</flux:text>
             <flux:input wire:model="assistantQuestion" :placeholder="__('scf.intelligence.assistant_placeholder')" wire:keydown.enter="askAssistant" />
-            <flux:button wire:click="askAssistant" variant="primary">{{ __('scf.intelligence.assistant_ask') }}</flux:button>
+            <flux:button wire:click="askAssistant" variant="primary" wire:loading.attr="disabled" wire:target="askAssistant">
+                <span wire:loading.remove wire:target="askAssistant">{{ __('scf.intelligence.assistant_ask') }}</span>
+                <span wire:loading wire:target="askAssistant">{{ __('scf.ui.loading') }}</span>
+            </flux:button>
             @if ($this->assistantResponse)
                 <div class="rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
                     @if (! ($this->assistantResponse['supported'] ?? true))
                         <flux:text>{{ $this->assistantResponse['message'] ?? '' }}</flux:text>
+                        <ul class="mt-3 list-disc space-y-1 ps-5 text-sm text-zinc-600 dark:text-zinc-400">
+                            @foreach (app(\App\Services\Intelligence\SmartAssistantService::class)->suggestions() as $suggestion)
+                                <li>{{ $suggestion }}</li>
+                            @endforeach
+                        </ul>
                     @else
-                        <pre class="whitespace-pre-wrap text-sm">{{ json_encode($this->assistantResponse['response'] ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+                        @php $response = $this->assistantResponse['response'] ?? []; @endphp
+                        <flux:heading size="sm">{{ $response['title'] ?? __('scf.intelligence.assistant_title') }}</flux:heading>
+                        @if (isset($response['value']))
+                            <p class="mt-2 text-2xl font-semibold tabular-nums">{{ is_array($response['value']) ? ($response['value']['score'] ?? json_encode($response['value'])) : $response['value'] }}</p>
+                        @endif
+                        @if (! empty($response['link']))
+                            <flux:button class="mt-3" size="sm" :href="$response['link']" wire:navigate>{{ __('scf.ui.view_details') }}</flux:button>
+                        @endif
+                        <flux:text class="mt-3 text-xs">{{ $this->assistantResponse['disclaimer'] ?? '' }}</flux:text>
                     @endif
                 </div>
             @endif
@@ -168,7 +192,7 @@ new #[Title('Intelligence')] class extends Component {
             @foreach ($data['kpis'] ?? [] as $key => $value)
                 <flux:card>
                     <flux:subheading>{{ __('scf.intelligence.kpi_'.$key) !== 'scf.intelligence.kpi_'.$key ? __('scf.intelligence.kpi_'.$key) : str_replace('_', ' ', ucfirst($key)) }}</flux:subheading>
-                    <flux:heading size="lg">{{ is_numeric($value) ? number_format((float) $value, 2) : $value }}</flux:heading>
+                    <p class="scf-kpi-value">{{ is_numeric($value) ? number_format((float) $value, 2) : $value }}</p>
                 </flux:card>
             @endforeach
         </div>

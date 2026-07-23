@@ -1284,6 +1284,7 @@ return [
         'idempotency_payload_mismatch' => 'The idempotency key matches a previous request with different data.',
         'insufficient_token_ability' => 'The access token does not have the required ability for this action.',
         'audit_event' => 'API event: :event',
+        'docs_retrieved' => 'تم استرجاع وثائق واجهة البرمجة بنجاح.',
         'products' => [
             'listed' => 'Products retrieved successfully.',
             'retrieved' => 'Product retrieved successfully.',
@@ -1716,5 +1717,33 @@ return [
         'api_forecasts' => 'تم استرجاع التوقعات.',
         'api_alerts' => 'تم استرجاع التنبيهات.',
         'api_recommendations' => 'تم استرجاع التوصيات.',
+    ],
+
+    'ui' => [
+        'loading' => 'جارٍ التحميل…',
+        'skip_to_main' => 'انتقل إلى المحتوى الرئيسي',
+        'breadcrumb' => 'مسار التنقل',
+        'view_details' => 'عرض التفاصيل',
+    ],
+
+    'errors' => [
+        'skip_to_content' => 'انتقل إلى المحتوى',
+        'return_dashboard' => 'العودة إلى لوحة التحكم',
+        'sign_in' => 'تسجيل الدخول',
+        'go_back' => 'رجوع',
+        'no_permission_title' => 'وصول مقيّد',
+        'no_permission_message' => 'ليس لديك صلاحية لعرض هذه المعلومات.',
+        'title_403' => 'تم رفض الوصول',
+        'message_403' => 'ليس لديك صلاحية للوصول إلى هذه الصفحة.',
+        'title_404' => 'الصفحة غير موجودة',
+        'message_404' => 'تعذر العثور على الصفحة المطلوبة.',
+        'title_419' => 'انتهت الجلسة',
+        'message_419' => 'انتهت صلاحية جلستك. يرجى تحديث الصفحة والمحاولة مرة أخرى.',
+        'title_429' => 'طلبات كثيرة جداً',
+        'message_429' => 'لقد أرسلت طلبات كثيرة. يرجى الانتظار قليلاً والمحاولة مجدداً.',
+        'title_500' => 'حدث خطأ',
+        'message_500' => 'حدث خطأ غير متوقع. تم تسجيل المشكلة.',
+        'title_503' => 'الخدمة غير متاحة',
+        'message_503' => 'النظام غير متاح مؤقتاً. يرجى المحاولة لاحقاً.',
     ],
 ];

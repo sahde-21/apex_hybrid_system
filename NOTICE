@@ -1,0 +1,19 @@
+# Third-Party Notices — SCF Enterprise Suite 1.0
+
+This product includes open-source components. Primary runtime stack:
+
+| Component | License (typical) | Notes |
+|-----------|-------------------|--------|
+| Laravel Framework | MIT | PHP application framework |
+| Livewire / Flux / Blaze | Per upstream | UI layer |
+| Laravel Fortify / Sanctum | MIT | Auth / API tokens |
+| Spatie Laravel Permission | MIT | Roles and permissions |
+| barryvdh/laravel-dompdf | MIT | PDF generation |
+| Vite / Tailwind CSS | MIT | Frontend build |
+| Chart.js | MIT | Charts |
+| PHP / Composer packages | See `composer.lock` | Run `composer licenses` for full list |
+| npm packages | See `package-lock.json` | Run `npx license-checker` if required by compliance |
+
+Exact license texts for dependencies are in `vendor/` after `composer install` and in package registries for npm modules.
+
+Copyright for SCF Enterprise Suite product branding: Sahdi Create Future.
