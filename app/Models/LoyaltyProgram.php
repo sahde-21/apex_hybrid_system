@@ -7,6 +7,7 @@ use Database\Factories\LoyaltyProgramFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
@@ -46,5 +47,21 @@ class LoyaltyProgram extends Model
             'points_per_currency' => 'decimal:2',
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * @return HasMany<LoyaltyBalance, $this>
+     */
+    public function loyaltyBalances(): HasMany
+    {
+        return $this->hasMany(LoyaltyBalance::class);
+    }
+
+    /**
+     * @return HasMany<LoyaltyRedemption, $this>
+     */
+    public function loyaltyRedemptions(): HasMany
+    {
+        return $this->hasMany(LoyaltyRedemption::class);
     }
 }

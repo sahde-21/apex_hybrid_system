@@ -12,8 +12,8 @@ return new class extends Migration
             $table->id();
             $table->string('reference_number')->unique();
             $table->foreignId('product_id')->constrained()->nullOnDelete();
-            $table->foreignId('from_warehouse_id')->constrained()->nullOnDelete();
-            $table->foreignId('to_warehouse_id')->constrained()->nullOnDelete();
+            $table->foreignId('from_warehouse_id')->constrained('warehouses')->nullOnDelete();
+            $table->foreignId('to_warehouse_id')->constrained('warehouses')->nullOnDelete();
             $table->integer('quantity');
             $table->date('transfer_date');
             $table->string('status')->nullable();

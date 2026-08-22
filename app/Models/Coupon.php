@@ -7,6 +7,7 @@ use Database\Factories\CouponFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
@@ -56,6 +57,14 @@ class Coupon extends Model
             'usage_count' => 'integer',
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * @return HasMany<PosSale, $this>
+     */
+    public function posSales(): HasMany
+    {
+        return $this->hasMany(PosSale::class);
     }
 
     public function isRedeemable(): bool

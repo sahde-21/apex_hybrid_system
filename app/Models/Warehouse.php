@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Concerns\Auditable;
+use Database\Factories\WarehouseFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -28,6 +29,7 @@ use Illuminate\Support\Carbon;
 ])]
 class Warehouse extends Model
 {
+    /** @use HasFactory<WarehouseFactory> */
     use Auditable, HasFactory;
 
     /**
@@ -54,5 +56,53 @@ class Warehouse extends Model
     public function saleOrders(): HasMany
     {
         return $this->hasMany(SaleOrder::class);
+    }
+
+    /**
+     * @return HasMany<ProductionOrder, $this>
+     */
+    public function productionOrders(): HasMany
+    {
+        return $this->hasMany(ProductionOrder::class);
+    }
+
+    /**
+     * @return HasMany<InventoryAdjustment, $this>
+     */
+    public function inventoryAdjustments(): HasMany
+    {
+        return $this->hasMany(InventoryAdjustment::class);
+    }
+
+    /**
+     * @return HasMany<FloorPlan, $this>
+     */
+    public function floorPlans(): HasMany
+    {
+        return $this->hasMany(FloorPlan::class);
+    }
+
+    /**
+     * @return HasMany<PosRegister, $this>
+     */
+    public function posRegisters(): HasMany
+    {
+        return $this->hasMany(PosRegister::class);
+    }
+
+    /**
+     * @return HasMany<StockTransfer, $this>
+     */
+    public function outgoingStockTransfers(): HasMany
+    {
+        return $this->hasMany(StockTransfer::class, 'from_warehouse_id');
+    }
+
+    /**
+     * @return HasMany<StockTransfer, $this>
+     */
+    public function incomingStockTransfers(): HasMany
+    {
+        return $this->hasMany(StockTransfer::class, 'to_warehouse_id');
     }
 }

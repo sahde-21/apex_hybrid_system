@@ -9,6 +9,10 @@ use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\InvoiceController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\ProductController;
+use App\Http\Controllers\Api\V1\WarehouseController;
+use App\Http\Controllers\Api\V1\EmployeeController;
+use App\Http\Controllers\Api\V1\AccountController;
+use App\Http\Controllers\Api\V1\PosRegisterController;
 use App\Http\Controllers\Api\V1\PurchaseOrderController;
 use App\Http\Controllers\Api\V1\PurchaseRequestController;
 use App\Http\Controllers\Api\V1\QuotationController;
@@ -47,6 +51,10 @@ Route::middleware(['auth:sanctum', 'api.active', 'throttle:api', 'api.idempotent
     Route::delete('/tokens/{token}', [TokenController::class, 'destroy'])->whereNumber('token')->name('tokens.destroy');
 
     Route::apiResource('products', ProductController::class);
+    Route::apiResource('warehouses', WarehouseController::class);
+    Route::apiResource('employees', EmployeeController::class);
+    Route::apiResource('pos-registers', PosRegisterController::class);
+    Route::apiResource('accounts', AccountController::class);
 
     Route::bind('customer', fn (string $value) => Contact::query()
         ->whereKey($value)
