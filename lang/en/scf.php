@@ -1313,12 +1313,26 @@ return [
             'updated' => 'POS register updated successfully.',
             'deleted' => 'POS register deleted successfully.',
         ],
+        'pos_shifts' => [
+            'listed' => 'POS shifts retrieved successfully.',
+            'retrieved' => 'POS shift retrieved successfully.',
+            'created' => 'POS shift opened successfully.',
+            'updated' => 'POS shift updated successfully.',
+            'deleted' => 'POS shift deleted successfully.',
+        ],
         'accounts' => [
             'listed' => 'Accounts retrieved successfully.',
             'retrieved' => 'Account retrieved successfully.',
             'created' => 'Account created successfully.',
             'updated' => 'Account updated successfully.',
             'deleted' => 'Account deleted successfully.',
+        ],
+        'branches' => [
+            'listed' => 'Branches retrieved successfully.',
+            'retrieved' => 'Branch retrieved successfully.',
+            'created' => 'Branch created successfully.',
+            'updated' => 'Branch updated successfully.',
+            'deleted' => 'Branch deleted successfully.',
         ],
         'customers' => [
             'listed' => 'Customers retrieved successfully.',

@@ -12,8 +12,12 @@ final class ApiAbilities
     public const WAREHOUSES_WRITE = 'warehouses.write';
     public const EMPLOYEES_READ = 'employees.read';
     public const EMPLOYEES_WRITE = 'employees.write';
+    public const BRANCHES_READ = 'branches.read';
+    public const BRANCHES_WRITE = 'branches.write';
     public const POS_REGISTERS_READ = 'pos_registers.read';
     public const POS_REGISTERS_WRITE = 'pos_registers.write';
+    public const POS_SHIFTS_READ = 'pos_shifts.read';
+    public const POS_SHIFTS_WRITE = 'pos_shifts.write';
     public const CUSTOMERS_READ = 'customers.read';
     public const CUSTOMERS_WRITE = 'customers.write';
     public const SUPPLIERS_READ = 'suppliers.read';
@@ -41,8 +45,12 @@ final class ApiAbilities
             self::WAREHOUSES_WRITE,
             self::EMPLOYEES_READ,
             self::EMPLOYEES_WRITE,
+            self::BRANCHES_READ,
+            self::BRANCHES_WRITE,
             self::POS_REGISTERS_READ,
             self::POS_REGISTERS_WRITE,
+            self::POS_SHIFTS_READ,
+            self::POS_SHIFTS_WRITE,
             self::CUSTOMERS_READ,
             self::CUSTOMERS_WRITE,
             self::SUPPLIERS_READ,
