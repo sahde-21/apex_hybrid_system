@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property string $reference_number
  * @property int $product_id
+ * @property int|null $variant_id
  * @property int $from_warehouse_id
  * @property int $to_warehouse_id
  * @property int $quantity
@@ -24,6 +25,14 @@ use Illuminate\Support\Carbon;
  * @property string|null $notes
  * @property int|null $created_by
  * @property int|null $updated_by
+ * @property int|null $approved_by
+ * @property int|null $shipped_by
+ * @property int|null $received_by
+ * @property int|null $cancelled_by
+ * @property Carbon|null $approved_at
+ * @property Carbon|null $shipped_at
+ * @property Carbon|null $received_at
+ * @property Carbon|null $cancelled_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
@@ -31,6 +40,7 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'reference_number',
     'product_id',
+    'variant_id',
     'from_warehouse_id',
     'to_warehouse_id',
     'quantity',
@@ -39,6 +49,14 @@ use Illuminate\Support\Carbon;
     'notes',
     'created_by',
     'updated_by',
+    'approved_by',
+    'shipped_by',
+    'received_by',
+    'cancelled_by',
+    'approved_at',
+    'shipped_at',
+    'received_at',
+    'cancelled_at',
 ])]
 class StockTransfer extends Model
 {
@@ -54,6 +72,10 @@ class StockTransfer extends Model
             'quantity' => 'integer',
             'transfer_date' => 'date',
             'status' => StockTransferStatus::class,
+            'approved_at' => 'datetime',
+            'shipped_at' => 'datetime',
+            'received_at' => 'datetime',
+            'cancelled_at' => 'datetime',
         ];
     }
 
@@ -63,6 +85,14 @@ class StockTransfer extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * @return BelongsTo<Variant, $this>
+     */
+    public function variant(): BelongsTo
+    {
+        return $this->belongsTo(Variant::class);
     }
 
     /**

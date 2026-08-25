@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\InventoryAdjustmentReason;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -20,10 +21,11 @@ class StoreInventoryAdjustmentRequest extends FormRequest
         return [
             'reference_number' => ['required', 'string', 'max:100', Rule::unique('inventory_adjustments', 'reference_number')],
             'product_id' => ['required', 'exists:products,id'],
-            'warehouse_id' => ['nullable', 'exists:warehouses,id'],
+            'variant_id' => ['nullable', 'exists:variants,id'],
+            'warehouse_id' => ['required', 'exists:warehouses,id'],
             'adjustment_date' => ['required', 'date'],
-            'quantity_change' => ['required', 'integer'],
-            'reason' => ['required', 'string', 'max:255'],
+            'quantity_change' => ['required', 'integer', 'not_in:0'],
+            'reason' => ['required', Rule::enum(InventoryAdjustmentReason::class)],
             'notes' => ['nullable', 'string', 'max:2000'],
         ];
     }

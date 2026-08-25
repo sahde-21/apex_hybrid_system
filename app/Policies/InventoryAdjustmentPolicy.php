@@ -24,11 +24,31 @@ class InventoryAdjustmentPolicy
 
     public function update(User $user, InventoryAdjustment $inventoryAdjustment): bool
     {
-        return $user->can('inventory-adjustments.update');
+        return $user->can('inventory-adjustments.update')
+            && $inventoryAdjustment->status->isEditable();
     }
 
     public function delete(User $user, InventoryAdjustment $inventoryAdjustment): bool
     {
-        return $user->can('inventory-adjustments.delete');
+        return $user->can('inventory-adjustments.delete')
+            && $inventoryAdjustment->status->isEditable();
+    }
+
+    public function approve(User $user, InventoryAdjustment $inventoryAdjustment): bool
+    {
+        return $user->can('inventory-adjustments.approve')
+            && $inventoryAdjustment->status->canApprove();
+    }
+
+    public function post(User $user, InventoryAdjustment $inventoryAdjustment): bool
+    {
+        return $user->can('inventory-adjustments.approve')
+            && $inventoryAdjustment->status->canPost();
+    }
+
+    public function cancel(User $user, InventoryAdjustment $inventoryAdjustment): bool
+    {
+        return $user->can('inventory-adjustments.update')
+            && $inventoryAdjustment->status->canCancel();
     }
 }

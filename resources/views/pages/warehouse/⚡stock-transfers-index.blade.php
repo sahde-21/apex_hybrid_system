@@ -94,7 +94,7 @@ new #[Title('Stock transfers')] class extends Component {
 
         <flux:select wire:model.live="status" :placeholder="__('All statuses')">
             <flux:select.option value="">{{ __('All statuses') }}</flux:select.option>
-            @foreach (StockTransferStatus::options() as $value => $label)
+            @foreach (StockTransferStatus::workflowOptions() as $value => $label)
                 <flux:select.option :value="$value">{{ $label }}</flux:select.option>
             @endforeach
         </flux:select>
@@ -116,7 +116,7 @@ new #[Title('Stock transfers')] class extends Component {
                     <flux:table.row wire:key="stock-transfers-{{ $stockTransfer->id }}">
                         <flux:table.cell>{{ $stockTransfer->reference_number ?? '—' }}</flux:table.cell>
                         <flux:table.cell>{{ $stockTransfer->product?->name ?? $stockTransfer->product?->fullName() ?? '—' }}</flux:table.cell>
-                        <flux:table.cell><flux:badge size="sm" :color="$stockTransfer->status->color()">{{ $stockTransfer->status->label() }}</flux:badge></flux:table.cell>
+                        <flux:table.cell><flux:badge size="sm" :color="$stockTransfer->status->color()">{{ $stockTransfer->status->workflowLabel() }}</flux:badge></flux:table.cell>
                         <flux:table.cell>{{ $stockTransfer->fromWarehouse?->name ?? $stockTransfer->fromWarehouse?->fullName() ?? '—' }}</flux:table.cell>
                         <flux:table.cell>{{ $stockTransfer->toWarehouse?->name ?? $stockTransfer->toWarehouse?->fullName() ?? '—' }}</flux:table.cell>
                         <flux:table.cell>

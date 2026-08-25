@@ -24,11 +24,37 @@ class StockTransferPolicy
 
     public function update(User $user, StockTransfer $stockTransfer): bool
     {
-        return $user->can('stock-transfers.update');
+        return $user->can('stock-transfers.update')
+            && $stockTransfer->status->isEditable();
     }
 
     public function delete(User $user, StockTransfer $stockTransfer): bool
     {
-        return $user->can('stock-transfers.delete');
+        return $user->can('stock-transfers.delete')
+            && $stockTransfer->status->isEditable();
+    }
+
+    public function approve(User $user, StockTransfer $stockTransfer): bool
+    {
+        return $user->can('stock-transfers.approve')
+            && $stockTransfer->status->canApprove();
+    }
+
+    public function ship(User $user, StockTransfer $stockTransfer): bool
+    {
+        return $user->can('stock-transfers.approve')
+            && $stockTransfer->status->canShip();
+    }
+
+    public function receive(User $user, StockTransfer $stockTransfer): bool
+    {
+        return $user->can('stock-transfers.approve')
+            && $stockTransfer->status->canReceive();
+    }
+
+    public function cancel(User $user, StockTransfer $stockTransfer): bool
+    {
+        return $user->can('stock-transfers.update')
+            && $stockTransfer->status->canCancel();
     }
 }

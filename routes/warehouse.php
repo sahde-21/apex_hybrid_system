@@ -52,7 +52,7 @@ Route::middleware(['auth', 'verified'])->prefix('warehouse')->group(function () 
     Route::middleware(['can:stock-transfers.read'])->name('stock-transfers.')->group(function () {
         Route::livewire('stock-transfers', 'pages::warehouse.stock-transfers-index')->name('index');
         Route::livewire('stock-transfers/create', 'pages::warehouse.stock-transfers-create')->middleware('can:stock-transfers.create')->name('create');
-        Route::livewire('stock-transfers/{stockTransfer}/edit', 'pages::warehouse.stock-transfers-edit')->middleware('can:stock-transfers.update')->name('edit');
+        Route::livewire('stock-transfers/{stockTransfer}/edit', 'pages::warehouse.stock-transfers-edit')->middleware('can:stock-transfers.read')->name('edit');
 
         Route::post('stock-transfers', [StockTransferController::class, 'store'])->middleware('can:stock-transfers.create')->name('store');
         Route::put('stock-transfers/{stockTransfer}', [StockTransferController::class, 'update'])->middleware('can:stock-transfers.update')->name('update');

@@ -2,6 +2,7 @@
 
 namespace App\Concerns;
 
+use App\Enums\InventoryAdjustmentReason;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
 
@@ -20,10 +21,11 @@ trait InventoryAdjustmentValidationRules
                 Rule::unique('inventory_adjustments', 'reference_number')->ignore($inventoryAdjustmentId),
             ],
             'product_id' => ['required', 'exists:products,id'],
-            'warehouse_id' => ['nullable', 'exists:warehouses,id'],
+            'variant_id' => ['nullable', 'exists:variants,id'],
+            'warehouse_id' => ['required', 'exists:warehouses,id'],
             'adjustment_date' => ['required', 'date'],
-            'quantity_change' => ['required', 'integer'],
-            'reason' => ['required', 'string', 'max:255'],
+            'quantity_change' => ['required', 'integer', 'not_in:0'],
+            'reason' => ['required', Rule::enum(InventoryAdjustmentReason::class)],
             'notes' => ['nullable', 'string', 'max:2000'],
         ];
     }

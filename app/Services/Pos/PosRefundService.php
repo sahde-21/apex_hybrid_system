@@ -6,6 +6,7 @@ use App\Enums\InvoiceStatus;
 use App\Enums\PaymentType;
 use App\Enums\PosPaymentMethod;
 use App\Enums\PosSaleStatus;
+use App\Enums\StockMovementType;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\PosSale;
@@ -15,14 +16,21 @@ use App\Models\PosShift;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\Variant;
+use App\Services\Inventory\StockLedgerService;
+use App\Support\Inventory\MovementCommand;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 
 class PosRefundService
 {
+    public function __construct(
+        protected StockLedgerService $ledger,
+        protected PosWarehouseResolver $warehouses,
+    ) {}
+
     /**
-     * @param  list<array{pos_sale_item_id: int, quantity: int}>|null  $items null = full refund
+     * @param  list<array{pos_sale_item_id: int, quantity: int}>|null  $items  null = full refund
      * @param  list<array{method: string, amount: float|int|string, reference?: string|null}>  $refundPayments
      */
     public function refund(
@@ -56,7 +64,17 @@ class PosRefundService
             $shift = $openShift;
         }
 
-        $original->loadMissing('items');
+        $original->loadMissing(['items', 'register']);
+
+        $ledgerEnabled = (bool) config('inventory.ledger_enabled', false);
+
+        if ($ledgerEnabled) {
+            $register = $original->register;
+            if ($register === null) {
+                throw new InvalidArgumentException(__('Original sale register is missing.'));
+            }
+            $this->warehouses->resolveFromRegister($register);
+        }
 
         $refundLines = [];
         if ($items === null) {
@@ -111,9 +129,23 @@ class PosRefundService
             throw new InvalidArgumentException(__('Refund payment total must equal refund total.'));
         }
 
-        return DB::transaction(function () use ($original, $user, $shift, $refundLines, $refundPayments, $subtotal, $tax, $discount, $total, $notes) {
-            foreach ($refundLines as $line) {
-                $this->restock($line['item'], $line['quantity']);
+        return DB::transaction(function () use (
+            $original,
+            $user,
+            $shift,
+            $refundLines,
+            $refundPayments,
+            $subtotal,
+            $tax,
+            $discount,
+            $total,
+            $notes,
+            $ledgerEnabled,
+        ) {
+            if (! $ledgerEnabled) {
+                foreach ($refundLines as $line) {
+                    $this->restock($line['item'], $line['quantity']);
+                }
             }
 
             $invoice = Invoice::query()->create([
@@ -144,7 +176,7 @@ class PosRefundService
                 'discount_amount' => round($discount, 2),
                 'tax_amount' => round($tax, 2),
                 'total_amount' => $total,
-                'cash_drawer_opened' => collect($refundPayments)->contains(fn ($p) => ($p['method'] ?? '') === 'cash'),
+                'cash_drawer_opened' => collect($refundPayments)->contains(fn ($p) => $p['method'] === 'cash'),
                 'notes' => $notes,
                 'created_by' => $user->id,
                 'updated_by' => $user->id,
@@ -169,6 +201,10 @@ class PosRefundService
                     'tax_amount' => round((float) $item->tax_amount * $ratio, 2),
                     'line_total' => round((float) $item->line_total * $ratio, 2),
                 ]);
+            }
+
+            if ($ledgerEnabled) {
+                $this->postLedgerRefundStock($sale, $original, $user);
             }
 
             foreach ($refundPayments as $paymentData) {
@@ -205,6 +241,55 @@ class PosRefundService
 
             return $sale->load(['items', 'payments', 'invoice']);
         });
+    }
+
+    protected function postLedgerRefundStock(PosSale $returnSale, PosSale $originalSale, User $user): void
+    {
+        $register = $originalSale->register ?? $originalSale->register()->first();
+
+        if ($register === null) {
+            throw new InvalidArgumentException(__('Original sale register is missing.'));
+        }
+
+        $warehouse = $this->warehouses->resolveFromRegister($register);
+        $returnSale->loadMissing('items.variant');
+
+        $lines = $returnSale->items
+            ->sortBy(function (PosSaleItem $item) {
+                $variant = $item->variant;
+                $productId = $item->product_id ?? ($variant !== null ? $variant->product_id : 0);
+
+                return sprintf('%020d-%020d', (int) $productId, (int) ($item->variant_id ?? 0));
+            })
+            ->values();
+
+        foreach ($lines as $item) {
+            $variant = $item->variant;
+            $productId = $item->product_id ?? ($variant !== null ? $variant->product_id : null);
+
+            if ($productId === null) {
+                throw new InvalidArgumentException(__('Return line is missing a product.'));
+            }
+
+            $qty = max(1, (int) $item->quantity);
+
+            $this->ledger->post(MovementCommand::fromArray([
+                'warehouse_id' => $warehouse->id,
+                'product_id' => (int) $productId,
+                'variant_id' => $item->variant_id,
+                'quantity' => $qty,
+                'reserved_delta' => 0,
+                'movement_type' => StockMovementType::PosRefund,
+                'idempotency_key' => sprintf('pos_refund:%d:line:%d', $returnSale->id, $item->id),
+                'occurred_at' => now(),
+                'reference_type' => PosSale::class,
+                'reference_id' => $returnSale->id,
+                'reference_line_id' => $item->id,
+                'created_by' => $user->id,
+                'allow_inactive' => false,
+                'notes' => $returnSale->reference_number,
+            ]));
+        }
     }
 
     protected function restock(PosSaleItem $item, int $quantity): void

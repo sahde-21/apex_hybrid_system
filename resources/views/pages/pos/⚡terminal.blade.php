@@ -12,6 +12,7 @@ use App\Services\Pos\PosCheckoutService;
 use App\Services\Pos\PosPricingService;
 use App\Services\Pos\PosRefundService;
 use App\Services\Pos\PosShiftService;
+use App\Services\Pos\PosWarehouseResolver;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -116,13 +117,33 @@ new #[Layout('layouts.pos')] #[Title('Point of Sale')] class extends Component {
     public function products()
     {
         $catalog = app(PosCatalogService::class);
-        $items = $catalog->search($this->search, $this->categoryId, Auth::id());
+        $items = $catalog->search(
+            $this->search,
+            $this->categoryId,
+            Auth::id(),
+            48,
+            $this->catalogWarehouseId(),
+        );
 
         if ($this->favoritesOnly) {
             return $items->filter(fn (array $p) => $p['is_favorite'])->values();
         }
 
         return $items;
+    }
+
+    protected function catalogWarehouseId(): ?int
+    {
+        if (! (bool) config('inventory.ledger_enabled', false)) {
+            return null;
+        }
+
+        $shift = $this->currentShift;
+        if ($shift === null) {
+            return null;
+        }
+
+        return app(PosWarehouseResolver::class)->warehouseIdFromShift($shift);
     }
 
     /**
@@ -237,7 +258,7 @@ new #[Layout('layouts.pos')] #[Title('Point of Sale')] class extends Component {
 
     public function scan(PosCatalogService $catalog): void
     {
-        $item = $catalog->findByScan($this->scanCode);
+        $item = $catalog->findByScan($this->scanCode, $this->catalogWarehouseId());
         $this->scanCode = '';
 
         if (! $item) {
@@ -288,7 +309,12 @@ new #[Layout('layouts.pos')] #[Title('Point of Sale')] class extends Component {
             return;
         }
 
-        $this->addMappedItem($catalog->mapProduct($product, true));
+        $this->addMappedItem($catalog->mapProduct(
+            $product,
+            true,
+            null,
+            $this->catalogWarehouseId(),
+        ));
     }
 
     public function updateQty(string $key, int $quantity): void

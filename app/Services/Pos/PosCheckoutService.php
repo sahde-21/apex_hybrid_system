@@ -7,6 +7,8 @@ use App\Enums\InvoiceStatus;
 use App\Enums\PaymentType;
 use App\Enums\PosPaymentMethod;
 use App\Enums\PosSaleStatus;
+use App\Enums\StockMovementType;
+use App\Exceptions\Inventory\InsufficientStockException;
 use App\Models\Contact;
 use App\Models\Coupon;
 use App\Models\GiftCard;
@@ -21,7 +23,11 @@ use App\Models\PosShift;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\Variant;
+use App\Services\Accounting\AutoPostingService;
+use App\Services\Inventory\StockLedgerService;
+use App\Support\Inventory\MovementCommand;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 
@@ -30,6 +36,8 @@ class PosCheckoutService
     public function __construct(
         protected PosPricingService $pricing,
         protected PosCatalogService $catalog,
+        protected StockLedgerService $ledger,
+        protected PosWarehouseResolver $warehouses,
     ) {}
 
     /**
@@ -86,6 +94,12 @@ class PosCheckoutService
             throw new InvalidArgumentException(__('Payment total must equal sale total.'));
         }
 
+        $ledgerEnabled = (bool) config('inventory.ledger_enabled', false);
+
+        if ($ledgerEnabled) {
+            $this->warehouses->resolveFromShift($shift);
+        }
+
         return DB::transaction(function () use (
             $shift,
             $user,
@@ -98,9 +112,12 @@ class PosCheckoutService
             $notes,
             $openCashDrawer,
             $defaultTax,
+            $ledgerEnabled,
         ) {
-            foreach ($items as $item) {
-                $this->assertAndDeductStock($item);
+            if (! $ledgerEnabled) {
+                foreach ($items as $item) {
+                    $this->assertAndDeductStock($item);
+                }
             }
 
             if ($coupon) {
@@ -167,11 +184,18 @@ class PosCheckoutService
 
                 PosSaleItem::query()->create([
                     'pos_sale_id' => $sale->id,
-                    'product_id' => $product?->id ?? $item['product_id'] ?? null,
-                    'variant_id' => $variant?->id ?? $item['variant_id'] ?? null,
-                    'name' => $item['name'] ?? $variant?->name ?? $product?->name ?? __('Item'),
-                    'sku' => $item['sku'] ?? $variant?->sku ?? $product?->sku,
-                    'barcode' => $item['barcode'] ?? $variant?->barcode ?? $product?->barcode,
+                    'product_id' => $product !== null ? $product->id : ($item['product_id'] ?? null),
+                    'variant_id' => $variant !== null ? $variant->id : ($item['variant_id'] ?? null),
+                    'name' => $item['name']
+                        ?? ($variant !== null ? $variant->name : null)
+                        ?? ($product !== null ? $product->name : null)
+                        ?? __('Item'),
+                    'sku' => $item['sku']
+                        ?? ($variant !== null ? $variant->sku : null)
+                        ?? ($product !== null ? $product->sku : null),
+                    'barcode' => $item['barcode']
+                        ?? ($variant !== null ? $variant->barcode : null)
+                        ?? ($product !== null ? $product->barcode : null),
                     'quantity' => $line['quantity'],
                     'unit_price' => $line['unit_price'],
                     'discount_amount' => $line['discount_amount'],
@@ -179,6 +203,10 @@ class PosCheckoutService
                     'tax_amount' => $line['tax_amount'],
                     'line_total' => $line['line_total'],
                 ]);
+            }
+
+            if ($ledgerEnabled) {
+                $this->postLedgerSaleStock($sale, $shift, $user);
             }
 
             foreach ($payments as $paymentData) {
@@ -215,9 +243,9 @@ class PosCheckoutService
             $sale = $sale->load(['items.product', 'payments', 'invoice', 'contact']);
 
             try {
-                app(\App\Services\Accounting\AutoPostingService::class)->postPosSale($sale, $user);
+                app(AutoPostingService::class)->postPosSale($sale, $user);
             } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning('pos.accounting_post_failed', [
+                Log::warning('pos.accounting_post_failed', [
                     'sale_id' => $sale->id,
                     'message' => $e->getMessage(),
                 ]);
@@ -225,6 +253,57 @@ class PosCheckoutService
 
             return $sale;
         });
+    }
+
+    protected function postLedgerSaleStock(PosSale $sale, PosShift $shift, User $user): void
+    {
+        $warehouse = $this->warehouses->resolveFromShift($shift);
+        $sale->loadMissing('items.variant');
+
+        $lines = $sale->items
+            ->sortBy(function (PosSaleItem $item) {
+                $variant = $item->variant;
+                $productId = $item->product_id ?? ($variant !== null ? $variant->product_id : 0);
+
+                return sprintf('%020d-%020d', (int) $productId, (int) ($item->variant_id ?? 0));
+            })
+            ->values();
+
+        foreach ($lines as $item) {
+            $variant = $item->variant;
+            $productId = $item->product_id ?? ($variant !== null ? $variant->product_id : null);
+
+            if ($productId === null) {
+                throw new InvalidArgumentException(__('Sale line is missing a product.'));
+            }
+
+            $qty = max(1, (int) $item->quantity);
+
+            try {
+                $this->ledger->post(MovementCommand::fromArray([
+                    'warehouse_id' => $warehouse->id,
+                    'product_id' => (int) $productId,
+                    'variant_id' => $item->variant_id,
+                    'quantity' => -$qty,
+                    'reserved_delta' => 0,
+                    'movement_type' => StockMovementType::PosSale,
+                    'idempotency_key' => sprintf('pos_sale:%d:line:%d', $sale->id, $item->id),
+                    'occurred_at' => now(),
+                    'reference_type' => PosSale::class,
+                    'reference_id' => $sale->id,
+                    'reference_line_id' => $item->id,
+                    'created_by' => $user->id,
+                    'allow_inactive' => false,
+                    'notes' => $sale->reference_number,
+                ]));
+            } catch (InsufficientStockException $exception) {
+                throw new InvalidArgumentException(
+                    __('Insufficient stock for :name.', ['name' => $item->name]),
+                    0,
+                    $exception,
+                );
+            }
+        }
     }
 
     /**
@@ -267,7 +346,7 @@ class PosCheckoutService
             throw new InvalidArgumentException(__('Gift card not found.'));
         }
 
-        if ($giftCard->expires_at && $giftCard->expires_at->isPast()) {
+        if ($giftCard->expires_at->isPast()) {
             throw new InvalidArgumentException(__('Gift card has expired.'));
         }
 

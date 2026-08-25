@@ -9,7 +9,6 @@ use App\Models\LoyaltyProgram;
 use App\Models\PosFavorite;
 use App\Models\PosRegister;
 use App\Models\PosSale;
-use App\Models\PosShift;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\TaxRate;

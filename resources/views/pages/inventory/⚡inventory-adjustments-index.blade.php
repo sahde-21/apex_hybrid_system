@@ -93,6 +93,7 @@ new #[Title('Inventory adjustments')] class extends Component {
                 <flux:table.column>{{ __('Reference') }}</flux:table.column>
                 <flux:table.column>{{ __('Product') }}</flux:table.column>
                 <flux:table.column>{{ __('Warehouse') }}</flux:table.column>
+                <flux:table.column>{{ __('Status') }}</flux:table.column>
                 <flux:table.column>{{ __('Adjustment date') }}</flux:table.column>
                 <flux:table.column>{{ __('Reason') }}</flux:table.column>
                 <flux:table.column>{{ __('Quantity change') }}</flux:table.column>
@@ -105,13 +106,13 @@ new #[Title('Inventory adjustments')] class extends Component {
                         <flux:table.cell class="font-medium">{{ $inventoryAdjustment->reference_number }}</flux:table.cell>
                         <flux:table.cell>{{ $inventoryAdjustment->product?->name ?? '—' }}</flux:table.cell>
                         <flux:table.cell>{{ $inventoryAdjustment->warehouse?->name ?? '—' }}</flux:table.cell>
+                        <flux:table.cell>{{ $inventoryAdjustment->status->label() }}</flux:table.cell>
                         <flux:table.cell>{{ $inventoryAdjustment->adjustment_date->format('Y-m-d') }}</flux:table.cell>
-                        <flux:table.cell>{{ $inventoryAdjustment->reason }}</flux:table.cell>
+                        <flux:table.cell>{{ $inventoryAdjustment->reasonEnum()?->label() ?? $inventoryAdjustment->reason }}</flux:table.cell>
                         <flux:table.cell>{{ $inventoryAdjustment->quantity_change }}</flux:table.cell>
                         <flux:table.cell>
                             <div class="flex items-center gap-2">
-                                
-@can('update', $inventoryAdjustment)
+@can('view', $inventoryAdjustment)
                                 <flux:button
                                     size="sm"
                                     variant="ghost"
@@ -119,7 +120,6 @@ new #[Title('Inventory adjustments')] class extends Component {
                                     :href="route('inventory-adjustments.edit', $inventoryAdjustment)"
                                     wire:navigate
                                 />
-                                
 @endcan
                                 @can('delete', $inventoryAdjustment)
                                 <flux:button
@@ -134,7 +134,7 @@ new #[Title('Inventory adjustments')] class extends Component {
                     </flux:table.row>
                 @empty
                     <flux:table.row>
-                        <flux:table.cell colspan="7">
+                        <flux:table.cell colspan="8">
                             <x-empty-state icon="inbox" :title="__('No inventory adjustments found.')" />
                         </flux:table.cell>
                     </flux:table.row>
