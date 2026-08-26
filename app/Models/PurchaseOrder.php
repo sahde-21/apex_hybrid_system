@@ -153,6 +153,22 @@ class PurchaseOrder extends Model
     }
 
     /**
+     * @return HasMany<PurchaseReceipt, $this>
+     */
+    public function receipts(): HasMany
+    {
+        return $this->hasMany(PurchaseReceipt::class);
+    }
+
+    /**
+     * @return HasMany<PurchaseReturn, $this>
+     */
+    public function returns(): HasMany
+    {
+        return $this->hasMany(PurchaseReturn::class);
+    }
+
+    /**
      * @return HasMany<SupplierShipment, $this>
      */
     public function shipments(): HasMany

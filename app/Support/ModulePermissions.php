@@ -121,6 +121,8 @@ class ModulePermissions
         'purchase-orders.submit',
         'purchase-orders.confirm',
         'purchase-orders.bill',
+        'purchase-orders.receive',
+        'purchase-orders.return',
         'bills.issue',
         'bills.void',
         'workflow.submit',

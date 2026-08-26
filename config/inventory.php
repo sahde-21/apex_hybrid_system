@@ -9,7 +9,8 @@ return [
     |
     | The warehouse stock ledger (stock_levels / stock_movements) is infrastructure
     | for future cutover. Existing POS / sales / purchasing stock behaviour is
-    | unchanged while ledger_enabled is false.
+    | unchanged while ledger_enabled is false. P0.5 purchase receipts/returns
+    | post to the ledger only when this flag is true.
     |
     */
 
