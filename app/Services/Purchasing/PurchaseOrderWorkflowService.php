@@ -349,6 +349,8 @@ class PurchaseOrderWorkflowService
                 'tax_amount' => $line['tax_amount'],
                 'line_total' => $line['line_total'],
                 'quantity_billed' => 0,
+                'quantity_received' => 0,
+                'quantity_returned' => 0,
             ]);
         }
     }
