@@ -86,7 +86,7 @@ class PurchaseReceiptWorkflowService
             $receipt = PurchaseReceipt::query()->create([
                 'reference_number' => $this->nextReceiptReference($locked),
                 'purchase_order_id' => $locked->id,
-                'warehouse_id' => $warehouse?->id ?? $locked->warehouse_id,
+                'warehouse_id' => $warehouse !== null ? $warehouse->id : $locked->warehouse_id,
                 'status' => PurchaseReceiptStatus::Posted,
                 'received_at' => now(),
                 'received_by' => $user->id,
@@ -197,7 +197,7 @@ class PurchaseReceiptWorkflowService
             $return = PurchaseReturn::query()->create([
                 'reference_number' => $this->nextReturnReference($locked),
                 'purchase_order_id' => $locked->id,
-                'warehouse_id' => $warehouse?->id ?? $locked->warehouse_id,
+                'warehouse_id' => $warehouse !== null ? $warehouse->id : $locked->warehouse_id,
                 'status' => PurchaseReturnStatus::Posted,
                 'returned_at' => now(),
                 'returned_by' => $user->id,
@@ -291,8 +291,8 @@ class PurchaseReceiptWorkflowService
         $normalized = [];
 
         foreach ($lineQuantities as $index => $row) {
-            $lineId = (int) ($row['purchase_order_line_id'] ?? 0);
-            $qty = $this->assertPositiveWholeQuantity($row['quantity'] ?? null, "lines.$index.quantity");
+            $lineId = (int) $row['purchase_order_line_id'];
+            $qty = $this->assertPositiveWholeQuantity($row['quantity'], "lines.$index.quantity");
 
             $poLine = $linesById->get($lineId);
             if ($poLine === null) {
@@ -344,8 +344,8 @@ class PurchaseReceiptWorkflowService
         $normalized = [];
 
         foreach ($lineQuantities as $index => $row) {
-            $lineId = (int) ($row['purchase_order_line_id'] ?? 0);
-            $qty = $this->assertPositiveWholeQuantity($row['quantity'] ?? null, "lines.$index.quantity");
+            $lineId = (int) $row['purchase_order_line_id'];
+            $qty = $this->assertPositiveWholeQuantity($row['quantity'], "lines.$index.quantity");
 
             $poLine = $linesById->get($lineId);
             if ($poLine === null) {
