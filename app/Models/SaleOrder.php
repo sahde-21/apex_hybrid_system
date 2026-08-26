@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Concerns\Auditable;
 use App\Enums\SaleOrderStatus;
+use Database\Factories\SaleOrderFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -36,6 +37,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  */
 class SaleOrder extends Model
 {
+    /** @use HasFactory<SaleOrderFactory> */
     use Auditable, HasFactory;
 
     protected function casts(): array
@@ -51,41 +53,65 @@ class SaleOrder extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Contact, $this>
+     */
     public function contact(): BelongsTo
     {
         return $this->belongsTo(Contact::class);
     }
 
+    /**
+     * @return BelongsTo<Warehouse, $this>
+     */
     public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class);
     }
 
+    /**
+     * @return BelongsTo<Branch, $this>
+     */
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
     }
 
+    /**
+     * @return BelongsTo<Quotation, $this>
+     */
     public function quotation(): BelongsTo
     {
         return $this->belongsTo(Quotation::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function salesperson(): BelongsTo
     {
         return $this->belongsTo(User::class, 'salesperson_id');
     }
 
+    /**
+     * @return HasMany<SaleOrderLine, $this>
+     */
     public function lines(): HasMany
     {
         return $this->hasMany(SaleOrderLine::class)->orderBy('line_number');
     }
 
+    /**
+     * @return HasMany<Invoice, $this>
+     */
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class);
     }
 
+    /**
+     * @return MorphMany<SalesDocumentEvent, $this>
+     */
     public function events(): MorphMany
     {
         return $this->morphMany(SalesDocumentEvent::class, 'document')->latest('created_at');

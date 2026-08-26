@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Concerns\Auditable;
 use App\Enums\QuotationStatus;
+use Database\Factories\QuotationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -33,6 +34,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  */
 class Quotation extends Model
 {
+    /** @use HasFactory<QuotationFactory> */
     use Auditable, HasFactory;
 
     protected function casts(): array
@@ -49,26 +51,41 @@ class Quotation extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Contact, $this>
+     */
     public function contact(): BelongsTo
     {
         return $this->belongsTo(Contact::class);
     }
 
+    /**
+     * @return HasMany<QuotationLine, $this>
+     */
     public function lines(): HasMany
     {
         return $this->hasMany(QuotationLine::class)->orderBy('line_number');
     }
 
+    /**
+     * @return BelongsTo<SaleOrder, $this>
+     */
     public function convertedSaleOrder(): BelongsTo
     {
         return $this->belongsTo(SaleOrder::class, 'converted_sale_order_id');
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function salesperson(): BelongsTo
     {
         return $this->belongsTo(User::class, 'salesperson_id');
     }
 
+    /**
+     * @return MorphMany<SalesDocumentEvent, $this>
+     */
     public function events(): MorphMany
     {
         return $this->morphMany(SalesDocumentEvent::class, 'document')->latest('created_at');

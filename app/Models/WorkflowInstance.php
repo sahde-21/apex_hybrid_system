@@ -27,21 +27,33 @@ class WorkflowInstance extends Model
         ];
     }
 
+    /**
+     * @return MorphTo<Model, $this>
+     */
     public function document(): MorphTo
     {
         return $this->morphTo();
     }
 
+    /**
+     * @return HasMany<WorkflowHistory, $this>
+     */
     public function histories(): HasMany
     {
         return $this->hasMany(WorkflowHistory::class)->latest('created_at');
     }
 
+    /**
+     * @return HasMany<WorkflowApproval, $this>
+     */
     public function approvals(): HasMany
     {
         return $this->hasMany(WorkflowApproval::class)->orderBy('level');
     }
 
+    /**
+     * @return HasMany<WorkflowApproval, $this>
+     */
     public function pendingApprovals(): HasMany
     {
         return $this->approvals()->where('status', WorkflowApprovalStatus::Pending->value);

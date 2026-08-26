@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Concerns\Auditable;
 use App\Enums\PurchaseOrderStatus;
 use App\Enums\SupplierResponseStatus;
+use Database\Factories\PurchaseOrderFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -68,6 +69,7 @@ use Illuminate\Support\Carbon;
 ])]
 class PurchaseOrder extends Model
 {
+    /** @use HasFactory<PurchaseOrderFactory> */
     use Auditable, HasFactory;
 
     /**

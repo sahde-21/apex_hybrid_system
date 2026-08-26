@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Concerns\Auditable;
 use App\Enums\JournalEntryStatus;
+use Database\Factories\JournalEntryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -47,6 +48,7 @@ use Illuminate\Support\Carbon;
 ])]
 class JournalEntry extends Model
 {
+    /** @use HasFactory<JournalEntryFactory> */
     use Auditable, HasFactory;
 
     /**
@@ -89,6 +91,9 @@ class JournalEntry extends Model
         return $this->belongsTo(Branch::class);
     }
 
+    /**
+     * @return MorphTo<Model, $this>
+     */
     public function reference(): MorphTo
     {
         return $this->morphTo();

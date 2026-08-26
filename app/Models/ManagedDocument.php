@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Concerns\Auditable;
 use App\Enums\DocumentCategory;
+use Database\Factories\ManagedDocumentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -56,6 +57,7 @@ use Illuminate\Support\Facades\Storage;
 ])]
 class ManagedDocument extends Model
 {
+    /** @use HasFactory<ManagedDocumentFactory> */
     use Auditable, HasFactory, SoftDeletes;
 
     /**
@@ -103,6 +105,9 @@ class ManagedDocument extends Model
         return $this->belongsTo(Contact::class);
     }
 
+    /**
+     * @return MorphTo<Model, $this>
+     */
     public function documentable(): MorphTo
     {
         return $this->morphTo();

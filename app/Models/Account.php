@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Concerns\Auditable;
 use App\Enums\AccountType;
 use App\Enums\NormalBalance;
+use Database\Factories\AccountFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -31,6 +32,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 ])]
 class Account extends Model
 {
+    /** @use HasFactory<AccountFactory> */
     use Auditable, HasFactory, SoftDeletes;
 
     /**

@@ -71,36 +71,57 @@ class Activity extends Model
         ];
     }
 
+    /**
+     * @return MorphTo<Model, $this>
+     */
     public function subject(): MorphTo
     {
         return $this->morphTo();
     }
 
+    /**
+     * @return MorphTo<Model, $this>
+     */
     public function related(): MorphTo
     {
         return $this->morphTo();
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @return BelongsTo<Activity, $this>
+     */
     public function parent(): BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_id');
     }
 
+    /**
+     * @return HasMany<Activity, $this>
+     */
     public function replies(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id')->latest();
     }
 
+    /**
+     * @return HasMany<ActivityMention, $this>
+     */
     public function mentions(): HasMany
     {
         return $this->hasMany(ActivityMention::class);
     }
 
+    /**
+     * @return BelongsTo<ManagedDocument, $this>
+     */
     public function document(): BelongsTo
     {
         return $this->belongsTo(ManagedDocument::class, 'managed_document_id');

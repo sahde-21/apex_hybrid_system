@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Concerns\Auditable;
 use App\Enums\InvoiceStatus;
+use Database\Factories\InvoiceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -38,6 +39,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  */
 class Invoice extends Model
 {
+    /** @use HasFactory<InvoiceFactory> */
     use Auditable, HasFactory;
 
     protected function casts(): array
@@ -56,36 +58,57 @@ class Invoice extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Contact, $this>
+     */
     public function contact(): BelongsTo
     {
         return $this->belongsTo(Contact::class);
     }
 
+    /**
+     * @return BelongsTo<SaleOrder, $this>
+     */
     public function saleOrder(): BelongsTo
     {
         return $this->belongsTo(SaleOrder::class);
     }
 
+    /**
+     * @return HasMany<InvoiceLine, $this>
+     */
     public function lines(): HasMany
     {
         return $this->hasMany(InvoiceLine::class)->orderBy('line_number');
     }
 
+    /**
+     * @return HasMany<Payment, $this>
+     */
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
     }
 
+    /**
+     * @return HasOne<PosSale, $this>
+     */
     public function posSale(): HasOne
     {
         return $this->hasOne(PosSale::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function voidedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'voided_by');
     }
 
+    /**
+     * @return MorphMany<SalesDocumentEvent, $this>
+     */
     public function events(): MorphMany
     {
         return $this->morphMany(SalesDocumentEvent::class, 'document')->latest('created_at');

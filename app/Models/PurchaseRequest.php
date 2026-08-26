@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Concerns\Auditable;
 use App\Enums\PurchaseRequestStatus;
+use Database\Factories\PurchaseRequestFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -26,7 +27,7 @@ use Illuminate\Support\Carbon;
  * @property string $total_amount
  * @property string $currency_code
  * @property string|null $notes
- * @property array|null $attachments
+ * @property array<string, mixed>|null $attachments
  * @property int|null $converted_rfq_id
  * @property Carbon|null $converted_at
  * @property Carbon|null $created_at
@@ -53,6 +54,7 @@ use Illuminate\Support\Carbon;
 ])]
 class PurchaseRequest extends Model
 {
+    /** @use HasFactory<PurchaseRequestFactory> */
     use Auditable, HasFactory;
 
     /**
