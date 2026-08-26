@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateTaxRateRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('tax-rates.update') ?? false;
@@ -17,7 +20,7 @@ class UpdateTaxRateRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('taxRate')?->id;
+        $id = $this->routeModelId('taxRate');
 
         return [
             'name' => ['required', 'string', 'max:255'],

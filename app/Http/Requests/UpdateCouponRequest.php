@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateCouponRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('coupons.update') ?? false;
@@ -17,7 +20,7 @@ class UpdateCouponRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('coupon')?->id;
+        $id = $this->routeModelId('coupon');
 
         return [
             'code' => ['required', 'string', 'max:255', Rule::unique('coupons', 'code')->ignore($id)],

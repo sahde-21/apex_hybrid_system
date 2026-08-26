@@ -2,10 +2,13 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateBillOfMaterialRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('bill-of-materials.update') ?? false;
@@ -16,7 +19,7 @@ class UpdateBillOfMaterialRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('billOfMaterial')?->id;
+        $id = $this->routeModelId('billOfMaterial');
 
         return [
             'product_id' => ['required', 'exists:products,id'],

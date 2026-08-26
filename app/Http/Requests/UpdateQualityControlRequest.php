@@ -3,11 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Enums\QualityControlStatus;
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateQualityControlRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('quality-control.update') ?? false;
@@ -18,7 +21,7 @@ class UpdateQualityControlRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('qualityControl')?->id;
+        $id = $this->routeModelId('qualityControl');
 
         return [
             'reference_number' => ['required', 'string', 'max:255', Rule::unique('quality_controls', 'reference_number')->ignore($id)],

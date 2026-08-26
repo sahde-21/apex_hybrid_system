@@ -3,12 +3,14 @@
 namespace App\Http\Requests\Api\V1;
 
 use App\Http\Requests\Api\V1\Concerns\DocumentLineRules;
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateInvoiceRequest extends FormRequest
 {
     use DocumentLineRules;
+    use ResolvesRouteModelId;
 
     public function authorize(): bool
     {
@@ -19,10 +21,8 @@ class UpdateInvoiceRequest extends FormRequest
 
     public function rules(): array
     {
-        $invoice = $this->route('invoice');
-
         return array_merge([
-            'reference_number' => ['sometimes', 'string', 'max:100', Rule::unique('invoices', 'reference_number')->ignore($invoice?->id)],
+            'reference_number' => ['sometimes', 'string', 'max:100', Rule::unique('invoices', 'reference_number')->ignore($this->routeModelId('invoice'))],
             'contact_id' => ['sometimes', 'nullable', 'integer', 'exists:contacts,id'],
             'sale_order_id' => ['sometimes', 'nullable', 'integer', 'exists:sale_orders,id'],
             'invoice_date' => ['sometimes', 'date'],

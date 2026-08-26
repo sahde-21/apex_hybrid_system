@@ -2,10 +2,13 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateCustomerFeedbackRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('customer-feedback.update') ?? false;
@@ -16,7 +19,7 @@ class UpdateCustomerFeedbackRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('customerFeedback')?->id;
+        $id = $this->routeModelId('customerFeedback');
 
         return [
             'contact_id' => ['required', 'exists:contacts,id'],

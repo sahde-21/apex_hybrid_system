@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateBranchRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('branches.update') ?? false;
@@ -17,7 +20,7 @@ class UpdateBranchRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('branch')?->id;
+        $id = $this->routeModelId('branch');
 
         return [
             'name' => ['required', 'string', 'max:255'],

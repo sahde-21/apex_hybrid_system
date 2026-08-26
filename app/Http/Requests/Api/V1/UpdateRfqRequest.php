@@ -3,12 +3,14 @@
 namespace App\Http\Requests\Api\V1;
 
 use App\Http\Requests\Api\V1\Concerns\DocumentLineRules;
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateRfqRequest extends FormRequest
 {
     use DocumentLineRules;
+    use ResolvesRouteModelId;
 
     public function authorize(): bool
     {
@@ -19,10 +21,8 @@ class UpdateRfqRequest extends FormRequest
 
     public function rules(): array
     {
-        $rfq = $this->route('rfq');
-
         return array_merge([
-            'reference_number' => ['sometimes', 'string', 'max:100', Rule::unique('rfqs', 'reference_number')->ignore($rfq?->id)],
+            'reference_number' => ['sometimes', 'string', 'max:100', Rule::unique('rfqs', 'reference_number')->ignore($this->routeModelId('rfq'))],
             'purchase_request_id' => ['sometimes', 'nullable', 'integer', 'exists:purchase_requests,id'],
             'rfq_date' => ['sometimes', 'date'],
             'valid_until' => ['sometimes', 'nullable', 'date'],

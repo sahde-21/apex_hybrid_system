@@ -3,11 +3,13 @@
 namespace App\Http\Requests\Api\V1;
 
 use App\Concerns\ProductValidationRules;
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateProductRequest extends FormRequest
 {
     use ProductValidationRules;
+    use ResolvesRouteModelId;
 
     public function authorize(): bool
     {
@@ -18,9 +20,7 @@ class UpdateProductRequest extends FormRequest
 
     public function rules(): array
     {
-        $product = $this->route('product');
-
-        return array_merge($this->productRules($product?->id), [
+        return array_merge($this->productRules($this->routeModelKey('product')), [
             'category_id' => ['sometimes', 'nullable', 'integer', 'exists:product_categories,id'],
             'barcode' => ['sometimes', 'nullable', 'string', 'max:255'],
             'is_active' => ['sometimes', 'boolean'],

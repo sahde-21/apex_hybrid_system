@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateFixedAssetRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('fixed-assets.update') ?? false;
@@ -17,7 +20,7 @@ class UpdateFixedAssetRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('fixedAsset')?->id;
+        $id = $this->routeModelId('fixedAsset');
 
         return [
             'name' => ['required', 'string', 'max:255'],

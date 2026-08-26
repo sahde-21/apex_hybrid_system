@@ -3,11 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Enums\ProjectTaskStatus;
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateProjectTaskRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('project-tasks.update') ?? false;
@@ -18,7 +21,7 @@ class UpdateProjectTaskRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('projectTask')?->id;
+        $id = $this->routeModelId('projectTask');
 
         return [
             'contract_id' => ['nullable', 'exists:contracts,id'],
