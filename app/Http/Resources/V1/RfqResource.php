@@ -12,12 +12,16 @@ class RfqResource extends JsonResource
 {
     use FormatsApiValues;
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
             'reference_number' => $this->reference_number,
-            'contact_id' => $this->contact_id,
+            // Legacy API fields — not modeled on Rfq; remain null when absent.
+            'contact_id' => $this->resource->getAttribute('contact_id'),
             'rfq_date' => $this->dateOnly($this->rfq_date),
             'valid_until' => $this->dateOnly($this->valid_until),
             'converted_purchase_order_id' => $this->converted_purchase_order_id,
@@ -28,7 +32,9 @@ class RfqResource extends JsonResource
             'total_amount' => $this->money($this->total_amount, $this->currency_code),
             'currency_code' => $this->currency_code,
             'notes' => $this->notes,
-            'contact' => $this->whenLoaded('contact', fn () => new ContactResource($this->contact)),
+            'contact' => $this->whenLoaded('contact', function () {
+                return new ContactResource($this->resource->getAttribute('contact'));
+            }),
             'lines' => DocumentLineResource::collection($this->whenLoaded('lines')),
             'created_at' => $this->isoDate($this->created_at),
             'updated_at' => $this->isoDate($this->updated_at),

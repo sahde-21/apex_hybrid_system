@@ -3,9 +3,24 @@
 namespace App\Http\Resources\V1;
 
 use App\Http\Resources\V1\Concerns\FormatsApiValues;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * Polymorphic document-line serializer (quotation, invoice, bill, PO, etc.).
+ *
+ * @property int $id
+ * @property int $line_number
+ * @property int|null $product_id
+ * @property string|null $description
+ * @property mixed $quantity
+ * @property mixed $unit_price
+ * @property mixed $discount_amount
+ * @property mixed $tax_amount
+ * @property mixed $line_total
+ * @property-read Product|null $product
+ */
 class DocumentLineResource extends JsonResource
 {
     use FormatsApiValues;
