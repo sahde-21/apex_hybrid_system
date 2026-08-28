@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Contracts\Auth\CanAuthenticate;
+use App\Notifications\Portal\VerifyPortalEmail;
 use Database\Factories\PortalCustomerFactory;
 use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
 use Illuminate\Auth\Passwords\CanResetPassword;
@@ -46,7 +48,7 @@ use Illuminate\Support\Facades\Storage;
     'is_active',
 ])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
-class PortalCustomer extends Authenticatable implements CanResetPasswordContract, MustVerifyEmail
+class PortalCustomer extends Authenticatable implements CanAuthenticate, CanResetPasswordContract, MustVerifyEmail
 {
     /** @use HasFactory<PortalCustomerFactory> */
     use CanResetPassword, HasFactory, MustVerifyEmailTrait, Notifiable, SoftDeletes;
@@ -111,6 +113,6 @@ class PortalCustomer extends Authenticatable implements CanResetPasswordContract
 
     public function sendEmailVerificationNotification(): void
     {
-        $this->notify(new \App\Notifications\Portal\VerifyPortalEmail);
+        $this->notify(new VerifyPortalEmail);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Services\Export\ExportService;
 use App\Services\Intelligence\DomainAnalyticsService;
 use App\Services\Intelligence\ExecutiveAnalyticsService;
@@ -35,7 +36,8 @@ class IntelligenceExportController extends Controller
 
     public function csv(Request $request, string $domain): StreamedResponse
     {
-        abort_unless($request->user()?->can('intelligence.export'), 403);
+        $user = $request->user('web');
+        abort_unless($user instanceof User && $user->can('intelligence.export'), 403);
 
         [$headers, $rows, $title] = $this->buildReport($request, $domain);
 
@@ -44,7 +46,8 @@ class IntelligenceExportController extends Controller
 
     public function pdf(Request $request, string $domain): Response
     {
-        abort_unless($request->user()?->can('intelligence.export'), 403);
+        $user = $request->user('web');
+        abort_unless($user instanceof User && $user->can('intelligence.export'), 403);
 
         [$headers, $rows, $title] = $this->buildReport($request, $domain);
 
@@ -66,21 +69,38 @@ class IntelligenceExportController extends Controller
         abort_unless(in_array($domain, self::DOMAINS, true), 404);
 
         $filter = AnalyticsFilter::fromRequest($request);
-        $user = $request->user();
+        $user = $request->user('web');
+
+        abort_unless($user instanceof User, 403);
 
         if ($domain === 'executive') {
-            abort_unless($user?->can(config('intelligence.permissions.executive')), 403);
+            abort_unless($user->can(config('intelligence.permissions.executive')), 403);
             $data = $this->executive->dashboard($user, $filter);
             $headers = [__('Metric'), __('Value')];
-            $rows = collect($data['kpis'] ?? [])->map(fn ($v, $k) => [$k, $v])->values()->all();
+            $rows = $this->kpiRows($data['kpis'] ?? []);
 
             return [$headers, $rows, __('scf.intelligence.executive_title')];
         }
 
         $data = $this->domains->forDomain($user, $domain, $filter);
         $headers = [__('Metric'), __('Value')];
-        $rows = collect($data['kpis'] ?? [])->map(fn ($v, $k) => [$k, $v])->values()->all();
+        $rows = $this->kpiRows($data['kpis'] ?? []);
 
         return [$headers, $rows, __('scf.intelligence.'.$domain.'_title')];
+    }
+
+    /**
+     * @param  array<mixed, mixed>  $kpis
+     * @return list<list<mixed>>
+     */
+    private function kpiRows(array $kpis): array
+    {
+        $rows = [];
+
+        foreach ($kpis as $key => $value) {
+            $rows[] = [$key, $value];
+        }
+
+        return $rows;
     }
 }

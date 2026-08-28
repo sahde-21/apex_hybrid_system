@@ -10,18 +10,17 @@ trait AuthorizesApiAbilities
 {
     protected function authorizeApiAbility(string $ability): void
     {
-        /** @var User|null $user */
         $user = request()->user();
 
-        if ($user === null) {
+        if (! $user instanceof User) {
             throw new AuthorizationException(__('Unauthenticated.'));
         }
 
-        $token = $user->currentAccessToken();
-
-        if ($token === null) {
+        if (request()->bearerToken() === null) {
             return;
         }
+
+        $token = $user->currentAccessToken();
 
         if ($token->can(ApiAbilities::READ_ALL) || $token->can($ability)) {
             return;

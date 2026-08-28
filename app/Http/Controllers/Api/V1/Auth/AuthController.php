@@ -7,9 +7,9 @@ use App\Http\Requests\Api\V1\LoginRequest;
 use App\Http\Resources\V1\UserResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\User;
+use App\Services\Api\ApiAuditService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Services\Api\ApiAuditService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -66,8 +66,12 @@ class AuthController extends Controller
 
     public function me(Request $request): JsonResponse
     {
-        /** @var User $user */
         $user = $request->user();
+
+        if (! $user instanceof User) {
+            abort(401);
+        }
+
         $user->loadMissing(['roles', 'permissions']);
 
         return ApiResponse::success(
@@ -78,11 +82,14 @@ class AuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
-        /** @var User $user */
         $user = $request->user();
-        $currentToken = $user->currentAccessToken();
 
-        if ($currentToken !== null) {
+        if (! $user instanceof User) {
+            abort(401);
+        }
+
+        if ($request->bearerToken() !== null) {
+            $currentToken = $user->currentAccessToken();
             $this->audit->tokenRevoked($user, $currentToken->id);
             $currentToken->delete();
         }
@@ -92,8 +99,12 @@ class AuthController extends Controller
 
     public function logoutAll(Request $request): JsonResponse
     {
-        /** @var User $user */
         $user = $request->user();
+
+        if (! $user instanceof User) {
+            abort(401);
+        }
+
         $user->tokens()->delete();
 
         return ApiResponse::success(null, __('Logged out from all devices successfully.'));

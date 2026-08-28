@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Http\Responses\ApiResponse;
+use App\Models\User;
 use App\Services\UserService;
 use Closure;
 use Illuminate\Http\Request;
@@ -14,12 +15,12 @@ class EnsureApiUserIsActive
     {
         $user = $request->user();
 
-        if ($user === null) {
+        if (! $user instanceof User) {
             return $next($request);
         }
 
-        if (method_exists($user, 'canAuthenticate') && ! $user->canAuthenticate()) {
-            if (method_exists($user, 'currentAccessToken') && $user->currentAccessToken()) {
+        if (! $user->canAuthenticate()) {
+            if ($request->bearerToken() !== null) {
                 $user->currentAccessToken()->delete();
             }
 

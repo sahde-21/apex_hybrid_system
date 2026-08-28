@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Concerns\Auditable;
+use App\Contracts\Auth\CanAuthenticate;
+use App\Contracts\Auth\MayBeLocked;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -48,7 +50,7 @@ use Spatie\Permission\Traits\HasRoles;
     'is_active',
 ])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
-class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
+class User extends Authenticatable implements CanAuthenticate, MayBeLocked, MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
     use Auditable, HasApiTokens, HasFactory, HasRoles, Notifiable, PasskeyAuthenticatable, SoftDeletes, TwoFactorAuthenticatable;
@@ -115,7 +117,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     }
 
     /**
-     * @return HasMany<\App\Models\AuditLog, $this>
+     * @return HasMany<AuditLog, $this>
      */
     public function auditLogs(): HasMany
     {

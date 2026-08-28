@@ -69,8 +69,8 @@ class UserController extends Controller
      */
     protected function resolvedAccessPayload(StoreUserRequest|UpdateUserRequest $request, bool $forCreate, ?User $target = null): array
     {
-        $actor = $request->user();
-        abort_unless($actor !== null, 403);
+        $actor = $request->user('web');
+        abort_unless($actor instanceof User, 403);
 
         $canAssign = $forCreate
             ? $actor->can('users.approve')

@@ -2,9 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
-use Laravel\Sanctum\PersonalAccessToken;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureApiTokenAbility
@@ -13,16 +13,15 @@ class EnsureApiTokenAbility
     {
         $user = $request->user();
 
-        if ($user === null) {
+        if (! $user instanceof User) {
             abort(401);
         }
 
-        /** @var PersonalAccessToken|null $token */
-        $token = $user->currentAccessToken();
-
-        if ($token === null) {
+        if ($request->bearerToken() === null) {
             return $next($request);
         }
+
+        $token = $user->currentAccessToken();
 
         if ($token->can('*')) {
             return $next($request);

@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Exceptions\Api\IdempotencyConflictException;
+use App\Models\User;
 use App\Services\Api\IdempotencyService;
 use Closure;
 use Illuminate\Http\Request;
@@ -25,7 +26,7 @@ class HandleIdempotency
         $key = trim($key);
         $user = $request->user();
 
-        if ($user === null) {
+        if (! $user instanceof User) {
             return $next($request);
         }
 
@@ -50,12 +51,17 @@ class HandleIdempotency
         $response = $next($request);
 
         if ($response->getStatusCode() >= 200 && $response->getStatusCode() < 300) {
-            $content = json_decode($response->getContent(), true);
+            $contentJson = $response->getContent();
+            $content = is_string($contentJson) ? json_decode($contentJson, true) : null;
 
             if (is_array($content)) {
+                $tokenId = $request->bearerToken() !== null
+                    ? $user->currentAccessToken()->id
+                    : null;
+
                 $this->idempotency->store(
                     userId: $user->id,
-                    tokenId: $user->currentAccessToken()?->id,
+                    tokenId: $tokenId,
                     key: $key,
                     fingerprint: $fingerprint,
                     method: $request->method(),
