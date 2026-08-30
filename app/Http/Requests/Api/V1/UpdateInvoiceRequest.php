@@ -19,6 +19,9 @@ class UpdateInvoiceRequest extends FormRequest
         return $invoice && $this->user()?->can('update', $invoice);
     }
 
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
         return array_merge([

@@ -19,6 +19,9 @@ class UpdateRfqRequest extends FormRequest
         return $rfq && $this->user()?->can('update', $rfq);
     }
 
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
         return array_merge([

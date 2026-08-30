@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Api\V1;
 
 use App\Concerns\ProductValidationRules;
-use App\Models\Product;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreProductRequest extends FormRequest
@@ -15,6 +14,9 @@ class StoreProductRequest extends FormRequest
         return $this->user()?->can('products.create') ?? false;
     }
 
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
         return array_merge($this->productRules(), [

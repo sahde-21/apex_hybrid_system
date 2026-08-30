@@ -19,6 +19,9 @@ class UpdateBillRequest extends FormRequest
         return $bill && $this->user()?->can('update', $bill);
     }
 
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
         return array_merge([

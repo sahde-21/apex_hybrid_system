@@ -18,6 +18,9 @@ class UpdateProductRequest extends FormRequest
         return $product && $this->user()?->can('update', $product);
     }
 
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
         return array_merge($this->productRules($this->routeModelKey('product')), [

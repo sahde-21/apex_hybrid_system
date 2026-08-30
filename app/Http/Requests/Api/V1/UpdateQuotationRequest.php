@@ -19,6 +19,9 @@ class UpdateQuotationRequest extends FormRequest
         return $quotation && $this->user()?->can('update', $quotation);
     }
 
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
         return array_merge([

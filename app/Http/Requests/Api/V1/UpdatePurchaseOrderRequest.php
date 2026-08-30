@@ -19,6 +19,9 @@ class UpdatePurchaseOrderRequest extends FormRequest
         return $purchaseOrder && $this->user()?->can('update', $purchaseOrder);
     }
 
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
         return array_merge([

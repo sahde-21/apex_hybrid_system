@@ -17,6 +17,9 @@ class UpdatePaymentRequest extends FormRequest
         return $payment && $this->user()?->can('update', $payment);
     }
 
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
         return [
