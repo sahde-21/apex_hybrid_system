@@ -2,9 +2,9 @@
 
 namespace App\Services\Accounting;
 
-use App\Enums\AccountType;
 use App\Enums\JournalEntryStatus;
 use App\Models\Account;
+use App\Models\Contact;
 use App\Models\JournalEntryLine;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -45,7 +45,11 @@ class LedgerService
         $running = '0.00';
 
         return $rows->map(function ($row) use (&$running) {
-            $running = bcadd($running, bcsub((string) $row->base_debit, (string) $row->base_credit, 2), 2);
+            $running = bcadd($running, bcsub(
+                number_format((float) $row->base_debit, 2, '.', ''),
+                number_format((float) $row->base_credit, 2, '.', ''),
+                2
+            ), 2);
             $row->running_balance = $running;
 
             return $row;
@@ -54,7 +58,7 @@ class LedgerService
 
     /**
      * @param  array{from?: string|null, to?: string|null, branch_id?: int|null}  $filters
-     * @return Collection<int, array<string, mixed>>
+     * @return Collection<int, array{account_id: int, code: string, name: string, type: 'asset'|'cogs'|'equity'|'expense'|'liability'|'other_expense'|'other_income'|'revenue', debit: numeric-string, credit: numeric-string, raw_debit: numeric-string, raw_credit: numeric-string}>
      */
     public function trialBalance(array $filters = []): Collection
     {
@@ -75,8 +79,8 @@ class LedgerService
                     ->selectRaw('COALESCE(SUM(base_debit),0) as debit, COALESCE(SUM(base_credit),0) as credit')
                     ->first();
 
-                $debit = (string) ($totals->debit ?? '0');
-                $credit = (string) ($totals->credit ?? '0');
+                $debit = number_format((float) ($totals->debit ?? 0), 2, '.', '');
+                $credit = number_format((float) ($totals->credit ?? 0), 2, '.', '');
                 $net = bcsub($debit, $credit, 2);
 
                 return [
@@ -86,8 +90,8 @@ class LedgerService
                     'type' => $account->type->value,
                     'debit' => bccomp($net, '0', 2) === 1 ? $net : '0.00',
                     'credit' => bccomp($net, '0', 2) === -1 ? bcmul($net, '-1', 2) : '0.00',
-                    'raw_debit' => number_format((float) $debit, 2, '.', ''),
-                    'raw_credit' => number_format((float) $credit, 2, '.', ''),
+                    'raw_debit' => $debit,
+                    'raw_credit' => $credit,
                 ];
             })
             ->filter(fn (array $row) => bccomp($row['raw_debit'], '0', 2) !== 0 || bccomp($row['raw_credit'], '0', 2) !== 0)
@@ -98,7 +102,7 @@ class LedgerService
 
     /**
      * @param  array{as_of?: string|null, branch_id?: int|null}  $filters
-     * @return Collection<int, object>
+     * @return Collection<int, \stdClass>
      */
     public function aging(string $side, array $filters = []): Collection
     {
@@ -121,26 +125,29 @@ class LedgerService
             ->havingRaw('ABS(COALESCE(SUM(base_debit - base_credit),0)) > 0.009')
             ->get();
 
-        $contacts = \App\Models\Contact::query()
+        $contacts = Contact::query()
             ->whereIn('id', $rows->pluck('contact_id'))
             ->pluck('name', 'id');
 
         return $rows->map(function ($row) use ($side, $contacts) {
-            $balance = (string) $row->balance;
+            $balance = number_format((float) $row->balance, 2, '.', '');
             if ($side === 'payable') {
                 $balance = bcmul($balance, '-1', 2);
             }
 
-            return (object) [
-                'contact_id' => $row->contact_id,
-                'contact_name' => $contacts[$row->contact_id] ?? '#'.$row->contact_id,
-                'current' => $balance,
-                'days_1_30' => '0.00',
-                'days_31_60' => '0.00',
-                'days_61_90' => '0.00',
-                'days_90_plus' => '0.00',
-                'total' => $balance,
-            ];
+            $zero = number_format(0, 2, '.', '');
+
+            $entry = new \stdClass;
+            $entry->contact_id = (int) $row->contact_id;
+            $entry->contact_name = (string) ($contacts[$row->contact_id] ?? '#'.$row->contact_id);
+            $entry->current = $balance;
+            $entry->days_1_30 = $zero;
+            $entry->days_31_60 = $zero;
+            $entry->days_61_90 = $zero;
+            $entry->days_90_plus = $zero;
+            $entry->total = $balance;
+
+            return $entry;
         });
     }
 }

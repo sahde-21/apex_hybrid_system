@@ -16,7 +16,7 @@ class FinancialStatementService
 
     /**
      * @param  array{from?: string|null, to?: string|null, branch_id?: int|null}  $filters
-     * @return array{rows: Collection<int, array<string, mixed>>, total_debit: string, total_credit: string, balanced: bool}
+     * @return array{rows: Collection<int, array{account_id: int, code: string, name: string, type: 'asset'|'cogs'|'equity'|'expense'|'liability'|'other_expense'|'other_income'|'revenue', debit: numeric-string, credit: numeric-string, raw_debit: numeric-string, raw_credit: numeric-string}>, total_debit: numeric-string, total_credit: numeric-string, balanced: bool}
      */
     public function trialBalance(array $filters = []): array
     {
@@ -34,7 +34,7 @@ class FinancialStatementService
 
     /**
      * @param  array{from?: string|null, to?: string|null, branch_id?: int|null}  $filters
-     * @return array{revenue: string, cogs: string, gross_profit: string, expenses: string, other_income: string, other_expenses: string, net_profit: string, lines: Collection<int, array<string, mixed>>}
+     * @return array{revenue: string, cogs: string, gross_profit: string, expenses: string, other_income: string, other_expenses: string, net_profit: string, lines: Collection<int, array{account_id: int, code: string, name: string, type: AccountType, debit: numeric-string, credit: numeric-string}>}
      */
     public function profitAndLoss(array $filters = []): array
     {
@@ -68,7 +68,7 @@ class FinancialStatementService
 
     /**
      * @param  array{as_of?: string|null, branch_id?: int|null}  $filters
-     * @return array{assets: string, liabilities: string, equity: string, balanced: bool, lines: Collection<int, array<string, mixed>>}
+     * @return array{assets: string, liabilities: string, equity: string, balanced: bool, lines: Collection<int, array{account_id: int, code: string, name: string, type: AccountType, debit: numeric-string, credit: numeric-string}>, net_profit: string}
      */
     public function balanceSheet(array $filters = []): array
     {
@@ -83,7 +83,7 @@ class FinancialStatementService
         $liabilities = $this->creditNet($lines, AccountType::Liability);
         $equity = $this->creditNet($lines, AccountType::Equity);
         $pnl = $this->profitAndLoss(['to' => $to, 'branch_id' => $filters['branch_id'] ?? null]);
-        $equity = bcadd($equity, $pnl['net_profit'], 2);
+        $equity = bcadd($equity, number_format((float) $pnl['net_profit'], 2, '.', ''), 2);
 
         return [
             'assets' => $assets,
@@ -133,7 +133,7 @@ class FinancialStatementService
     /**
      * @param  list<AccountType>  $types
      * @param  array{from?: string|null, to?: string|null, branch_id?: int|null}  $filters
-     * @return Collection<int, array<string, mixed>>
+     * @return Collection<int, array{account_id: int, code: string, name: string, type: AccountType, debit: numeric-string, credit: numeric-string}>
      */
     protected function accountTotals(array $types, array $filters): Collection
     {
@@ -169,22 +169,28 @@ class FinancialStatementService
     }
 
     /**
-     * @param  Collection<int, array<string, mixed>>  $lines
+     * @param  Collection<int, array{account_id: int, code: string, name: string, type: AccountType, debit: numeric-string, credit: numeric-string}>  $lines
+     * @return numeric-string
      */
     protected function debitNet(Collection $lines, AccountType $type): string
     {
-        return $lines
+        $total = $lines
             ->filter(fn ($row) => $row['type'] === $type)
             ->reduce(fn ($c, $r) => bcadd($c, bcsub($r['debit'], $r['credit'], 2), 2), '0.00');
+
+        return number_format((float) $total, 2, '.', '');
     }
 
     /**
-     * @param  Collection<int, array<string, mixed>>  $lines
+     * @param  Collection<int, array{account_id: int, code: string, name: string, type: AccountType, debit: numeric-string, credit: numeric-string}>  $lines
+     * @return numeric-string
      */
     protected function creditNet(Collection $lines, AccountType $type): string
     {
-        return $lines
+        $total = $lines
             ->filter(fn ($row) => $row['type'] === $type)
             ->reduce(fn ($c, $r) => bcadd($c, bcsub($r['credit'], $r['debit'], 2), 2), '0.00');
+
+        return number_format((float) $total, 2, '.', '');
     }
 }
