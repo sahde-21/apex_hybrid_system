@@ -28,7 +28,7 @@ class InvoiceWorkflowService
     {
         abort_unless($user->can('invoices.create'), 403);
 
-        return DB::transaction(function () use ($user, $data, $lines) {
+        return DB::transaction(function () use ($user, $data, $lines): Invoice {
             $totals = DocumentLineCalculator::summarize($lines);
 
             $invoice = Invoice::query()->create([
@@ -76,7 +76,7 @@ class InvoiceWorkflowService
             ]);
         }
 
-        return DB::transaction(function () use ($invoice, $user, $data, $lines) {
+        return DB::transaction(function () use ($invoice, $user, $data, $lines): Invoice {
             $totals = DocumentLineCalculator::summarize($lines);
 
             $invoice->update([
@@ -112,7 +112,7 @@ class InvoiceWorkflowService
     {
         abort_unless($user->can('invoices.issue') || $user->can('invoices.approve'), 403);
 
-        return DB::transaction(function () use ($invoice, $user) {
+        return DB::transaction(function () use ($invoice, $user): Invoice {
             $locked = Invoice::query()->whereKey($invoice->id)->lockForUpdate()->firstOrFail();
 
             if (! $locked->status->canTransitionTo(InvoiceStatus::Sent)) {
@@ -155,7 +155,7 @@ class InvoiceWorkflowService
     {
         abort_unless($user->can('invoices.void') || $user->can('invoices.approve'), 403);
 
-        return DB::transaction(function () use ($invoice, $user, $reason) {
+        return DB::transaction(function () use ($invoice, $user, $reason): Invoice {
             $locked = Invoice::query()->whereKey($invoice->id)->lockForUpdate()->firstOrFail();
 
             if (! $locked->status->canTransitionTo(InvoiceStatus::Void)) {
@@ -204,7 +204,7 @@ class InvoiceWorkflowService
     {
         abort_unless($user->can('invoices.update'), 403);
 
-        return DB::transaction(function () use ($invoice, $user, $reason) {
+        return DB::transaction(function () use ($invoice, $user, $reason): Invoice {
             $locked = Invoice::query()->whereKey($invoice->id)->lockForUpdate()->firstOrFail();
 
             if ($locked->status !== InvoiceStatus::Draft) {

@@ -7,11 +7,44 @@ use App\Enums\PaymentStatus;
 use App\Enums\PaymentType;
 use Database\Factories\PaymentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property string $reference_number
+ * @property int|null $contact_id
+ * @property int|null $invoice_id
+ * @property int|null $bill_id
+ * @property int|null $gift_card_id
+ * @property Carbon $payment_date
+ * @property string $amount
+ * @property PaymentType $type
+ * @property PaymentStatus $status
+ * @property string|null $payment_method
+ * @property string|null $account_label
+ * @property string|null $notes
+ * @property Carbon|null $posted_at
+ * @property int|null $posted_by
+ * @property Carbon|null $reversed_at
+ * @property int|null $reversed_by
+ * @property int|null $reversal_of_id
+ * @property string|null $reversal_reason
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Contact|null $contact
+ * @property-read Invoice|null $invoice
+ * @property-read Bill|null $bill
+ * @property-read GiftCard|null $giftCard
+ * @property-read User|null $postedBy
+ * @property-read User|null $reversedBy
+ * @property-read Payment|null $reversalOf
+ * @property-read Collection<int, SalesDocumentEvent> $events
+ */
 #[Fillable([
     'reference_number',
     'contact_id',
@@ -32,15 +65,14 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
     'reversal_of_id',
     'reversal_reason',
 ])]
-/**
- * @property PaymentStatus $status
- * @property PaymentType $type
- */
 class Payment extends Model
 {
     /** @use HasFactory<PaymentFactory> */
     use Auditable, HasFactory;
 
+    /**
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [

@@ -34,7 +34,7 @@ class PaymentWorkflowService
     {
         abort_unless($user->can('payments.create') || $user->can('payments.record'), 403);
 
-        return DB::transaction(function () use ($user, $data) {
+        return DB::transaction(function () use ($user, $data): Payment {
             $invoice = null;
             if (! empty($data['invoice_id'])) {
                 /** @var Invoice $invoice */
@@ -51,7 +51,7 @@ class PaymentWorkflowService
 
             $payment = Payment::query()->create([
                 'reference_number' => $data['reference_number'],
-                'contact_id' => $data['contact_id'] ?? $invoice?->contact_id ?? $bill?->contact_id,
+                'contact_id' => $data['contact_id'] ?? ($invoice !== null ? $invoice->contact_id : null) ?? ($bill !== null ? $bill->contact_id : null),
                 'invoice_id' => $invoice?->id,
                 'bill_id' => $bill?->id,
                 'payment_date' => $data['payment_date'],
@@ -73,7 +73,7 @@ class PaymentWorkflowService
     {
         abort_unless($user->can('payments.post') || $user->can('payments.update'), 403);
 
-        return DB::transaction(function () use ($payment, $user) {
+        return DB::transaction(function () use ($payment, $user): Payment {
             $locked = Payment::query()->whereKey($payment->id)->lockForUpdate()->firstOrFail();
 
             if (! $locked->status->canTransitionTo(PaymentStatus::Posted)) {
@@ -126,7 +126,7 @@ class PaymentWorkflowService
     {
         abort_unless($user->can('payments.reverse') || $user->can('payments.approve'), 403);
 
-        return DB::transaction(function () use ($payment, $user, $reason) {
+        return DB::transaction(function () use ($payment, $user, $reason): Payment {
             $locked = Payment::query()->whereKey($payment->id)->lockForUpdate()->firstOrFail();
 
             if (! $locked->status->canTransitionTo(PaymentStatus::Reversed)) {
@@ -191,7 +191,7 @@ class PaymentWorkflowService
     {
         abort_unless($user->can('payments.update'), 403);
 
-        return DB::transaction(function () use ($payment, $user) {
+        return DB::transaction(function () use ($payment, $user): Payment {
             $locked = Payment::query()->whereKey($payment->id)->lockForUpdate()->firstOrFail();
 
             if ($locked->status !== PaymentStatus::Draft) {
