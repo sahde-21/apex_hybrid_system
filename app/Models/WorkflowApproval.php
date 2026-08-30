@@ -6,7 +6,23 @@ use App\Enums\WorkflowApprovalStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property int $workflow_instance_id
+ * @property string $action
+ * @property int $level
+ * @property string $level_name
+ * @property WorkflowApprovalStatus $status
+ * @property int|null $user_id
+ * @property string|null $comment
+ * @property Carbon|null $acted_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read WorkflowInstance $instance
+ * @property-read User|null $user
+ */
 #[Fillable([
     'workflow_instance_id',
     'action',
@@ -19,6 +35,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class WorkflowApproval extends Model
 {
+    /**
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
