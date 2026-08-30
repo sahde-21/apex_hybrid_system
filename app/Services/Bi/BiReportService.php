@@ -13,6 +13,7 @@ use App\Models\PurchaseOrder;
 use App\Models\SaleOrder;
 use App\Models\User;
 use App\Support\Bi\BiFilter;
+use App\Support\Bi\BiValueFormatter;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
@@ -53,7 +54,9 @@ class BiReportService
         return [
             'title' => __('scf.bi.report_executive'),
             'headers' => [__('Metric'), __('Value')],
-            'rows' => collect($kpis)->map(fn ($v, $k) => [__('scf.bi.kpi_'.$k), $v])->values()->all(),
+            'rows' => BiValueFormatter::listRows(
+                collect($kpis)->map(fn ($v, $k) => [__('scf.bi.kpi_'.$k), $v])->values()->all(),
+            ),
         ];
     }
 
@@ -72,13 +75,13 @@ class BiReportService
         return [
             'title' => __('scf.bi.report_financial'),
             'headers' => [__('Reference'), __('Customer'), __('Date'), __('Status'), __('Total')],
-            'rows' => $invoices->map(fn (Invoice $i) => [
+            'rows' => BiValueFormatter::listRows($invoices->map(fn (Invoice $i) => [
                 $i->reference_number,
-                $i->contact?->name,
-                $i->invoice_date?->format('Y-m-d'),
-                $i->status?->value,
+                $i->contact !== null ? $i->contact->name : null,
+                BiValueFormatter::formatDate($i->invoice_date),
+                BiValueFormatter::enumValue($i->status),
                 (float) $i->total_amount,
-            ])->all(),
+            ])),
         ];
     }
 
@@ -96,15 +99,15 @@ class BiReportService
         return [
             'title' => __('scf.bi.report_inventory'),
             'headers' => [__('SKU'), __('Name'), __('Category'), __('Stock'), __('Purchase'), __('Sale'), __('Value')],
-            'rows' => $products->map(fn (Product $p) => [
+            'rows' => BiValueFormatter::listRows($products->map(fn (Product $p) => [
                 $p->sku,
                 $p->name,
-                $p->category?->name,
+                $p->category !== null ? $p->category->name : null,
                 $p->stock_quantity,
                 (float) $p->purchase_price,
                 (float) $p->sale_price,
                 round($p->stock_quantity * (float) $p->purchase_price, 2),
-            ])->all(),
+            ])),
         ];
     }
 
@@ -125,14 +128,14 @@ class BiReportService
         return [
             'title' => __('scf.bi.report_sales'),
             'headers' => [__('Reference'), __('Customer'), __('Warehouse'), __('Date'), __('Status'), __('Total')],
-            'rows' => $orders->map(fn (SaleOrder $o) => [
+            'rows' => BiValueFormatter::listRows($orders->map(fn (SaleOrder $o) => [
                 $o->reference_number,
-                $o->contact?->name,
-                $o->warehouse?->name,
-                $o->order_date?->format('Y-m-d'),
-                $o->status instanceof \BackedEnum ? $o->status->value : (string) $o->status,
+                $o->contact !== null ? $o->contact->name : null,
+                $o->warehouse !== null ? $o->warehouse->name : null,
+                BiValueFormatter::formatDate($o->order_date),
+                BiValueFormatter::enumValue($o->status),
                 (float) $o->total_amount,
-            ])->all(),
+            ])),
         ];
     }
 
@@ -152,14 +155,14 @@ class BiReportService
         return [
             'title' => __('scf.bi.report_purchase'),
             'headers' => [__('Reference'), __('Supplier'), __('Warehouse'), __('Date'), __('Status'), __('Total')],
-            'rows' => $orders->map(fn (PurchaseOrder $o) => [
+            'rows' => BiValueFormatter::listRows($orders->map(fn (PurchaseOrder $o) => [
                 $o->reference_number,
-                $o->contact?->name,
-                $o->warehouse?->name,
-                $o->order_date?->format('Y-m-d'),
-                $o->status instanceof \BackedEnum ? $o->status->value : (string) $o->status,
+                $o->contact !== null ? $o->contact->name : null,
+                $o->warehouse !== null ? $o->warehouse->name : null,
+                BiValueFormatter::formatDate($o->order_date),
+                BiValueFormatter::enumValue($o->status),
                 (float) $o->total_amount,
-            ])->all(),
+            ])),
         ];
     }
 
@@ -176,11 +179,11 @@ class BiReportService
         return [
             'title' => __('scf.bi.report_manufacturing'),
             'headers' => [__('Reference'), __('Status'), __('Created')],
-            'rows' => $orders->map(fn (ProductionOrder $o) => [
+            'rows' => BiValueFormatter::listRows($orders->map(fn (ProductionOrder $o) => [
                 $o->reference_number ?? '#'.$o->id,
-                $o->status instanceof \BackedEnum ? $o->status->value : (string) ($o->status ?? '—'),
-                $o->created_at?->format('Y-m-d'),
-            ])->all(),
+                BiValueFormatter::enumValue($o->status),
+                BiValueFormatter::formatDate($o->created_at),
+            ])),
         ];
     }
 
@@ -194,12 +197,12 @@ class BiReportService
         return [
             'title' => __('scf.bi.report_hr'),
             'headers' => [__('Name'), __('Email'), __('Department'), __('Status')],
-            'rows' => $employees->map(fn (Employee $e) => [
+            'rows' => BiValueFormatter::listRows($employees->map(fn (Employee $e) => [
                 trim($e->first_name.' '.$e->last_name) ?: '#'.$e->id,
                 $e->email ?? '—',
                 $e->department ?? '—',
                 $e->is_active ? __('Active') : __('Inactive'),
-            ])->all(),
+            ])),
         ];
     }
 
@@ -213,12 +216,12 @@ class BiReportService
         return [
             'title' => __('scf.bi.report_crm'),
             'headers' => [__('Name'), __('Status'), __('Source'), __('Created')],
-            'rows' => $leads->map(fn (Lead $l) => [
+            'rows' => BiValueFormatter::listRows($leads->map(fn (Lead $l) => [
                 $l->name ?: ($l->company ?: '#'.$l->id),
-                $l->status instanceof \BackedEnum ? $l->status->value : (string) $l->status,
+                BiValueFormatter::enumValue($l->status),
                 $l->source ?? '—',
-                $l->created_at?->format('Y-m-d'),
-            ])->all(),
+                BiValueFormatter::formatDate($l->created_at),
+            ])),
         ];
     }
 
@@ -232,12 +235,12 @@ class BiReportService
         return [
             'title' => __('scf.bi.report_project'),
             'headers' => [__('Title'), __('Status'), __('Due'), __('Created')],
-            'rows' => $tasks->map(fn (ProjectTask $t) => [
+            'rows' => BiValueFormatter::listRows($tasks->map(fn (ProjectTask $t) => [
                 $t->title ?? $t->name ?? '#'.$t->id,
-                $t->status instanceof \BackedEnum ? $t->status->value : (string) ($t->status ?? '—'),
-                $t->due_date?->format('Y-m-d') ?? '—',
-                $t->created_at?->format('Y-m-d'),
-            ])->all(),
+                BiValueFormatter::enumValue($t->status),
+                BiValueFormatter::formatDate($t->due_date) ?? '—',
+                BiValueFormatter::formatDate($t->created_at),
+            ])),
         ];
     }
 
@@ -251,12 +254,12 @@ class BiReportService
         return [
             'title' => __('scf.bi.report_branch'),
             'headers' => [__('Code'), __('Name'), __('Phone'), __('Active')],
-            'rows' => $branches->map(fn (Branch $b) => [
+            'rows' => BiValueFormatter::listRows($branches->map(fn (Branch $b) => [
                 $b->code,
                 $b->name,
                 $b->phone ?? '—',
                 $b->is_active ? __('Yes') : __('No'),
-            ])->all(),
+            ])),
         ];
     }
 
@@ -265,12 +268,19 @@ class BiReportService
      */
     public function availableReports(User $user): Collection
     {
-        return collect(config('bi.reports'))
-            ->filter(fn (string $permission) => $user->can($permission))
-            ->map(fn (string $permission, string $key) => [
-                'key' => $key,
-                'label' => __('scf.bi.report_'.$key),
-            ])
-            ->values();
+        $reports = [];
+
+        foreach (config('bi.reports') as $key => $permission) {
+            if (! is_string($permission) || ! $user->can($permission)) {
+                continue;
+            }
+
+            $reports[] = [
+                'key' => (string) $key,
+                'label' => (string) __('scf.bi.report_'.$key),
+            ];
+        }
+
+        return collect($reports);
     }
 }
