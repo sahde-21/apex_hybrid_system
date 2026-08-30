@@ -2,7 +2,9 @@
 
 namespace App\Livewire;
 
+use App\Models\User;
 use App\Services\Performance\GlobalSearchService;
+use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -12,12 +14,15 @@ class GlobalSearch extends Component
 
     public bool $open = false;
 
+    /**
+     * @return list<array{module: string, label: string, items: list<array{id: int, title: string, subtitle: string|null, url: string|null}>}>
+     */
     #[Computed]
     public function results(): array
     {
         $user = auth()->user();
 
-        if ($user === null || trim($this->query) === '') {
+        if (! $user instanceof User || trim($this->query) === '') {
             return [];
         }
 
@@ -34,7 +39,7 @@ class GlobalSearch extends Component
         $this->reset('query', 'open');
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.global-search');
     }
