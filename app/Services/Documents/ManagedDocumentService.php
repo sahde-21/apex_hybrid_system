@@ -43,6 +43,9 @@ class ManagedDocumentService extends BaseService
         $disk = config('documents.disk', 'local');
         $folderSegment = isset($meta['folder_id']) ? 'folder-'.$meta['folder_id'] : 'root';
         $storedPath = $file->store('documents/'.$folderSegment.'/'.now()->format('Y/m'), $disk);
+        if ($storedPath === false) {
+            abort(500);
+        }
         $checksum = hash_file('sha256', $file->getRealPath() ?: Storage::disk($disk)->path($storedPath));
 
         $document = ManagedDocument::query()->create([
@@ -96,9 +99,7 @@ class ManagedDocumentService extends BaseService
         $documents = [];
 
         foreach ($files as $file) {
-            if ($file instanceof UploadedFile) {
-                $documents[] = $this->upload($user, $file, $meta);
-            }
+            $documents[] = $this->upload($user, $file, $meta);
         }
 
         return $documents;
@@ -212,6 +213,9 @@ class ManagedDocumentService extends BaseService
 
         $disk = $document->disk;
         $storedPath = $file->store('documents/versions/'.$document->id, $disk);
+        if ($storedPath === false) {
+            abort(500);
+        }
         $checksum = hash_file('sha256', $file->getRealPath() ?: Storage::disk($disk)->path($storedPath));
         $version = $document->version + 1;
 

@@ -45,7 +45,7 @@ class ExecutiveAnalyticsService
                 'filter' => $filter->toArray(),
                 'kpis' => $bi['kpis'],
                 'charts' => $bi['charts'],
-                'rankings' => $bi['rankings'] ?? [],
+                'rankings' => $bi['rankings'],
                 'health_score' => $health->toArray(),
                 'revenue_trend' => $trend->toArray(),
                 'revenue_forecast' => $forecast->toArray(),

@@ -20,7 +20,7 @@ class ForecastingService implements ForecastEngine
             return $this->insufficient('disabled');
         }
 
-        $values = array_values(array_map('floatval', $series));
+        $values = array_map('floatval', $series);
         $min = (int) config('intelligence.min_historical_points', 3);
 
         if (count($values) < $min) {

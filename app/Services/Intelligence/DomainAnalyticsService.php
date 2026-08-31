@@ -77,7 +77,10 @@ class DomainAnalyticsService
                 'cash_flow' => $this->charts->build($user, $filter->bi, 'cash_flow'),
             ],
             'report' => $report,
-            'meta' => $this->metadata(__('scf.intelligence.financial_title'), $user->can('ledgers.read') ? null : __('scf.intelligence.gl_limited_warning')),
+            'meta' => $this->metadata(
+                __('scf.intelligence.financial_title'),
+                $user->can('ledgers.read') ? null : (string) __('scf.intelligence.gl_limited_warning'),
+            ),
         ];
     }
 
@@ -270,9 +273,9 @@ class DomainAnalyticsService
         $active = $aggregated->count();
 
         foreach ($aggregated as $row) {
-            $monetary = (float) $row->monetary;
-            $frequency = (int) $row->frequency;
-            $recencyDays = now()->diffInDays($row->last_invoice_date);
+            $monetary = (float) data_get($row, 'monetary');
+            $frequency = (int) data_get($row, 'frequency');
+            $recencyDays = now()->diffInDays(data_get($row, 'last_invoice_date'));
 
             if ($monetary > 1000 && $frequency >= 3 && $recencyDays <= 30) {
                 $segments['champions']++;

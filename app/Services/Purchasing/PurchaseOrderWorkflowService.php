@@ -161,14 +161,14 @@ class PurchaseOrderWorkflowService
             'notes' => $order->notes,
             'terms' => $order->terms,
             'total_amount' => $order->total_amount,
-        ], $order->lines->map(fn (PurchaseOrderLine $line) => [
+        ], array_values($order->lines->map(fn (PurchaseOrderLine $line) => [
             'product_id' => $line->product_id,
             'description' => $line->description,
             'quantity' => $line->quantity,
             'unit_price' => $line->unit_price,
             'discount_amount' => $line->discount_amount,
             'tax_amount' => $line->tax_amount,
-        ])->all());
+        ])->all()));
     }
 
     /**
@@ -257,8 +257,8 @@ class PurchaseOrderWorkflowService
                 ]);
 
                 if (! empty($line['purchase_order_line_id'])) {
-                    $poLine = PurchaseOrderLine::query()->lockForUpdate()->find($line['purchase_order_line_id']);
-                    if ($poLine) {
+                    $poLine = PurchaseOrderLine::query()->lockForUpdate()->find((int) $line['purchase_order_line_id']);
+                    if ($poLine instanceof PurchaseOrderLine) {
                         $poLine->update([
                             'quantity_billed' => (float) $poLine->quantity_billed + (float) $line['quantity'],
                         ]);
