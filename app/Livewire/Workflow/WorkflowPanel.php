@@ -4,9 +4,11 @@ namespace App\Livewire\Workflow;
 
 use App\Contracts\Workflow\Workflowable;
 use App\Enums\WorkflowStatus;
+use App\Models\User;
 use App\Models\WorkflowInstance;
 use App\Services\Workflow\WorkflowEngine;
 use Flux\Flux;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Validation\ValidationException;
@@ -14,6 +16,11 @@ use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
+/**
+ * @property-read (Workflowable&Model) $document
+ * @property-read WorkflowInstance|null $instance
+ * @property-read list<array{action: string, label: string, requires_comment: bool, approval: bool}> $actions
+ */
 class WorkflowPanel extends Component
 {
     public string $documentType;
@@ -59,7 +66,7 @@ class WorkflowPanel extends Component
     #[Computed]
     public function actions(): array
     {
-        return app(WorkflowEngine::class)->availableActions($this->document, auth()->user());
+        return app(WorkflowEngine::class)->availableActions($this->document, $this->workflowActor());
     }
 
     public function statusLabel(): string
@@ -91,7 +98,7 @@ class WorkflowPanel extends Component
 
     public function requestAction(string $action): void
     {
-        $meta = collect($this->actions)->firstWhere('action', $action);
+        $meta = collect($this->actions())->firstWhere('action', $action);
         if (! $meta) {
             abort(403);
         }
@@ -127,7 +134,7 @@ class WorkflowPanel extends Component
             $document = $this->document;
             $before = $document->workflowStatus();
 
-            app(WorkflowEngine::class)->apply($document, auth()->user(), $action, $comment);
+            app(WorkflowEngine::class)->apply($document, $this->workflowActor(), $action, $comment);
 
             $document->refresh();
             $after = $document->workflowStatus();
@@ -148,7 +155,18 @@ class WorkflowPanel extends Component
         }
     }
 
-    public function render()
+    protected function workflowActor(): User
+    {
+        $user = auth()->user();
+
+        if (! $user instanceof User) {
+            abort(403);
+        }
+
+        return $user;
+    }
+
+    public function render(): View
     {
         return view('livewire.workflow.panel');
     }
