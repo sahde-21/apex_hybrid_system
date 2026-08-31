@@ -52,6 +52,7 @@ abstract class BaseRepository implements RepositoryInterface
     }
 
     /**
+     * @param  TModel  $model
      * @param  array<string, mixed>  $data
      * @return TModel
      */
@@ -62,6 +63,9 @@ abstract class BaseRepository implements RepositoryInterface
         return $model->refresh();
     }
 
+    /**
+     * @param  TModel  $model
+     */
     public function delete(Model $model): bool
     {
         return (bool) $model->delete();

@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
+/**
+ * @extends BaseService<User>
+ */
 class UserService extends BaseService
 {
     public function __construct(UserRepository $repository)

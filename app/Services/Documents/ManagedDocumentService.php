@@ -15,6 +15,9 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
+/**
+ * @extends BaseService<ManagedDocument>
+ */
 class ManagedDocumentService extends BaseService
 {
     public function __construct(
