@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Notification;
 class NotificationCenterService
 {
     /**
+     * @param  User|Authenticatable|iterable<int, User|Authenticatable>  $recipients
      * @param  array<string, mixed>  $meta
      */
     public function notify(
@@ -48,8 +49,11 @@ class NotificationCenterService
         );
 
         if ($this->shouldQueueNotifications()) {
+            /** @var list<int> $recipientIds */
+            $recipientIds = $users->pluck('id')->map(fn (mixed $id): int => (int) $id)->values()->all();
+
             DeliverNotificationJob::dispatch(
-                recipientIds: $users->pluck('id')->all(),
+                recipientIds: $recipientIds,
                 event: $event,
                 title: $title,
                 body: $body,

@@ -2,6 +2,7 @@
 
 namespace App\Services\Activity;
 
+use App\Contracts\Workflow\Workflowable;
 use App\Enums\ActivityType;
 use App\Enums\ActivityVisibility;
 use App\Models\Activity;
@@ -12,8 +13,10 @@ use App\Models\User;
 use App\Models\WorkflowHistory;
 use App\Models\WorkflowInstance;
 use App\Support\Activity\TimelineEntry;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
@@ -94,9 +97,13 @@ class DocumentTimelineService
             ->when($filters['date_from'] ?? null, fn ($q, $from) => $q->whereDate('created_at', '>=', $from))
             ->when($filters['date_to'] ?? null, fn ($q, $to) => $q->whereDate('created_at', '<=', $to))
             ->when($filters['module'] ?? null, function ($q, $module) {
+                /** @var array<class-string<Model>, string> $map */
                 $map = config('activity.subject_routes', []);
                 $types = [];
                 foreach ($map as $class => $route) {
+                    if (! is_subclass_of($class, Model::class)) {
+                        continue;
+                    }
                     if (str_contains($route, $module) || str_contains(Str::kebab(class_basename($class)), $module)) {
                         $types[] = (new $class)->getMorphClass();
                     }
@@ -157,7 +164,7 @@ class DocumentTimelineService
                         'filename' => $activity->document?->original_name,
                         'size' => $activity->document?->size,
                     ]),
-                    occurredAt: $activity->created_at ?? now(),
+                    occurredAt: $this->resolveOccurredAt($activity->created_at),
                     editable: $activity->isEditableBy($viewer),
                     deletable: $activity->isDeletableBy($viewer),
                     activityId: $activity->id,
@@ -217,7 +224,7 @@ class DocumentTimelineService
                         'related_id' => $event->related_id,
                         'metadata' => $event->metadata,
                     ],
-                    occurredAt: $event->created_at ?? now(),
+                    occurredAt: $this->resolveOccurredAt($event->created_at),
                     editable: false,
                     deletable: false,
                 );
@@ -229,13 +236,12 @@ class DocumentTimelineService
      */
     protected function fromWorkflowHistory(Model $subject, int $limit): Collection
     {
-        if (! method_exists($subject, 'workflowInstance')) {
+        if (! $subject instanceof Workflowable) {
             return collect();
         }
 
-        /** @var WorkflowInstance|null $instance */
-        $instance = $subject->workflowInstance;
-        if (! $instance) {
+        $instance = $subject->workflowInstance()->first();
+        if (! $instance instanceof WorkflowInstance) {
             return collect();
         }
 
@@ -269,7 +275,7 @@ class DocumentTimelineService
                         'approval_level_name' => $history->approval_level_name,
                         'meta' => $history->meta,
                     ],
-                    occurredAt: $history->created_at ?? now(),
+                    occurredAt: $this->resolveOccurredAt($history->created_at),
                     editable: false,
                     deletable: false,
                 );
@@ -281,10 +287,14 @@ class DocumentTimelineService
      */
     protected function fromAuditFieldChanges(Model $subject, int $limit): Collection
     {
+        /** @var array<string, string> $tracked */
         $tracked = config('activity.tracked_fields.'.$subject::class, []);
         if ($tracked === []) {
             return collect();
         }
+
+        /** @var list<string> $trackedFieldKeys */
+        $trackedFieldKeys = array_map('strval', array_keys($tracked));
 
         $ignored = config('activity.ignored_audit_fields', []);
 
@@ -296,13 +306,13 @@ class DocumentTimelineService
             ->latest('created_at')
             ->limit($limit)
             ->get()
-            ->map(function (AuditLog $log) use ($tracked, $ignored) {
+            ->map(function (AuditLog $log) use ($tracked, $ignored, $trackedFieldKeys) {
                 $old = collect($log->old_values ?? [])
                     ->reject(fn ($_, $key) => in_array($key, $ignored, true))
-                    ->only(array_keys($tracked));
+                    ->only($trackedFieldKeys);
                 $new = collect($log->new_values ?? [])
                     ->reject(fn ($_, $key) => in_array($key, $ignored, true))
-                    ->only(array_keys($tracked));
+                    ->only($trackedFieldKeys);
 
                 if ($old->isEmpty() && $new->isEmpty()) {
                     return null;
@@ -336,7 +346,7 @@ class DocumentTimelineService
                     oldValues: $old->all(),
                     newValues: $new->all(),
                     meta: ['changes' => $changes],
-                    occurredAt: $log->created_at ?? now(),
+                    occurredAt: $this->resolveOccurredAt($log->created_at),
                     editable: false,
                     deletable: false,
                 );
@@ -375,7 +385,7 @@ class DocumentTimelineService
                         'size' => $document->size,
                         'mime_type' => $document->mime_type,
                     ],
-                    occurredAt: $document->created_at ?? now(),
+                    occurredAt: $this->resolveOccurredAt($document->created_at),
                     editable: false,
                     deletable: false,
                     hasAttachment: true,
@@ -394,5 +404,18 @@ class DocumentTimelineService
             str_contains($event, 'post') => ActivityType::AccountingPosting,
             default => ActivityType::SystemEvent,
         };
+    }
+
+    private function resolveOccurredAt(mixed $timestamp): CarbonInterface
+    {
+        if ($timestamp instanceof CarbonInterface) {
+            return $timestamp;
+        }
+
+        if ($timestamp === null) {
+            return now();
+        }
+
+        return Carbon::parse($timestamp);
     }
 }
