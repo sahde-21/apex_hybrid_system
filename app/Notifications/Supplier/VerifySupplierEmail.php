@@ -2,6 +2,8 @@
 
 namespace App\Notifications\Supplier;
 
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -11,12 +13,15 @@ class VerifySupplierEmail extends Notification
 {
     use Queueable;
 
+    /**
+     * @return list<string>
+     */
     public function via(object $notifiable): array
     {
         return ['mail'];
     }
 
-    public function toMail(object $notifiable): MailMessage
+    public function toMail(MustVerifyEmail&Authenticatable $notifiable): MailMessage
     {
         $url = URL::temporarySignedRoute(
             'supplier.verification.verify',

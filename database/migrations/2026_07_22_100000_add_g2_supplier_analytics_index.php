@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\Database\SchemaIndexHelper;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -13,8 +14,10 @@ return new class extends Migration
         }
 
         Schema::table('bills', function (Blueprint $table): void {
-            $sm = Schema::getConnection()->getSchemaBuilder();
-            $existing = method_exists($sm, 'getIndexListing') ? $sm->getIndexListing('bills') : [];
+            $existing = SchemaIndexHelper::listing(
+                Schema::getConnection()->getSchemaBuilder(),
+                'bills',
+            );
 
             if (! in_array('bills_contact_date_g2_idx', $existing, true)) {
                 try {

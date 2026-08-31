@@ -15,6 +15,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Support\Env;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
@@ -82,7 +83,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Production reverse proxies (Nginx/Apache/LB): set TRUSTED_PROXIES in .env
         // to "*" or a comma-separated list of proxy IPs. Leave empty for direct PHP-FPM
         // without a proxy (development). Required for correct HTTPS, client IP, and HSTS.
-        $trustedProxies = env('TRUSTED_PROXIES');
+        $trustedProxies = Env::get('TRUSTED_PROXIES');
 
         if (is_string($trustedProxies) && $trustedProxies !== '') {
             $middleware->trustProxies(

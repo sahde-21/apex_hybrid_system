@@ -293,7 +293,12 @@ class DatabaseBackupService
     try {
       $pdo = new \PDO('sqlite:'.$path);
 
-      return (bool) $pdo->query("SELECT name FROM sqlite_master WHERE type='table' LIMIT 1")->fetch();
+      $statement = $pdo->query("SELECT name FROM sqlite_master WHERE type='table' LIMIT 1");
+      if ($statement === false) {
+        return false;
+      }
+
+      return (bool) $statement->fetch();
     } catch (\Throwable) {
       return false;
     }
