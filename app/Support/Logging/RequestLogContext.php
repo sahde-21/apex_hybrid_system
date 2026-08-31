@@ -30,11 +30,11 @@ class RequestLogContext
         $request = request();
 
         return array_filter([
-            'request_id' => $request?->attributes->get('request_id'),
+            'request_id' => $request->attributes->get('request_id'),
             'user_id' => auth()->id(),
-            'method' => $request?->method(),
-            'path' => $request?->path(),
-            'ip' => $request?->ip(),
+            'method' => $request->method(),
+            'path' => $request->path(),
+            'ip' => $request->ip(),
         ], fn ($value) => $value !== null && $value !== '');
     }
 

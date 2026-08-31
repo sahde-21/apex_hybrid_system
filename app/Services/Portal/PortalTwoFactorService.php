@@ -21,7 +21,7 @@ class PortalTwoFactorService
     public function beginSetup(PortalCustomer $customer): array
     {
         $secret = $this->provider->generateSecretKey();
-        $recoveryCodes = Collection::times(8, fn () => RecoveryCode::generate())->all();
+        $recoveryCodes = array_values(Collection::times(8, fn () => RecoveryCode::generate())->all());
 
         $customer->forceFill([
             'two_factor_secret' => Crypt::encrypt($secret),

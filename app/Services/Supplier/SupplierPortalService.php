@@ -30,6 +30,9 @@ class SupplierPortalService
         ]);
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function updateProfile(PortalSupplier $supplier, array $data, ?UploadedFile $avatar = null): PortalSupplier
     {
         return DB::transaction(function () use ($supplier, $data, $avatar) {

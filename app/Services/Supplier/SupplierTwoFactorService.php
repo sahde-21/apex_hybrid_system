@@ -21,7 +21,7 @@ class SupplierTwoFactorService
     public function beginSetup(PortalSupplier $supplier): array
     {
         $secret = $this->provider->generateSecretKey();
-        $recoveryCodes = Collection::times(8, fn () => RecoveryCode::generate())->all();
+        $recoveryCodes = array_values(Collection::times(8, fn () => RecoveryCode::generate())->all());
 
         $supplier->forceFill([
             'two_factor_secret' => Crypt::encrypt($secret),
