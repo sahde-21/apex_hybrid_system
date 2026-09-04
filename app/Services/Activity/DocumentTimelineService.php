@@ -248,7 +248,7 @@ class DocumentTimelineService
         return WorkflowHistory::query()
             ->with('user')
             ->where('workflow_instance_id', $instance->id)
-            ->latest('created_at')
+            ->latest('id')
             ->limit($limit)
             ->get()
             ->map(function (WorkflowHistory $history) {

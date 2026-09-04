@@ -32,6 +32,9 @@ class DeploymentCheckService
         $checks[] = $this->checkDebugMode();
         $checks[] = $this->checkAppUrl($strictProduction);
         $checks[] = $this->checkHttpsExpectation($strictProduction);
+        $checks[] = $this->checkCors($strictProduction);
+        $checks[] = $this->checkSessionSecureCookie($strictProduction);
+        $checks[] = $this->checkInventoryLedgerFlag($strictProduction);
         $checks = array_merge($checks, $this->checkDatabaseConnectivity());
         $checks = array_merge($checks, $this->checkPendingMigrations());
         $checks[] = $this->driverCheck('cache', (string) config('cache.default'), 'cache');
@@ -185,6 +188,56 @@ class DeploymentCheckService
         }
 
         return $this->result('https', 'pass', __('scf.release.check_https_ok'), 'security');
+    }
+
+    /** @return DeploymentCheck */
+    protected function checkCors(bool $strictProduction): array
+    {
+        /** @var mixed $configured */
+        $configured = config('cors.allowed_origins', []);
+        $origins = is_array($configured)
+            ? array_values(array_filter($configured, static fn ($origin): bool => is_string($origin) && $origin !== ''))
+            : [];
+
+        if (! $strictProduction) {
+            return $this->result('cors', 'pass', __('scf.release.check_cors_ok'), 'security');
+        }
+
+        if (in_array('*', $origins, true)) {
+            return $this->result('cors', 'fail', __('scf.release.check_cors_wildcard'), 'security');
+        }
+
+        if ($origins === []) {
+            return $this->result('cors', 'fail', __('scf.release.check_cors_empty'), 'security');
+        }
+
+        return $this->result('cors', 'pass', __('scf.release.check_cors_ok'), 'security');
+    }
+
+    /** @return DeploymentCheck */
+    protected function checkSessionSecureCookie(bool $strictProduction): array
+    {
+        $secure = config('session.secure');
+        $url = (string) config('app.url');
+        $expectsHttps = $strictProduction && str_starts_with($url, 'https://');
+
+        if ($expectsHttps && $secure !== true) {
+            return $this->result('session_secure', 'warn', __('scf.release.check_session_secure_recommended'), 'security');
+        }
+
+        return $this->result('session_secure', 'pass', __('scf.release.check_session_secure_ok'), 'security');
+    }
+
+    /** @return DeploymentCheck */
+    protected function checkInventoryLedgerFlag(bool $strictProduction): array
+    {
+        $enabled = (bool) config('inventory.ledger_enabled', false);
+
+        if ($strictProduction && $enabled) {
+            return $this->result('inventory_ledger', 'warn', __('scf.release.check_inventory_ledger_enabled'), 'configuration');
+        }
+
+        return $this->result('inventory_ledger', 'pass', __('scf.release.check_inventory_ledger_disabled'), 'configuration');
     }
 
     /**

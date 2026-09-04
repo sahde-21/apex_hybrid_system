@@ -36,11 +36,16 @@ class WorkflowInstance extends Model
     }
 
     /**
+     * Chronological workflow transitions (oldest first).
+     *
+     * Ordered by primary key so history remains deterministic even when
+     * multiple transitions share the same created_at second.
+     *
      * @return HasMany<WorkflowHistory, $this>
      */
     public function histories(): HasMany
     {
-        return $this->hasMany(WorkflowHistory::class)->latest('created_at');
+        return $this->hasMany(WorkflowHistory::class)->orderBy('id');
     }
 
     /**
