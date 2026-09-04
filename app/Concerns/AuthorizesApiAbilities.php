@@ -5,6 +5,7 @@ namespace App\Concerns;
 use App\Models\User;
 use App\Support\Api\ApiAbilities;
 use Illuminate\Auth\Access\AuthorizationException;
+use Laravel\Sanctum\PersonalAccessToken;
 
 trait AuthorizesApiAbilities
 {
@@ -16,11 +17,12 @@ trait AuthorizesApiAbilities
             throw new AuthorizationException(__('Unauthenticated.'));
         }
 
-        if (request()->bearerToken() === null) {
+        /** @var PersonalAccessToken|null $token */
+        $token = $user->currentAccessToken();
+
+        if ($token === null) {
             return;
         }
-
-        $token = $user->currentAccessToken();
 
         if ($token->can(ApiAbilities::READ_ALL) || $token->can($ability)) {
             return;

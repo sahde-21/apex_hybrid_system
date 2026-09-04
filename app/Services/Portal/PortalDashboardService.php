@@ -10,10 +10,10 @@ use App\Models\Invoice;
 use App\Models\LoyaltyBalance;
 use App\Models\Payment;
 use App\Models\PortalCustomer;
-use App\Models\PortalNotification;
 use App\Models\Quotation;
 use App\Models\SaleOrder;
 use App\Models\Ticket;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 class PortalDashboardService
@@ -61,56 +61,112 @@ class PortalDashboardService
     }
 
     /**
-     * @return Collection<int, SaleOrder|Invoice|Ticket|PortalNotification>
+     * @return Collection<int, array<string, mixed>>
      */
     public function recentActivity(PortalCustomer $customer, int $limit = 8): Collection
     {
         $contactId = $customer->contact_id;
 
-        $orders = SaleOrder::query()
-            ->where('contact_id', $contactId)
-            ->latest()
-            ->limit(3)
-            ->get()
-            ->map(fn (SaleOrder $o) => [
-                'type' => 'order',
-                'label' => $o->reference_number,
-                'status' => $o->status instanceof \BackedEnum ? $o->status->value : (string) $o->status,
-                'at' => $o->created_at,
-                'url' => route('portal.orders.show', $o),
-            ]);
-
-        $invoices = Invoice::query()
-            ->where('contact_id', $contactId)
-            ->latest()
-            ->limit(3)
-            ->get()
-            ->map(fn (Invoice $i) => [
-                'type' => 'invoice',
-                'label' => $i->reference_number,
-                'status' => $i->status instanceof \BackedEnum ? $i->status->value : (string) $i->status,
-                'at' => $i->created_at,
-                'url' => route('portal.invoices.show', $i),
-            ]);
-
-        $tickets = Ticket::query()
-            ->where('contact_id', $contactId)
-            ->latest()
-            ->limit(3)
-            ->get()
-            ->map(fn (Ticket $t) => [
-                'type' => 'ticket',
-                'label' => $t->subject,
-                'status' => $t->status instanceof \BackedEnum ? $t->status->value : (string) $t->status,
-                'at' => $t->created_at,
-                'url' => route('portal.tickets.show', $t),
-            ]);
-
-        return $orders
-            ->concat($invoices)
-            ->concat($tickets)
+        return collect(array_merge(
+            $this->orderActivity($contactId),
+            $this->invoiceActivity($contactId),
+            $this->ticketActivity($contactId),
+        ))
             ->sortByDesc('at')
             ->take($limit)
-            ->values();
+            ->values()
+            ->map(fn (array $row): array => $this->normalizeActivityRow($row));
+    }
+
+    /**
+     * @return array<int, array{type: string, label: string, status: string, at: Carbon, url: string}>
+     */
+    private function orderActivity(int $contactId): array
+    {
+        return SaleOrder::query()
+            ->where('contact_id', $contactId)
+            ->latest()
+            ->limit(3)
+            ->get()
+            ->map(fn (SaleOrder $o) => $this->activityRow(
+                'order',
+                $o->reference_number,
+                $o->status->value,
+                $o->created_at,
+                route('portal.orders.show', $o),
+            ))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, array{type: string, label: string, status: string, at: Carbon, url: string}>
+     */
+    private function invoiceActivity(int $contactId): array
+    {
+        return Invoice::query()
+            ->where('contact_id', $contactId)
+            ->latest()
+            ->limit(3)
+            ->get()
+            ->map(fn (Invoice $i) => $this->activityRow(
+                'invoice',
+                $i->reference_number,
+                $i->status->value,
+                $i->created_at,
+                route('portal.invoices.show', $i),
+            ))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, array{type: string, label: string, status: string, at: Carbon, url: string}>
+     */
+    private function ticketActivity(int $contactId): array
+    {
+        return Ticket::query()
+            ->where('contact_id', $contactId)
+            ->latest()
+            ->limit(3)
+            ->get()
+            ->map(fn (Ticket $t) => $this->activityRow(
+                'ticket',
+                $t->subject,
+                $t->status->value,
+                $t->created_at,
+                route('portal.tickets.show', $t),
+            ))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  array{type: string, label: string, status: string, at: Carbon, url: string}  $row
+     * @return array<string, mixed>
+     */
+    private function normalizeActivityRow(array $row): array
+    {
+        return [
+            'type' => $row['type'],
+            'label' => $row['label'],
+            'status' => $row['status'],
+            'at' => $row['at'],
+            'url' => $row['url'],
+        ];
+    }
+
+    /**
+     * @return array{type: string, label: string, status: string, at: Carbon, url: string}
+     */
+    private function activityRow(string $type, string $label, string $status, Carbon $at, string $url): array
+    {
+        return [
+            'type' => $type,
+            'label' => $label,
+            'status' => $status,
+            'at' => $at,
+            'url' => $url,
+        ];
     }
 }

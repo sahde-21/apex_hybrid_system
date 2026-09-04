@@ -1,16 +1,13 @@
 <?php
 
-use App\Concerns\CrmInteractionValidationRules;
 use App\Enums\CrmInteractionType;
 use App\Models\Contact;
 use App\Models\CrmInteraction;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Create CRM interaction')] class extends Component {
-    use CrmInteractionValidationRules;
+new #[Title('Create CRM interaction')] class extends \App\Livewire\ConcernBases\CrmInteractionValidationRulesBase {
 
     public ?int $contact_id = null;
     public string $interaction_type = 'call';

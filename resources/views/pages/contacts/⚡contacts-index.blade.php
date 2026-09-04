@@ -1,17 +1,14 @@
 <?php
 
-use App\Concerns\ContactValidationRules;
 use App\Enums\ContactType;
 use App\Models\Contact;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
-use Livewire\Component;
 use Livewire\WithPagination;
 
-new #[Title('Contacts')] class extends Component {
-    use ContactValidationRules;
+new #[Title('Contacts')] class extends \App\Livewire\ConcernBases\ContactValidationRulesBase {
     use WithPagination;
 
     #[Url(as: 'q')]

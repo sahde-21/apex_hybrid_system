@@ -43,7 +43,10 @@ class ManagedDocumentService extends BaseService
         $disk = config('documents.disk', 'local');
         $folderSegment = isset($meta['folder_id']) ? 'folder-'.$meta['folder_id'] : 'root';
         $storedPath = $file->store('documents/'.$folderSegment.'/'.now()->format('Y/m'), $disk);
-        $checksum = hash_file('sha256', $file->getRealPath() ?: Storage::disk($disk)->path($storedPath));
+        $realPath = $file->getRealPath();
+        $checksum = is_string($realPath) && $realPath !== ''
+            ? hash_file('sha256', $realPath)
+            : (is_string($storedPath) ? hash_file('sha256', Storage::disk($disk)->path($storedPath)) : '');
 
         $document = ManagedDocument::query()->create([
             'folder_id' => $meta['folder_id'] ?? null,
@@ -87,7 +90,7 @@ class ManagedDocumentService extends BaseService
     }
 
     /**
-     * @param  list<UploadedFile>  $files
+     * @param  array<int, mixed>  $files
      * @param  array<string, mixed>  $meta
      * @return list<ManagedDocument>
      */
@@ -212,7 +215,10 @@ class ManagedDocumentService extends BaseService
 
         $disk = $document->disk;
         $storedPath = $file->store('documents/versions/'.$document->id, $disk);
-        $checksum = hash_file('sha256', $file->getRealPath() ?: Storage::disk($disk)->path($storedPath));
+        $realPath = $file->getRealPath();
+        $checksum = is_string($realPath) && $realPath !== ''
+            ? hash_file('sha256', $realPath)
+            : (is_string($storedPath) ? hash_file('sha256', Storage::disk($disk)->path($storedPath)) : '');
         $version = $document->version + 1;
 
         DocumentVersion::query()->create([

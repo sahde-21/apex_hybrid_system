@@ -119,14 +119,12 @@ class RolePermissionSeeder extends Seeder
         ];
 
         foreach (['manager', 'sales', 'purchasing', 'accountant', 'hr', 'cashier'] as $roleName) {
-            if (isset($roleMap[$roleName])) {
-                $roleMap[$roleName] = array_values(array_unique([
-                    ...$roleMap[$roleName],
-                    ...$this->prefixPermissions(['activities']),
-                    ...$activityExtras,
-                    'activities.internal_note',
-                ]));
-            }
+            $roleMap[$roleName] = array_values(array_unique([
+                ...$roleMap[$roleName],
+                ...$this->prefixPermissions(['activities']),
+                ...$activityExtras,
+                'activities.internal_note',
+            ]));
         }
 
         $roleMap['manager'] = array_values(array_unique([

@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Log;
 
 class ApiAuditService
 {
-
     public function tokenCreated(User $user, ?int $tokenId, ?string $tokenName = null): void
     {
         $this->log('api.token.created', $user, null, [
@@ -78,12 +77,12 @@ class ApiAuditService
 
         $payload = array_merge($context, [
             'event' => $event,
-            'endpoint' => $request?->path(),
-            'method' => $request?->method(),
-            'request_id' => $request?->attributes->get('request_id'),
-            'ip' => $request?->ip(),
-            'user_agent' => $request?->userAgent(),
-            'token_id' => $user->currentAccessToken()?->id,
+            'endpoint' => $request->path(),
+            'method' => $request->method(),
+            'request_id' => $request->attributes->get('request_id'),
+            'ip' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'token_id' => data_get($user->currentAccessToken(), 'id'),
         ]);
 
         Log::info($event, $payload);

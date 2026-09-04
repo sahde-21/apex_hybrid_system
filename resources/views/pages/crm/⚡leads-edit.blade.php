@@ -1,15 +1,12 @@
 <?php
 
-use App\Concerns\LeadValidationRules;
 use App\Models\Lead;
 use App\Enums\LeadStatus;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Edit Lead management')] class extends Component {
-    use LeadValidationRules;
+new #[Title('Edit Lead management')] class extends \App\Livewire\ConcernBases\LeadValidationRulesBase {
     public Lead $lead;
 
     public string $name = '';

@@ -1,6 +1,5 @@
 <?php
 
-use App\Concerns\StockTransferValidationRules;
 use App\Models\StockTransfer;
 use App\Models\Product;
 use App\Models\Warehouse;
@@ -9,10 +8,8 @@ use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Edit Stock transfers')] class extends Component {
-    use StockTransferValidationRules;
+new #[Title('Edit Stock transfers')] class extends \App\Livewire\ConcernBases\StockTransferValidationRulesBase {
 
     public StockTransfer $stockTransfer;
 

@@ -1,16 +1,13 @@
 <?php
 
-use App\Concerns\TimeLogValidationRules;
 use App\Models\TimeLog;
 use App\Models\ProjectTask;
 use App\Models\Employee;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Edit Time logs')] class extends Component {
-    use TimeLogValidationRules;
+new #[Title('Edit Time logs')] class extends \App\Livewire\ConcernBases\TimeLogValidationRulesBase {
     public TimeLog $timeLog;
 
     public ?int $project_task_id = null;

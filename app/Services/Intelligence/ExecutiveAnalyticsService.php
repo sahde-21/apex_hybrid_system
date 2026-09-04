@@ -7,7 +7,6 @@ use App\Services\Analytics\TrendAnalysisService;
 use App\Services\Bi\BiAnalyticsService;
 use App\Services\Bi\BiChartService;
 use App\Services\Bi\BiKpiService;
-use App\Services\Bi\BiReportService;
 use App\Services\Forecasting\ForecastingService;
 use App\Services\Scoring\BusinessHealthScoreService;
 use App\Support\Analytics\AnalyticsFilter;
@@ -45,7 +44,7 @@ class ExecutiveAnalyticsService
                 'filter' => $filter->toArray(),
                 'kpis' => $bi['kpis'],
                 'charts' => $bi['charts'],
-                'rankings' => $bi['rankings'] ?? [],
+                'rankings' => $bi['rankings'],
                 'health_score' => $health->toArray(),
                 'revenue_trend' => $trend->toArray(),
                 'revenue_forecast' => $forecast->toArray(),

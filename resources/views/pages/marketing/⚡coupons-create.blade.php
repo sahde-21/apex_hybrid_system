@@ -1,14 +1,11 @@
 <?php
 
-use App\Concerns\CouponValidationRules;
 use App\Models\Coupon;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Create Coupons')] class extends Component {
-    use CouponValidationRules;
+new #[Title('Create Coupons')] class extends \App\Livewire\ConcernBases\CouponValidationRulesBase {
     public string $code = '';
     public string $discount_type = 'percentage';
     public string $discount_value = '0';

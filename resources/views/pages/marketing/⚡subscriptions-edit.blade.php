@@ -1,16 +1,13 @@
 <?php
 
-use App\Concerns\SubscriptionValidationRules;
 use App\Models\Subscription;
 use App\Enums\SubscriptionStatus;
 use App\Models\Contact;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Edit Subscriptions')] class extends Component {
-    use SubscriptionValidationRules;
+new #[Title('Edit Subscriptions')] class extends \App\Livewire\ConcernBases\SubscriptionValidationRulesBase {
     public Subscription $subscription;
 
     public ?int $contact_id = null;

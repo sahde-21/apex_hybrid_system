@@ -1,16 +1,13 @@
 <?php
 
-use App\Concerns\AttendanceValidationRules;
 use App\Models\Attendance;
 use App\Models\Employee;
 use App\Models\Branch;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Edit Attendance')] class extends Component {
-    use AttendanceValidationRules;
+new #[Title('Edit Attendance')] class extends \App\Livewire\ConcernBases\AttendanceValidationRulesBase {
     public Attendance $attendance;
 
     public ?int $employee_id = null;

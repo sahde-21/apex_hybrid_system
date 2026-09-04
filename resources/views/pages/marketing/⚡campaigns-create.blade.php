@@ -1,15 +1,12 @@
 <?php
 
-use App\Concerns\CampaignValidationRules;
 use App\Models\Campaign;
 use App\Enums\CampaignStatus;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Create Campaigns')] class extends Component {
-    use CampaignValidationRules;
+new #[Title('Create Campaigns')] class extends \App\Livewire\ConcernBases\CampaignValidationRulesBase {
     public string $name = '';
     public string $code = '';
     public string $start_date = '';

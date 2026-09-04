@@ -1,15 +1,12 @@
 <?php
 
-use App\Concerns\GiftCardValidationRules;
 use App\Models\GiftCard;
 use App\Models\Contact;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Edit Gift cards')] class extends Component {
-    use GiftCardValidationRules;
+new #[Title('Edit Gift cards')] class extends \App\Livewire\ConcernBases\GiftCardValidationRulesBase {
     public GiftCard $giftCard;
 
     public string $code = '';

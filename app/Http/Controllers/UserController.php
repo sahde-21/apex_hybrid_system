@@ -65,7 +65,7 @@ class UserController extends Controller
     }
 
     /**
-     * @return array{0: list<string>|null, 1: list<string>|null}
+     * @return array{0: list<string|int>|null, 1: list<string|int>|null}
      */
     protected function resolvedAccessPayload(StoreUserRequest|UpdateUserRequest $request, bool $forCreate, ?User $target = null): array
     {

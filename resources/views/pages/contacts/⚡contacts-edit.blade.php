@@ -1,13 +1,10 @@
 <?php
 
-use App\Concerns\ContactValidationRules;
 use App\Models\Contact;
 use Flux\Flux;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Edit contact')] class extends Component {
-    use ContactValidationRules;
+new #[Title('Edit contact')] class extends \App\Livewire\ConcernBases\ContactValidationRulesBase {
 
     public Contact $contact;
 

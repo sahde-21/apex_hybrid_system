@@ -1,14 +1,11 @@
 <?php
 
-use App\Concerns\LoyaltyProgramValidationRules;
 use App\Models\LoyaltyProgram;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Create Loyalty programs')] class extends Component {
-    use LoyaltyProgramValidationRules;
+new #[Title('Create Loyalty programs')] class extends \App\Livewire\ConcernBases\LoyaltyProgramValidationRulesBase {
     public string $name = '';
     public string $code = '';
     public string $points_per_currency = '1';

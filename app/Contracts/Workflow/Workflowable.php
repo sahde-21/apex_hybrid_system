@@ -21,7 +21,7 @@ interface Workflowable
     public function setWorkflowStatus(string $status): void;
 
     /**
-     * @return MorphOne<WorkflowInstance, $this>
+     * @return MorphOne<WorkflowInstance, covariant Model>
      */
     public function workflowInstance(): MorphOne;
 }

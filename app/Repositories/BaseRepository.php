@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Repositories\Contracts\RepositoryInterface;
+use App\Support\Eloquent\ModelQueryFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -10,8 +11,6 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 /**
  * @template TModel of Model
- *
- * @implements RepositoryInterface<TModel>
  */
 abstract class BaseRepository implements RepositoryInterface
 {
@@ -19,24 +18,21 @@ abstract class BaseRepository implements RepositoryInterface
     protected string $model;
 
     /**
-     * @return Builder<TModel>
+     * @return Builder<Model>
      */
     public function query(): Builder
     {
-        return $this->model::query();
+        return ModelQueryFactory::queryFor($this->model);
     }
 
     /**
-     * @return Collection<int, TModel>
+     * @return Collection<int, Model>
      */
     public function all(): Collection
     {
         return $this->query()->get();
     }
 
-    /**
-     * @return TModel|null
-     */
     public function find(int $id): ?Model
     {
         return $this->query()->find($id);
@@ -44,7 +40,6 @@ abstract class BaseRepository implements RepositoryInterface
 
     /**
      * @param  array<string, mixed>  $data
-     * @return TModel
      */
     public function create(array $data): Model
     {
@@ -53,13 +48,13 @@ abstract class BaseRepository implements RepositoryInterface
 
     /**
      * @param  array<string, mixed>  $data
-     * @return TModel
      */
     public function update(Model $model, array $data): Model
     {
         $model->update($data);
+        $model->refresh();
 
-        return $model->refresh();
+        return $model;
     }
 
     public function delete(Model $model): bool
@@ -68,7 +63,7 @@ abstract class BaseRepository implements RepositoryInterface
     }
 
     /**
-     * @return LengthAwarePaginator<int, TModel>
+     * @return LengthAwarePaginator<int, Model>
      */
     public function paginate(int $perPage = 15): LengthAwarePaginator
     {

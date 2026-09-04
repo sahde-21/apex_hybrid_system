@@ -25,7 +25,7 @@ class MentionParser
             ]);
         }
 
-        return $users->all();
+        return array_values($users->all());
     }
 
     /**
@@ -59,7 +59,9 @@ class MentionParser
      */
     public function extractMentionNames(string $body): array
     {
-        return $this->matchUsers($body)->pluck('name')->all();
+        return array_values(
+            $this->matchUsers($body)->map(static fn (User $user): string => $user->name)->all(),
+        );
     }
 
     /**

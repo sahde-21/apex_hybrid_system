@@ -70,7 +70,11 @@ class UserService extends BaseService
             $user = $this->repository->update($user, $data);
 
             if ($roles !== null || $permissions !== null) {
-                $this->syncAccess($user, $roles ?? $user->getRoleNames()->all(), $permissions ?? $user->getPermissionNames()->all());
+                $this->syncAccess(
+                    $user,
+                    $roles ?? array_values($user->getRoleNames()->all()),
+                    $permissions ?? array_values($user->getPermissionNames()->all()),
+                );
             }
 
             $this->audit($user, 'user_updated');
@@ -80,7 +84,7 @@ class UserService extends BaseService
     }
 
     /**
-     * @param  list<string|int>  $roles
+     * @param  array<int, string|int|mixed>  $roles
      * @return list<string|int>
      */
     public function sanitizeAssignableRoles(User $actor, array $roles): array
@@ -101,7 +105,7 @@ class UserService extends BaseService
     }
 
     /**
-     * @param  list<string|int>  $permissions
+     * @param  array<int, string|int|mixed>  $permissions
      * @return list<string|int>
      */
     public function sanitizeAssignablePermissions(User $actor, array $permissions): array
@@ -314,7 +318,9 @@ class UserService extends BaseService
 
     protected function storeAvatar(UploadedFile $avatar): string
     {
-        return $avatar->store('avatars', 'public');
+        $path = $avatar->store('avatars', 'public');
+
+        return is_string($path) ? $path : '';
     }
 
     protected function deleteAvatar(User $user): void

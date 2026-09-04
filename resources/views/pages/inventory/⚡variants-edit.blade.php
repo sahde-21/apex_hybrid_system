@@ -1,15 +1,12 @@
 <?php
 
-use App\Concerns\VariantValidationRules;
 use App\Models\Variant;
 use App\Models\Product;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Edit Variants')] class extends Component {
-    use VariantValidationRules;
+new #[Title('Edit Variants')] class extends \App\Livewire\ConcernBases\VariantValidationRulesBase {
     public Variant $variant;
 
     public ?int $product_id = null;

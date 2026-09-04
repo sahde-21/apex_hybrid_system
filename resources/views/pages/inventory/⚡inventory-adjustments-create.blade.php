@@ -1,6 +1,5 @@
 <?php
 
-use App\Concerns\InventoryAdjustmentValidationRules;
 use App\Enums\InventoryAdjustmentReason;
 use App\Models\Product;
 use App\Models\Warehouse;
@@ -9,10 +8,8 @@ use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Create inventory adjustment')] class extends Component {
-    use InventoryAdjustmentValidationRules;
+new #[Title('Create inventory adjustment')] class extends \App\Livewire\ConcernBases\InventoryAdjustmentValidationRulesBase {
 
     public string $reference_number = '';
 

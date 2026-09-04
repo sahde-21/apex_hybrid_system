@@ -1,15 +1,12 @@
 <?php
 
-use App\Concerns\BudgetValidationRules;
 use App\Models\Budget;
 use App\Models\Branch;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Create Budgeting')] class extends Component {
-    use BudgetValidationRules;
+new #[Title('Create Budgeting')] class extends \App\Livewire\ConcernBases\BudgetValidationRulesBase {
     public string $name = '';
     public string $reference_number = '';
     public string $period_start = '';

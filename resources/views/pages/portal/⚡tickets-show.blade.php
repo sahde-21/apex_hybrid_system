@@ -3,15 +3,12 @@
 use App\Enums\TicketStatus;
 use App\Models\Ticket;
 use App\Services\Portal\PortalService;
-use App\Support\ScopesToPortalContact;
 use Flux\Flux;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 use Livewire\WithFileUploads;
 
-new #[Layout('layouts.portal')] #[Title('Ticket')] class extends Component {
-    use ScopesToPortalContact;
+new #[Layout('layouts.portal')] #[Title('Ticket')] class extends \App\Livewire\ConcernBases\ScopesToPortalContactBase {
     use WithFileUploads;
 
     public Ticket $ticket;
