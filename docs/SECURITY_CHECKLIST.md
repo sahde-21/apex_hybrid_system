@@ -43,6 +43,15 @@ Use this checklist before Version 1.0 production promotion.
 - [ ] Super-admin role limited to trusted accounts
 - [ ] Private attachments require authorization
 
+## Document and upload hardening
+
+- [ ] SVG uploads are rejected (`image/svg+xml` not in `config/documents.php` allowed/preview lists)
+- [ ] Document MIME type and file extension must agree (no OR-only acceptance)
+- [ ] Document preview/download Content-Disposition uses safe filename encoding
+- [ ] Avatar storage validates image MIME, extension agreement, and real image bytes in `UserService`
+- [ ] Document share download limits are claimed atomically (cannot exceed limit under concurrency)
+- [ ] Intelligence jobs abort when no `super-admin` exists (no fallback to first user)
+
 ## Data protection
 
 - [ ] Audit logs immutable

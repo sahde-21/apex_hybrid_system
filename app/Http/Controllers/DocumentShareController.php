@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\Documents\DocumentShareService;
+use App\Support\Http\SafeContentDisposition;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -55,11 +56,11 @@ class DocumentShareController extends Controller
         }
 
         $document = $share->document;
-        $this->shares->recordDownload($share);
+        abort_unless($this->shares->recordDownload($share), 404);
 
         return Storage::disk($document->disk)->download(
             $document->path,
-            $document->original_name,
+            SafeContentDisposition::sanitizeFilename($document->original_name),
         );
     }
 }

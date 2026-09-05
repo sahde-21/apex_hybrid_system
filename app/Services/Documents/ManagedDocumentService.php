@@ -267,31 +267,39 @@ class ManagedDocumentService extends BaseService
     protected function validateMime(UploadedFile $file): void
     {
         $allowed = config('documents.allowed_mimes', []);
-        $mime = $file->getMimeType();
+        $mime = $file->getMimeType() ?: $file->getClientMimeType();
         $extension = strtolower($file->getClientOriginalExtension() ?: pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION));
 
+        /** @var array<string, list<string>> $extensionMap */
         $extensionMap = [
-            'pdf' => 'application/pdf',
-            'doc' => 'application/msword',
-            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'xls' => 'application/vnd.ms-excel',
-            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'csv' => 'text/csv',
-            'txt' => 'text/plain',
-            'json' => 'application/json',
-            'zip' => 'application/zip',
-            'jpg' => 'image/jpeg',
-            'jpeg' => 'image/jpeg',
-            'png' => 'image/png',
-            'gif' => 'image/gif',
-            'webp' => 'image/webp',
-            'svg' => 'image/svg+xml',
+            'pdf' => ['application/pdf'],
+            'doc' => ['application/msword', 'application/octet-stream'],
+            'docx' => [
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/zip',
+            ],
+            'xls' => ['application/vnd.ms-excel', 'application/octet-stream'],
+            'xlsx' => [
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/zip',
+            ],
+            'csv' => ['text/csv', 'text/plain', 'application/csv'],
+            'txt' => ['text/plain'],
+            'json' => ['application/json', 'text/plain'],
+            'zip' => ['application/zip', 'application/x-zip-compressed'],
+            'jpg' => ['image/jpeg'],
+            'jpeg' => ['image/jpeg'],
+            'png' => ['image/png'],
+            'gif' => ['image/gif'],
+            'webp' => ['image/webp'],
         ];
 
-        $mapped = $extensionMap[$extension] ?? null;
+        $compatibleMimes = $extensionMap[$extension] ?? null;
 
-        $valid = ($mime && in_array($mime, $allowed, true))
-            || ($mapped && in_array($mapped, $allowed, true));
+        $valid = $mime !== ''
+            && is_array($compatibleMimes)
+            && in_array($mime, $allowed, true)
+            && in_array($mime, $compatibleMimes, true);
 
         abort_unless($valid, 422, __('scf.dms.invalid_file_type'));
     }

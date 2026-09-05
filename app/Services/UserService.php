@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -318,9 +319,43 @@ class UserService extends BaseService
 
     protected function storeAvatar(UploadedFile $avatar): string
     {
+        $this->assertSafeAvatar($avatar);
+
         $path = $avatar->store('avatars', 'public');
 
         return is_string($path) ? $path : '';
+    }
+
+    protected function assertSafeAvatar(UploadedFile $avatar): void
+    {
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+
+        $mime = $avatar->getMimeType() ?: $avatar->getClientMimeType();
+        $extension = strtolower($avatar->getClientOriginalExtension() ?: pathinfo($avatar->getClientOriginalName(), PATHINFO_EXTENSION));
+
+        $extensionMimeMap = [
+            'jpg' => ['image/jpeg'],
+            'jpeg' => ['image/jpeg'],
+            'png' => ['image/png'],
+            'webp' => ['image/webp'],
+        ];
+
+        $compatible = $extensionMimeMap[$extension] ?? [];
+        $realPath = $avatar->getRealPath();
+        $imageInfo = is_string($realPath) && $realPath !== '' ? @getimagesize($realPath) : false;
+
+        $valid = $mime !== ''
+            && in_array($mime, $allowedMimes, true)
+            && in_array($extension, $allowedExtensions, true)
+            && in_array($mime, $compatible, true)
+            && $imageInfo !== false;
+
+        if (! $valid) {
+            throw ValidationException::withMessages([
+                'avatar' => __('validation.image', ['attribute' => 'avatar']),
+            ]);
+        }
     }
 
     protected function deleteAvatar(User $user): void

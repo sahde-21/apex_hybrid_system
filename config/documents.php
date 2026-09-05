@@ -25,7 +25,6 @@ return [
         'image/png',
         'image/gif',
         'image/webp',
-        'image/svg+xml',
     ],
 
     'preview_mimes' => [
@@ -34,7 +33,6 @@ return [
         'image/png',
         'image/gif',
         'image/webp',
-        'image/svg+xml',
         'text/plain',
         'text/csv',
         'application/json',
