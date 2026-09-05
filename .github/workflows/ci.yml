@@ -153,4 +153,10 @@ jobs:
           vendor/bin/pint --parallel --test "${FILES[@]}"
 
       - name: Run test suite
+        # Job-level env uses PostgreSQL for migrate smoke tests; PHPUnit must use
+        # the project's TestingDatabaseGuard-approved SQLite :memory: database.
+        # Step env overrides job env for this process only (migrate step unchanged).
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
         run: php artisan test
