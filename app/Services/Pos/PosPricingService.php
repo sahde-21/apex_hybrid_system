@@ -23,8 +23,8 @@ class PosPricingService
         $tax = 0.0;
 
         foreach ($items as $item) {
-            $quantity = max(1, (int) ($item['quantity'] ?? 1));
-            $unitPrice = round((float) ($item['unit_price'] ?? 0), 2);
+            $quantity = max(1, (int) $item['quantity']);
+            $unitPrice = round((float) $item['unit_price'], 2);
             $lineDiscount = round((float) ($item['discount_amount'] ?? 0), 2);
             $taxRate = round((float) ($item['tax_rate'] ?? $defaultTaxRate), 2);
             $net = max(0, ($unitPrice * $quantity) - $lineDiscount);

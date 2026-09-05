@@ -1,5 +1,10 @@
 <?php
 
+use App\Support\Security\CorsAllowedOrigins;
+
+$appEnv = env('APP_ENV', 'production');
+$appEnv = is_string($appEnv) && $appEnv !== '' ? $appEnv : 'production';
+
 return [
 
     /*
@@ -7,9 +12,16 @@ return [
     | Cross-Origin Resource Sharing (CORS) Configuration
     |--------------------------------------------------------------------------
     |
-    | Here you may configure your settings for cross-origin resource sharing
-    | or "CORS". This determines what cross-origin operations may execute
-    | in web browsers. You are free to adjust these settings as needed.
+    | This determines what cross-origin operations may execute in web browsers.
+    |
+    | SCF_CORS_ALLOWED_ORIGINS:
+    | - Comma-separated list of allowed origins (no trailing spaces required).
+    | - Local/testing: unset defaults to "*" for developer convenience.
+    | - Production: unset defaults to [] (deny browser cross-origin until set).
+    | - Production: an explicit "*" entry is always stripped (never allowed).
+    |
+    | Example:
+    | SCF_CORS_ALLOWED_ORIGINS=https://app.example.com,https://admin.example.com
     |
     | To learn more: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
     |
@@ -19,7 +31,10 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    'allowed_origins' => CorsAllowedOrigins::fromEnv(
+        env('SCF_CORS_ALLOWED_ORIGINS'),
+        $appEnv,
+    ),
 
     'allowed_origins_patterns' => [],
 

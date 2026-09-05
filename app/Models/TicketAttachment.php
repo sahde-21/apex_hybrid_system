@@ -47,6 +47,9 @@ class TicketAttachment extends Model
         return $this->belongsTo(TicketReply::class, 'ticket_reply_id');
     }
 
+    /**
+     * @return MorphTo<Model, $this>
+     */
     public function uploadedBy(): MorphTo
     {
         return $this->morphTo('uploaded_by');

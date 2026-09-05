@@ -15,6 +15,9 @@ class StoreInvoiceRequest extends FormRequest
         return $this->user()?->can('invoices.create') ?? false;
     }
 
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
         return array_merge([

@@ -1,16 +1,13 @@
 <?php
 
-use App\Concerns\DeliveryTripValidationRules;
 use App\Models\DeliveryTrip;
 use App\Enums\DeliveryTripStatus;
 use App\Models\ShippingMethod;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Edit Delivery trips')] class extends Component {
-    use DeliveryTripValidationRules;
+new #[Title('Edit Delivery trips')] class extends \App\Livewire\ConcernBases\DeliveryTripValidationRulesBase {
     public DeliveryTrip $deliveryTrip;
 
     public string $reference_number = '';

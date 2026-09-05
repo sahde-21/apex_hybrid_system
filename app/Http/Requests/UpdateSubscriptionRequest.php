@@ -3,11 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Enums\SubscriptionStatus;
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateSubscriptionRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('subscriptions.update') ?? false;
@@ -18,7 +21,7 @@ class UpdateSubscriptionRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('subscription')?->id;
+        $id = $this->routeModelId('subscription');
 
         return [
             'contact_id' => ['required', 'exists:contacts,id'],

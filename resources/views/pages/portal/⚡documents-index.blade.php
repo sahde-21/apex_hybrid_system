@@ -5,14 +5,11 @@ use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Quotation;
 use App\Models\SaleOrder;
-use App\Support\ScopesToPortalContact;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Layout('layouts.portal')] #[Title('Documents')] class extends Component {
-    use ScopesToPortalContact;
+new #[Layout('layouts.portal')] #[Title('Documents')] class extends \App\Livewire\ConcernBases\ScopesToPortalContactBase {
 
     #[Computed]
     public function documents(): array

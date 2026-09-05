@@ -19,6 +19,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $tax_amount
  * @property string $line_total
  * @property string $quantity_billed
+ * @property string $quantity_received
+ * @property string $quantity_returned
  */
 #[Fillable([
     'purchase_order_id',
@@ -32,6 +34,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'tax_amount',
     'line_total',
     'quantity_billed',
+    'quantity_received',
+    'quantity_returned',
 ])]
 class PurchaseOrderLine extends Model
 {
@@ -44,6 +48,8 @@ class PurchaseOrderLine extends Model
             'tax_amount' => 'decimal:2',
             'line_total' => 'decimal:2',
             'quantity_billed' => 'decimal:4',
+            'quantity_received' => 'decimal:4',
+            'quantity_returned' => 'decimal:4',
             'line_number' => 'integer',
         ];
     }
@@ -75,5 +81,15 @@ class PurchaseOrderLine extends Model
     public function quantityRemainingToBill(): float
     {
         return max(0, (float) $this->quantity - (float) $this->quantity_billed);
+    }
+
+    public function quantityRemainingToReceive(): float
+    {
+        return max(0, (float) $this->quantity - (float) $this->quantity_received);
+    }
+
+    public function quantityRemainingToReturn(): float
+    {
+        return max(0, (float) $this->quantity_received - (float) $this->quantity_returned);
     }
 }

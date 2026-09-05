@@ -1,15 +1,12 @@
 <?php
 
-use App\Concerns\VehicleMaintenanceValidationRules;
 use App\Models\VehicleMaintenance;
 use App\Enums\VehicleMaintenanceStatus;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Create Vehicle maintenance')] class extends Component {
-    use VehicleMaintenanceValidationRules;
+new #[Title('Create Vehicle maintenance')] class extends \App\Livewire\ConcernBases\VehicleMaintenanceValidationRulesBase {
     public string $vehicle_plate = '';
     public string $maintenance_date = '';
     public string $maintenance_type = '';

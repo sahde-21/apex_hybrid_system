@@ -2,12 +2,16 @@
 
 namespace App\Services\Supplier;
 
+use App\Enums\BillStatus;
 use App\Enums\NotificationCategory;
 use App\Enums\NotificationPriority;
+use App\Enums\PaymentType;
+use App\Enums\PurchaseOrderStatus;
 use App\Enums\SupplierResponseStatus;
 use App\Enums\SupplierShipmentStatus;
 use App\Models\Bill;
 use App\Models\Contact;
+use App\Models\Payment;
 use App\Models\PortalSupplier;
 use App\Models\PortalSupplierNotification;
 use App\Models\PurchaseOrder;
@@ -30,6 +34,9 @@ class SupplierPortalService
         ]);
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function updateProfile(PortalSupplier $supplier, array $data, ?UploadedFile $avatar = null): PortalSupplier
     {
         return DB::transaction(function () use ($supplier, $data, $avatar) {
@@ -68,7 +75,7 @@ class SupplierPortalService
             'supplier_response' => SupplierResponseStatus::Accepted,
             'supplier_comment' => $comment,
             'supplier_responded_at' => now(),
-            'status' => \App\Enums\PurchaseOrderStatus::Confirmed,
+            'status' => PurchaseOrderStatus::Confirmed,
         ]);
 
         $this->notify(
@@ -102,7 +109,7 @@ class SupplierPortalService
             'supplier_response' => SupplierResponseStatus::Rejected,
             'supplier_comment' => $comment,
             'supplier_responded_at' => now(),
-            'status' => \App\Enums\PurchaseOrderStatus::Cancelled,
+            'status' => PurchaseOrderStatus::Cancelled,
         ]);
 
         $this->notify(
@@ -193,12 +200,12 @@ class SupplierPortalService
     {
         $bills = (float) Bill::query()
             ->where('contact_id', $contactId)
-            ->whereIn('status', [\App\Enums\BillStatus::Received, \App\Enums\BillStatus::Overdue])
+            ->whereIn('status', [BillStatus::Received, BillStatus::Overdue])
             ->sum('total_amount');
 
-        $paid = (float) \App\Models\Payment::query()
+        $paid = (float) Payment::query()
             ->where('contact_id', $contactId)
-            ->where('type', \App\Enums\PaymentType::Outgoing)
+            ->where('type', PaymentType::Outgoing)
             ->sum('amount');
 
         return max(0, $bills - $paid);

@@ -8,14 +8,11 @@ use App\Models\Bill;
 use App\Models\Contract;
 use App\Models\Payment;
 use App\Models\PurchaseOrder;
-use App\Support\ScopesToSupplierContact;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Layout('layouts.supplier')] #[Title('Documents')] class extends Component {
-    use ScopesToSupplierContact;
+new #[Layout('layouts.supplier')] #[Title('Documents')] class extends \App\Livewire\ConcernBases\ScopesToSupplierContactBase {
 
     #[Computed]
     public function documents(): array

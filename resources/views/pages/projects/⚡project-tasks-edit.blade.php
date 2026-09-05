@@ -1,6 +1,5 @@
 <?php
 
-use App\Concerns\ProjectTaskValidationRules;
 use App\Models\ProjectTask;
 use App\Enums\ProjectTaskStatus;
 use App\Models\Contract;
@@ -8,10 +7,8 @@ use App\Models\Employee;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Edit Project tasks')] class extends Component {
-    use ProjectTaskValidationRules;
+new #[Title('Edit Project tasks')] class extends \App\Livewire\ConcernBases\ProjectTaskValidationRulesBase {
     public ProjectTask $projectTask;
 
     public ?int $contract_id = null;

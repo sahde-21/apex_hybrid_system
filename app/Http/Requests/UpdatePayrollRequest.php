@@ -3,11 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Enums\PayrollStatus;
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdatePayrollRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('payrolls.update') ?? false;
@@ -18,7 +21,7 @@ class UpdatePayrollRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('payroll')?->id;
+        $id = $this->routeModelId('payroll');
 
         return [
             'reference_number' => ['required', 'string', 'max:100', Rule::unique('payrolls', 'reference_number')->ignore($id)],

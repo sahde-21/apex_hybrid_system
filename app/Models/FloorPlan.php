@@ -18,7 +18,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $branch_id
  * @property int $width
  * @property int $height
- * @property array|null $layout_data
+ * @property array<string, mixed>|null $layout_data
  * @property bool $is_active
  * @property int|null $created_by
  * @property int|null $updated_by

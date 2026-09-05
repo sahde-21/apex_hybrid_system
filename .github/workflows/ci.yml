@@ -1,0 +1,162 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - cursor/phpstan-hardening-1833
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: PHP ${{ matrix.php-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ['8.4', '8.5']
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: scf_ci
+          POSTGRES_USER: scf
+          POSTGRES_PASSWORD: secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U scf -d scf_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      APP_NAME: SCF CI
+      APP_ENV: testing
+      APP_DEBUG: true
+      APP_URL: http://localhost
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: scf_ci
+      DB_USERNAME: scf
+      DB_PASSWORD: secret
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+      MAIL_MAILER: array
+      BROADCAST_CONNECTION: log
+      INVENTORY_LEDGER_ENABLED: false
+      ALLOW_DESTRUCTIVE_DB: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: mbstring, xml, ctype, fileinfo, intl, pdo, pdo_pgsql, bcmath, curl, zip, gd, sodium, pcntl
+          coverage: none
+          tools: composer:v2
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ runner.os }}-php${{ matrix.php-version }}-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            composer-${{ runner.os }}-php${{ matrix.php-version }}-
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress --optimize-autoloader
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build frontend assets
+        run: npm run build
+
+      - name: Prepare Laravel environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+          # Smoke-test migrations against PostgreSQL (application default driver).
+          # PHPUnit/Pest remain on sqlite :memory: via phpunit.xml + TestingDatabaseGuard.
+          php artisan migrate --force --no-interaction
+
+      - name: Run PHPStan
+        run: vendor/bin/phpstan analyse --memory-limit=1G
+
+      - name: Run Pint on changed PHP files
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          elif [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
+            BASE_SHA="$(git rev-parse HEAD^ 2>/dev/null || true)"
+          else
+            BASE_SHA="${{ github.event.before }}"
+          fi
+
+          if [ -z "${BASE_SHA}" ]; then
+            echo "No base SHA available; running Pint on application PHP trees."
+            vendor/bin/pint --parallel --test app bootstrap/app.php config database routes tests
+            exit 0
+          fi
+
+          # Limit to application PHP (exclude Livewire/Volt view paths with special filenames).
+          mapfile -t FILES < <(
+            git diff --name-only --diff-filter=ACMR "${BASE_SHA}...HEAD" -- \
+              app bootstrap/app.php config database routes tests lang scripts \
+              | grep '\.php$' \
+              | while IFS= read -r file; do
+                  if [ -f "${file}" ]; then
+                    printf '%s\n' "${file}"
+                  fi
+                done
+          )
+
+          if [ "${#FILES[@]}" -eq 0 ]; then
+            echo "No changed application PHP files; skipping Pint."
+            exit 0
+          fi
+
+          echo "Checking ${#FILES[@]} changed PHP file(s) with Pint."
+          vendor/bin/pint --parallel --test "${FILES[@]}"
+
+      - name: Run test suite
+        # Job-level env uses PostgreSQL for migrate smoke tests; PHPUnit must use
+        # the project's TestingDatabaseGuard-approved SQLite :memory: database.
+        # Step env overrides job env for this process only (migrate step unchanged).
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+        run: php artisan test

@@ -31,11 +31,17 @@ class WorkflowHistory extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<WorkflowInstance, $this>
+     */
     public function instance(): BelongsTo
     {
         return $this->belongsTo(WorkflowInstance::class, 'workflow_instance_id');
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Concerns\Auditable;
 use App\Enums\PayrollStatus;
+use Database\Factories\PayrollFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -38,6 +39,7 @@ use Illuminate\Support\Carbon;
 ])]
 class Payroll extends Model
 {
+    /** @use HasFactory<PayrollFactory> */
     use Auditable, HasFactory;
 
     /**

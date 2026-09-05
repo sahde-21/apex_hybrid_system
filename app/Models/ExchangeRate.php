@@ -5,7 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property int $currency_id
+ * @property Carbon $rate_date
+ * @property string $rate
+ * @property int|null $created_by
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Currency $currency
+ */
 #[Fillable([
     'currency_id',
     'rate_date',

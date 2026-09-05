@@ -5,18 +5,19 @@ namespace App\Concerns;
 use App\Models\User;
 use App\Support\Api\ApiAbilities;
 use Illuminate\Auth\Access\AuthorizationException;
+use Laravel\Sanctum\PersonalAccessToken;
 
 trait AuthorizesApiAbilities
 {
     protected function authorizeApiAbility(string $ability): void
     {
-        /** @var User|null $user */
         $user = request()->user();
 
-        if ($user === null) {
+        if (! $user instanceof User) {
             throw new AuthorizationException(__('Unauthenticated.'));
         }
 
+        /** @var PersonalAccessToken|null $token */
         $token = $user->currentAccessToken();
 
         if ($token === null) {

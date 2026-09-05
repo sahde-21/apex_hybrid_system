@@ -15,6 +15,9 @@ class ChartOfAccountsService
         protected AccountingAuditService $audit,
     ) {}
 
+    /**
+     * @return Collection<int, Account>
+     */
     public function tree(bool $includeArchived = false): Collection
     {
         $cacheKey = 'scf:accounting:coa-tree'.($includeArchived ? ':archived' : '');
@@ -214,9 +217,9 @@ class ChartOfAccountsService
             return;
         }
 
-        $parent = Account::query()->find($parentId);
+        $parent = Account::query()->whereKey($parentId)->first();
 
-        if ($parent === null) {
+        if (! $parent instanceof Account) {
             throw ValidationException::withMessages([
                 'parent_id' => [__('scf.accounting_engine.invalid_parent_account')],
             ]);

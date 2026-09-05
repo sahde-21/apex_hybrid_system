@@ -28,7 +28,7 @@ class SaleOrderWorkflowService
     {
         abort_unless($user->can('sale-orders.create'), 403);
 
-        return DB::transaction(function () use ($user, $data, $lines) {
+        return DB::transaction(function () use ($user, $data, $lines): SaleOrder {
             $totals = DocumentLineCalculator::summarize($lines);
 
             $order = SaleOrder::query()->create([
@@ -73,7 +73,7 @@ class SaleOrderWorkflowService
             ]);
         }
 
-        return DB::transaction(function () use ($order, $user, $data, $lines) {
+        return DB::transaction(function () use ($order, $user, $data, $lines): SaleOrder {
             $totals = DocumentLineCalculator::summarize($lines);
 
             $order->update([
@@ -163,14 +163,14 @@ class SaleOrderWorkflowService
             'shipping_address' => $order->shipping_address,
             'terms' => $order->terms,
             'total_amount' => $order->total_amount,
-        ], $order->lines->map(fn (SaleOrderLine $line) => [
+        ], array_values($order->lines->map(fn (SaleOrderLine $line) => [
             'product_id' => $line->product_id,
             'description' => $line->description,
             'quantity' => $line->quantity,
             'unit_price' => $line->unit_price,
             'discount_amount' => $line->discount_amount,
             'tax_amount' => $line->tax_amount,
-        ])->all());
+        ])->all()));
     }
 
     /**
@@ -180,7 +180,7 @@ class SaleOrderWorkflowService
     {
         abort_unless($user->can('sale-orders.invoice') || $user->can('invoices.create'), 403);
 
-        return DB::transaction(function () use ($order, $user, $lineQuantities) {
+        return DB::transaction(function () use ($order, $user, $lineQuantities): Invoice {
             $locked = SaleOrder::query()->whereKey($order->id)->lockForUpdate()->with('lines')->firstOrFail();
 
             if (! $locked->status->canInvoice()) {
@@ -260,8 +260,8 @@ class SaleOrderWorkflowService
                 ]);
 
                 if (! empty($line['sale_order_line_id'])) {
-                    $soLine = SaleOrderLine::query()->lockForUpdate()->find($line['sale_order_line_id']);
-                    if ($soLine) {
+                    $soLine = SaleOrderLine::query()->lockForUpdate()->whereKey($line['sale_order_line_id'])->first();
+                    if ($soLine instanceof SaleOrderLine) {
                         $soLine->update([
                             'quantity_invoiced' => (float) $soLine->quantity_invoiced + (float) $line['quantity'],
                         ]);
@@ -315,7 +315,7 @@ class SaleOrderWorkflowService
         string $event,
         ?string $reason = null,
     ): SaleOrder {
-        return DB::transaction(function () use ($order, $user, $to, $event, $reason) {
+        return DB::transaction(function () use ($order, $user, $to, $event, $reason): SaleOrder {
             $locked = SaleOrder::query()->whereKey($order->id)->lockForUpdate()->firstOrFail();
 
             if (! $locked->status->canTransitionTo($to)) {

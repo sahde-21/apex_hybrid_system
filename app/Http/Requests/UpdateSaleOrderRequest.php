@@ -3,11 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Enums\SaleOrderStatus;
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateSaleOrderRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('sale-orders.update') ?? false;
@@ -18,7 +21,7 @@ class UpdateSaleOrderRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('saleOrder')?->id;
+        $id = $this->routeModelId('saleOrder');
 
         return [
             'reference_number' => ['required', 'string', 'max:100', Rule::unique('sale_orders', 'reference_number')->ignore($id)],

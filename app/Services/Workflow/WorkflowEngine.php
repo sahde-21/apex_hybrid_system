@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\WorkflowHistory;
 use App\Models\WorkflowInstance;
 use App\Support\Workflow\WorkflowDefinition;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -17,11 +18,11 @@ class WorkflowEngine
         protected WorkflowNotifier $notifier,
     ) {}
 
-    public function ensureInstance(Workflowable $document): WorkflowInstance
+    public function ensureInstance(Workflowable&Model $document): WorkflowInstance
     {
-        $existing = $document->workflowInstance;
+        $existing = $document->getRelationValue('workflowInstance');
 
-        if ($existing) {
+        if ($existing instanceof WorkflowInstance) {
             return $existing;
         }
 
@@ -41,7 +42,7 @@ class WorkflowEngine
     /**
      * @return list<array{action: string, label: string, requires_comment: bool, approval: bool}>
      */
-    public function availableActions(Workflowable $document, User $user): array
+    public function availableActions(Workflowable&Model $document, User $user): array
     {
         $definition = WorkflowDefinition::fromConfig($document->workflowDefinitionKey());
         $status = $document->workflowStatus();
@@ -59,8 +60,9 @@ class WorkflowEngine
 
             // For multi-level approve, hide if user already acted at their pending level without permission for current level
             if ($action === 'approve' && ! empty($rule['approval'])) {
-                $instance = $document->workflowInstance;
-                if ($instance && ! $this->approvals->userCanActOnCurrentLevel($instance, $user, $rule['approval'])) {
+                $instance = $document->getRelationValue('workflowInstance');
+                $approvalConfig = $this->approvalConfigFromRule($rule);
+                if ($instance instanceof WorkflowInstance && $approvalConfig !== null && ! $this->approvals->userCanActOnCurrentLevel($instance, $user, $approvalConfig)) {
                     continue;
                 }
             }
@@ -76,7 +78,7 @@ class WorkflowEngine
         return $actions;
     }
 
-    public function can(Workflowable $document, User $user, string $action): bool
+    public function can(Workflowable&Model $document, User $user, string $action): bool
     {
         foreach ($this->availableActions($document, $user) as $available) {
             if ($available['action'] === $action) {
@@ -87,7 +89,7 @@ class WorkflowEngine
         return false;
     }
 
-    public function apply(Workflowable $document, User $user, string $action, ?string $comment = null): WorkflowInstance
+    public function apply(Workflowable&Model $document, User $user, string $action, ?string $comment = null): WorkflowInstance
     {
         return DB::transaction(function () use ($document, $user, $action, $comment) {
             $definition = WorkflowDefinition::fromConfig($document->workflowDefinitionKey());
@@ -132,12 +134,12 @@ class WorkflowEngine
             }
 
             $to = (string) $rule['to'];
-            $approvalConfig = $rule['approval'] ?? null;
+            $approvalConfig = $this->approvalConfigFromRule($rule);
             $approvalLevel = null;
             $approvalLevelName = null;
             $statusChanged = true;
 
-            if (is_array($approvalConfig) && $action === 'approve') {
+            if ($approvalConfig !== null && $action === 'approve') {
                 $result = $this->approvals->recordApproval($instance, $user, $action, $approvalConfig, $comment);
                 $approvalLevel = $result['level'];
                 $approvalLevelName = $result['level_name'];
@@ -199,6 +201,41 @@ class WorkflowEngine
         }
 
         return false;
+    }
+
+    /**
+     * @param  array<string, mixed>  $rule
+     * @return array{mode?: string, levels?: list<array{name: string, label?: string, permissions?: list<string>}>}|null
+     */
+    protected function approvalConfigFromRule(array $rule): ?array
+    {
+        $approval = $rule['approval'] ?? null;
+
+        if (! is_array($approval)) {
+            return null;
+        }
+
+        $config = [];
+
+        if (isset($approval['mode']) && is_string($approval['mode'])) {
+            $config['mode'] = $approval['mode'];
+        }
+
+        if (isset($approval['levels']) && is_array($approval['levels'])) {
+            $levels = [];
+
+            foreach ($approval['levels'] as $level) {
+                if (! is_array($level) || ! isset($level['name']) || ! is_string($level['name'])) {
+                    continue;
+                }
+
+                $levels[] = $level;
+            }
+
+            $config['levels'] = $levels;
+        }
+
+        return $config;
     }
 
     /**

@@ -55,7 +55,13 @@ class PwaController extends Controller
             ],
         ];
 
-        return response(json_encode($manifest, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), 200, [
+        $manifestJson = json_encode($manifest, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+
+        if (! is_string($manifestJson)) {
+            abort(500, 'Unable to encode PWA manifest.');
+        }
+
+        return response($manifestJson, 200, [
             'Content-Type' => 'application/manifest+json; charset=UTF-8',
             'Cache-Control' => 'public, max-age=3600',
         ]);

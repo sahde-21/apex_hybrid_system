@@ -2,19 +2,31 @@
 
 use App\Exceptions\Api\BusinessConflictException;
 use App\Exceptions\Api\IdempotencyConflictException;
+use App\Http\Middleware\AssignRequestId;
+use App\Http\Middleware\EnsureApiTokenAbility;
 use App\Http\Middleware\EnsureApiUserIsActive;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\ForceJsonResponse;
+use App\Http\Middleware\HandleIdempotency;
+use App\Http\Middleware\MeasureRequestPerformance;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use App\Http\Responses\ApiResponse;
+use App\Jobs\EvaluateSmartAlertsJob;
+use App\Jobs\GenerateDailyExecutiveSnapshotJob;
+use App\Jobs\MaintainDocumentStatusesJob;
+use App\Jobs\PruneExpiredIdempotencyKeysJob;
+use App\Jobs\PruneExpiredIntelligenceSnapshotsJob;
+use App\Jobs\RefreshRecommendationsJob;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Support\Env;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
@@ -28,15 +40,15 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule): void {
-        $schedule->job(new \App\Jobs\MaintainDocumentStatusesJob)
+    ->withSchedule(function (Schedule $schedule): void {
+        $schedule->job(new MaintainDocumentStatusesJob)
             ->hourly()
             ->withoutOverlapping()
             ->name('maintain-document-statuses')
             ->when(fn () => config('performance.scheduler.overdue_documents', true)
                 || config('performance.scheduler.expire_documents', true));
 
-        $schedule->job(new \App\Jobs\PruneExpiredIdempotencyKeysJob)
+        $schedule->job(new PruneExpiredIdempotencyKeysJob)
             ->daily()
             ->withoutOverlapping()
             ->name('prune-idempotency-keys')
@@ -54,25 +66,25 @@ return Application::configure(basePath: dirname(__DIR__))
             ->name('warm-performance-cache')
             ->when(fn () => config('performance.scheduler.warm_cache', true));
 
-        $schedule->job(new \App\Jobs\EvaluateSmartAlertsJob)
+        $schedule->job(new EvaluateSmartAlertsJob)
             ->hourly()
             ->withoutOverlapping()
             ->name('evaluate-smart-alerts')
             ->when(fn () => config('intelligence.enabled', true));
 
-        $schedule->job(new \App\Jobs\RefreshRecommendationsJob)
+        $schedule->job(new RefreshRecommendationsJob)
             ->daily()
             ->withoutOverlapping()
             ->name('refresh-recommendations')
             ->when(fn () => config('intelligence.enabled', true));
 
-        $schedule->job(new \App\Jobs\GenerateDailyExecutiveSnapshotJob)
+        $schedule->job(new GenerateDailyExecutiveSnapshotJob)
             ->dailyAt('03:30')
             ->withoutOverlapping()
             ->name('executive-intelligence-snapshot')
             ->when(fn () => config('intelligence.enabled', true));
 
-        $schedule->job(new \App\Jobs\PruneExpiredIntelligenceSnapshotsJob)
+        $schedule->job(new PruneExpiredIntelligenceSnapshotsJob)
             ->weekly()
             ->withoutOverlapping()
             ->name('prune-intelligence-snapshots')
@@ -82,7 +94,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Production reverse proxies (Nginx/Apache/LB): set TRUSTED_PROXIES in .env
         // to "*" or a comma-separated list of proxy IPs. Leave empty for direct PHP-FPM
         // without a proxy (development). Required for correct HTTPS, client IP, and HSTS.
-        $trustedProxies = env('TRUSTED_PROXIES');
+        $trustedProxies = Env::get('TRUSTED_PROXIES');
 
         if (is_string($trustedProxies) && $trustedProxies !== '') {
             $middleware->trustProxies(
@@ -96,17 +108,17 @@ return Application::configure(basePath: dirname(__DIR__))
             SetLocale::class,
             EnsureUserIsActive::class,
             SecurityHeaders::class,
-            \App\Http\Middleware\MeasureRequestPerformance::class,
+            MeasureRequestPerformance::class,
         ]);
 
         $middleware->api(prepend: [
             ForceJsonResponse::class,
-            \App\Http\Middleware\AssignRequestId::class,
+            AssignRequestId::class,
         ]);
 
         $middleware->api(append: [
             SecurityHeaders::class,
-            \App\Http\Middleware\MeasureRequestPerformance::class,
+            MeasureRequestPerformance::class,
         ]);
 
         $middleware->statefulApi();
@@ -114,8 +126,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'api.active' => EnsureApiUserIsActive::class,
-            'api.ability' => \App\Http\Middleware\EnsureApiTokenAbility::class,
-            'api.idempotent' => \App\Http\Middleware\HandleIdempotency::class,
+            'api.ability' => EnsureApiTokenAbility::class,
+            'api.idempotent' => HandleIdempotency::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [
@@ -223,7 +235,7 @@ return Application::configure(basePath: dirname(__DIR__))
             }
         });
 
-        $exceptions->render(function (\Throwable $e, Request $request) {
+        $exceptions->render(function (Throwable $e, Request $request) {
             if (! $request->is('api/*')) {
                 return null;
             }

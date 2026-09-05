@@ -12,6 +12,9 @@ class InvoiceResource extends JsonResource
 {
     use FormatsApiValues;
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
         return [

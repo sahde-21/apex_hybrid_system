@@ -12,7 +12,7 @@ class TrendAnalysisService
      */
     public function analyze(array $series, string $method = 'period_over_period'): TrendResult
     {
-        $values = array_values(array_map('floatval', $series));
+        $values = array_map('floatval', $series);
         $minPoints = (int) config('intelligence.min_historical_points', 3);
 
         if (count($values) < $minPoints) {
@@ -54,7 +54,7 @@ class TrendAnalysisService
     public function simpleMovingAverage(array $series, ?int $window = null): float
     {
         $window = $window ?? (int) config('intelligence.moving_average_window', 3);
-        $values = array_values(array_map('floatval', $series));
+        $values = array_map('floatval', $series);
         $slice = array_slice($values, -$window);
 
         return count($slice) ? array_sum($slice) / count($slice) : 0.0;

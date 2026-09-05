@@ -1,14 +1,11 @@
 <?php
 
-use App\Concerns\KnowledgeBaseArticleValidationRules;
 use App\Models\KnowledgeBaseArticle;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Edit Knowledge base')] class extends Component {
-    use KnowledgeBaseArticleValidationRules;
+new #[Title('Edit Knowledge base')] class extends \App\Livewire\ConcernBases\KnowledgeBaseArticleValidationRulesBase {
     public KnowledgeBaseArticle $knowledgeBaseArticle;
 
     public string $title = '';

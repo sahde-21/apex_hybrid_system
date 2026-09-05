@@ -2,16 +2,13 @@
 
 use App\Enums\BillStatus;
 use App\Models\Bill;
-use App\Support\ScopesToSupplierContact;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
-use Livewire\Component;
 use Livewire\WithPagination;
 
-new #[Layout('layouts.supplier')] #[Title('Bills')] class extends Component {
-    use ScopesToSupplierContact;
+new #[Layout('layouts.supplier')] #[Title('Bills')] class extends \App\Livewire\ConcernBases\ScopesToSupplierContactBase {
     use WithPagination;
 
     #[Url(as: 'q')]

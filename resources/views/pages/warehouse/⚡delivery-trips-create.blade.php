@@ -1,16 +1,13 @@
 <?php
 
-use App\Concerns\DeliveryTripValidationRules;
 use App\Models\DeliveryTrip;
 use App\Enums\DeliveryTripStatus;
 use App\Models\ShippingMethod;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Create Delivery trips')] class extends Component {
-    use DeliveryTripValidationRules;
+new #[Title('Create Delivery trips')] class extends \App\Livewire\ConcernBases\DeliveryTripValidationRulesBase {
     public string $reference_number = '';
     public ?int $shipping_method_id = null;
     public string $driver_name = '';

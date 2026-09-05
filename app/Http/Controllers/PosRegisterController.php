@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PosRegister;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -10,7 +11,8 @@ class PosRegisterController extends Controller
 {
     public function store(Request $request): RedirectResponse
     {
-        abort_unless($request->user()?->can('pos.create'), 403);
+        $user = $request->user('web');
+        abort_unless($user instanceof User && $user->can('pos.create'), 403);
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -26,8 +28,8 @@ class PosRegisterController extends Controller
             ...$validated,
             'is_active' => $request->boolean('is_active', true),
             'cash_drawer_enabled' => $request->boolean('cash_drawer_enabled', true),
-            'created_by' => $request->user()?->id,
-            'updated_by' => $request->user()?->id,
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
         ]);
 
         return redirect()->route('pos.registers.index');
@@ -35,7 +37,8 @@ class PosRegisterController extends Controller
 
     public function update(Request $request, PosRegister $posRegister): RedirectResponse
     {
-        abort_unless($request->user()?->can('pos.update'), 403);
+        $user = $request->user('web');
+        abort_unless($user instanceof User && $user->can('pos.update'), 403);
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -51,7 +54,7 @@ class PosRegisterController extends Controller
             ...$validated,
             'is_active' => $request->boolean('is_active', $posRegister->is_active),
             'cash_drawer_enabled' => $request->boolean('cash_drawer_enabled', $posRegister->cash_drawer_enabled),
-            'updated_by' => $request->user()?->id,
+            'updated_by' => $user->id,
         ]);
 
         return redirect()->route('pos.registers.index');
@@ -59,7 +62,8 @@ class PosRegisterController extends Controller
 
     public function destroy(PosRegister $posRegister): RedirectResponse
     {
-        abort_unless(request()->user()?->can('pos.delete'), 403);
+        $user = request()->user('web');
+        abort_unless($user instanceof User && $user->can('pos.delete'), 403);
 
         $posRegister->delete();
 

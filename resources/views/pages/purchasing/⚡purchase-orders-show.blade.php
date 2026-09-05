@@ -2,6 +2,7 @@
 
 use App\Models\PurchaseOrder;
 use App\Services\Purchasing\PurchaseOrderWorkflowService;
+use App\Services\Purchasing\PurchaseReceiptWorkflowService;
 use Flux\Flux;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Title;
@@ -11,24 +12,49 @@ new #[Title('Purchase order')] class extends Component {
     public PurchaseOrder $purchaseOrder;
 
     public string $rejectReason = '';
+
     public bool $showRejectModal = false;
+
     public string $cancelReason = '';
+
     public bool $showCancelModal = false;
+
+    public bool $showReceiveModal = false;
+
+    public bool $showReturnModal = false;
+
+    /** @var array<string, string|int|float> */
+    public array $receiveQuantities = [];
+
+    /** @var array<string, string|int|float> */
+    public array $returnQuantities = [];
+
+    public string $receiveNotes = '';
+
+    public string $returnNotes = '';
 
     public function mount(PurchaseOrder $purchaseOrder): void
     {
         $this->authorize('view', $purchaseOrder);
-        $this->purchaseOrder = $purchaseOrder->load([
+        $this->reloadOrder($purchaseOrder);
+    }
+
+    protected function reloadOrder(?PurchaseOrder $purchaseOrder = null): void
+    {
+        $order = $purchaseOrder ?? $this->purchaseOrder;
+        $this->purchaseOrder = $order->fresh([
             'contact',
             'lines.product',
             'rfq',
             'purchaseRequest',
             'bills',
+            'receipts.lines',
+            'returns.lines',
             'warehouse',
             'branch',
             'buyer',
             'events.user',
-        ]);
+        ]) ?? $order;
     }
 
     public function submit(): void
@@ -36,7 +62,7 @@ new #[Title('Purchase order')] class extends Component {
         try {
             app(PurchaseOrderWorkflowService::class)->submit($this->purchaseOrder, auth()->user());
             Flux::toast(variant: 'success', text: __('scf.purchase_workflow.order_submitted'));
-            $this->purchaseOrder->refresh();
+            $this->reloadOrder();
         } catch (ValidationException $e) {
             Flux::toast(variant: 'danger', text: collect($e->errors())->flatten()->first());
         }
@@ -47,7 +73,7 @@ new #[Title('Purchase order')] class extends Component {
         try {
             app(PurchaseOrderWorkflowService::class)->approve($this->purchaseOrder, auth()->user());
             Flux::toast(variant: 'success', text: __('scf.purchase_workflow.order_approved'));
-            $this->purchaseOrder->refresh();
+            $this->reloadOrder();
         } catch (ValidationException $e) {
             Flux::toast(variant: 'danger', text: collect($e->errors())->flatten()->first());
         }
@@ -66,7 +92,7 @@ new #[Title('Purchase order')] class extends Component {
             app(PurchaseOrderWorkflowService::class)->rejectToDraft($this->purchaseOrder, auth()->user(), $this->rejectReason ?: null);
             Flux::toast(variant: 'success', text: __('scf.purchase_workflow.order_rejected'));
             $this->showRejectModal = false;
-            $this->purchaseOrder->refresh();
+            $this->reloadOrder();
         } catch (ValidationException $e) {
             Flux::toast(variant: 'danger', text: collect($e->errors())->flatten()->first());
         }
@@ -77,7 +103,7 @@ new #[Title('Purchase order')] class extends Component {
         try {
             app(PurchaseOrderWorkflowService::class)->confirm($this->purchaseOrder, auth()->user());
             Flux::toast(variant: 'success', text: __('scf.purchase_workflow.order_confirmed'));
-            $this->purchaseOrder->refresh();
+            $this->reloadOrder();
         } catch (ValidationException $e) {
             Flux::toast(variant: 'danger', text: collect($e->errors())->flatten()->first());
         }
@@ -96,7 +122,7 @@ new #[Title('Purchase order')] class extends Component {
             app(PurchaseOrderWorkflowService::class)->cancel($this->purchaseOrder, auth()->user(), $this->cancelReason ?: null);
             Flux::toast(variant: 'success', text: __('scf.purchase_workflow.order_cancelled'));
             $this->showCancelModal = false;
-            $this->purchaseOrder->refresh();
+            $this->reloadOrder();
         } catch (ValidationException $e) {
             Flux::toast(variant: 'danger', text: collect($e->errors())->flatten()->first());
         }
@@ -119,6 +145,101 @@ new #[Title('Purchase order')] class extends Component {
             $bill = app(PurchaseOrderWorkflowService::class)->createBill($this->purchaseOrder, auth()->user());
             Flux::toast(variant: 'success', text: __('scf.purchase_workflow.bill_created'));
             $this->redirect(route('bills.show', $bill), navigate: true);
+        } catch (ValidationException $e) {
+            Flux::toast(variant: 'danger', text: collect($e->errors())->flatten()->first());
+        }
+    }
+
+    public function openReceiveModal(): void
+    {
+        $this->authorize('receive', $this->purchaseOrder);
+        $this->receiveNotes = '';
+        $this->receiveQuantities = [];
+
+        foreach ($this->purchaseOrder->lines as $line) {
+            $remaining = (int) floor($line->quantityRemainingToReceive());
+            $this->receiveQuantities[(string) $line->id] = $remaining > 0 ? $remaining : 0;
+        }
+
+        $this->showReceiveModal = true;
+    }
+
+    public function receiveGoods(): void
+    {
+        $this->authorize('receive', $this->purchaseOrder);
+
+        $lines = [];
+        foreach ($this->receiveQuantities as $lineId => $qty) {
+            $quantity = (float) $qty;
+            if ($quantity <= 0) {
+                continue;
+            }
+            $lines[] = [
+                'purchase_order_line_id' => (int) $lineId,
+                'quantity' => $quantity,
+            ];
+        }
+
+        try {
+            app(PurchaseReceiptWorkflowService::class)->receive(
+                $this->purchaseOrder,
+                auth()->user(),
+                $lines,
+                $this->receiveNotes !== '' ? $this->receiveNotes : null,
+            );
+            Flux::toast(variant: 'success', text: __('scf.purchase_workflow.goods_received'));
+            $this->showReceiveModal = false;
+            $this->reloadOrder();
+        } catch (ValidationException $e) {
+            Flux::toast(variant: 'danger', text: collect($e->errors())->flatten()->first());
+        }
+    }
+
+    public function openReturnModal(): void
+    {
+        $this->authorize('returnGoods', $this->purchaseOrder);
+        $this->returnNotes = '';
+        $this->returnQuantities = [];
+
+        foreach ($this->purchaseOrder->lines as $line) {
+            $remaining = (int) floor($line->quantityRemainingToReturn());
+            $this->returnQuantities[(string) $line->id] = 0;
+            if ($remaining <= 0) {
+                unset($this->returnQuantities[(string) $line->id]);
+            } else {
+                $this->returnQuantities[(string) $line->id] = 0;
+            }
+        }
+
+        $this->showReturnModal = true;
+    }
+
+    public function returnGoods(): void
+    {
+        $this->authorize('returnGoods', $this->purchaseOrder);
+
+        $lines = [];
+        foreach ($this->returnQuantities as $lineId => $qty) {
+            $quantity = (float) $qty;
+            if ($quantity <= 0) {
+                continue;
+            }
+            $lines[] = [
+                'purchase_order_line_id' => (int) $lineId,
+                'quantity' => $quantity,
+            ];
+        }
+
+        try {
+            app(PurchaseReceiptWorkflowService::class)->returnGoods(
+                $this->purchaseOrder,
+                auth()->user(),
+                $lines,
+                $this->returnNotes !== '' ? $this->returnNotes : null,
+            );
+            Flux::toast(variant: 'success', text: __('scf.purchase_workflow.goods_returned'));
+            $this->showReturnModal = false;
+            $this->reloadOrder();
         } catch (ValidationException $e) {
             Flux::toast(variant: 'danger', text: collect($e->errors())->flatten()->first());
         }
@@ -157,6 +278,22 @@ new #[Title('Purchase order')] class extends Component {
                 @endif
                 @if (in_array($purchaseOrder->status, [\App\Enums\PurchaseOrderStatus::Approved, \App\Enums\PurchaseOrderStatus::Draft, \App\Enums\PurchaseOrderStatus::PendingApproval], true))
                     <flux:button wire:click="confirm" icon="check-badge" variant="filled">{{ __('Confirm') }}</flux:button>
+                @endif
+            @endcan
+
+            @can('receive', $purchaseOrder)
+                @if ($purchaseOrder->lines->contains(fn ($line) => $line->quantityRemainingToReceive() > 0.0001))
+                    <flux:button wire:click="openReceiveModal" icon="archive-box-arrow-down" variant="filled">
+                        {{ __('scf.purchase_workflow.receive_goods') }}
+                    </flux:button>
+                @endif
+            @endcan
+
+            @can('returnGoods', $purchaseOrder)
+                @if ($purchaseOrder->lines->contains(fn ($line) => $line->quantityRemainingToReturn() > 0.0001))
+                    <flux:button wire:click="openReturnModal" icon="arrow-uturn-left" variant="ghost">
+                        {{ __('scf.purchase_workflow.return_goods') }}
+                    </flux:button>
                 @endif
             @endcan
 
@@ -205,7 +342,6 @@ new #[Title('Purchase order')] class extends Component {
         </div>
 
         <div class="space-y-6 lg:col-span-2">
-            {{-- Line items with billed progress --}}
             <div class="scf-card">
                 <flux:heading size="lg" class="mb-4">{{ __('Line items') }}</flux:heading>
                 @if ($purchaseOrder->lines->isNotEmpty())
@@ -215,8 +351,9 @@ new #[Title('Purchase order')] class extends Component {
                                 <tr class="border-b border-zinc-200 dark:border-zinc-700 text-left">
                                     <th class="pb-2 pr-3 font-medium text-zinc-500">{{ __('Description') }}</th>
                                     <th class="pb-2 pr-3 font-medium text-zinc-500 text-right">{{ __('Qty') }}</th>
+                                    <th class="pb-2 pr-3 font-medium text-zinc-500 text-right">{{ __('scf.purchase_workflow.qty_received') }}</th>
+                                    <th class="pb-2 pr-3 font-medium text-zinc-500 text-right">{{ __('scf.purchase_workflow.qty_returned') }}</th>
                                     <th class="pb-2 pr-3 font-medium text-zinc-500 text-right">{{ __('Billed') }}</th>
-                                    <th class="pb-2 pr-3 font-medium text-zinc-500 text-right">{{ __('Remaining') }}</th>
                                     <th class="pb-2 pr-3 font-medium text-zinc-500 text-right">{{ __('Unit price') }}</th>
                                     <th class="pb-2 font-medium text-zinc-500 text-right">{{ __('Total') }}</th>
                                 </tr>
@@ -229,10 +366,9 @@ new #[Title('Purchase order')] class extends Component {
                                             @if ($line->description)<p class="text-xs text-zinc-500">{{ $line->description }}</p>@endif
                                         </td>
                                         <td class="py-2 pr-3 text-right">{{ $line->quantity }}</td>
+                                        <td class="py-2 pr-3 text-right text-emerald-600">{{ $line->quantity_received }}</td>
+                                        <td class="py-2 pr-3 text-right text-rose-600">{{ $line->quantity_returned }}</td>
                                         <td class="py-2 pr-3 text-right text-blue-600">{{ $line->quantity_billed }}</td>
-                                        <td class="py-2 pr-3 text-right text-amber-600">
-                                            {{ max(0, (float) $line->quantity - (float) $line->quantity_billed) }}
-                                        </td>
                                         <td class="py-2 pr-3 text-right">{{ number_format((float) $line->unit_price, 2) }}</td>
                                         <td class="py-2 text-right font-medium">{{ number_format((float) $line->line_total, 2) }}</td>
                                     </tr>
@@ -240,17 +376,17 @@ new #[Title('Purchase order')] class extends Component {
                             </tbody>
                             <tfoot class="border-t border-zinc-200 dark:border-zinc-700">
                                 <tr>
-                                    <td colspan="5" class="pt-3 pr-3 text-right text-zinc-500">{{ __('Subtotal') }}</td>
+                                    <td colspan="6" class="pt-3 pr-3 text-right text-zinc-500">{{ __('Subtotal') }}</td>
                                     <td class="pt-3 text-right">{{ number_format((float) $purchaseOrder->subtotal_amount, 2) }}</td>
                                 </tr>
                                 @if ((float) $purchaseOrder->tax_amount > 0)
                                     <tr>
-                                        <td colspan="5" class="pt-1 pr-3 text-right text-zinc-500">{{ __('Tax') }}</td>
+                                        <td colspan="6" class="pt-1 pr-3 text-right text-zinc-500">{{ __('Tax') }}</td>
                                         <td class="pt-1 text-right">{{ number_format((float) $purchaseOrder->tax_amount, 2) }}</td>
                                     </tr>
                                 @endif
                                 <tr class="font-semibold">
-                                    <td colspan="5" class="pt-2 pr-3 text-right">{{ __('Total') }}</td>
+                                    <td colspan="6" class="pt-2 pr-3 text-right">{{ __('Total') }}</td>
                                     <td class="pt-2 text-right">{{ $purchaseOrder->currency_code }} {{ number_format((float) $purchaseOrder->total_amount, 2) }}</td>
                                 </tr>
                             </tfoot>
@@ -261,7 +397,6 @@ new #[Title('Purchase order')] class extends Component {
                 @endif
             </div>
 
-            {{-- Bills list --}}
             @if ($purchaseOrder->bills->isNotEmpty())
                 <div class="scf-card">
                     <flux:heading size="lg" class="mb-4">{{ __('Bills') }}</flux:heading>
@@ -322,6 +457,70 @@ new #[Title('Purchase order')] class extends Component {
             <div class="flex justify-end gap-2">
                 <flux:modal.close><flux:button variant="ghost">{{ __('Back') }}</flux:button></flux:modal.close>
                 <flux:button variant="danger" wire:click="cancel">{{ __('Cancel order') }}</flux:button>
+            </div>
+        </div>
+    </flux:modal>
+
+    <flux:modal wire:model="showReceiveModal" class="max-w-lg">
+        <div class="space-y-4">
+            <flux:heading size="lg">{{ __('scf.purchase_workflow.receive_goods') }}</flux:heading>
+            <div class="space-y-3">
+                @foreach ($purchaseOrder->lines as $line)
+                    @if ($line->quantityRemainingToReceive() > 0.0001)
+                        <div class="flex items-center justify-between gap-3 text-sm">
+                            <div class="min-w-0 flex-1">
+                                <p class="font-medium truncate">{{ $line->product?->name ?? $line->description }}</p>
+                                <p class="text-xs text-zinc-500">
+                                    {{ __('Remaining') }}: {{ $line->quantityRemainingToReceive() }}
+                                </p>
+                            </div>
+                            <flux:input
+                                type="number"
+                                min="0"
+                                step="1"
+                                class="w-24"
+                                wire:model="receiveQuantities.{{ $line->id }}"
+                            />
+                        </div>
+                    @endif
+                @endforeach
+            </div>
+            <flux:textarea wire:model="receiveNotes" :label="__('Notes')" rows="2" />
+            <div class="flex justify-end gap-2">
+                <flux:modal.close><flux:button variant="ghost">{{ __('Cancel') }}</flux:button></flux:modal.close>
+                <flux:button variant="primary" wire:click="receiveGoods">{{ __('scf.purchase_workflow.receive_goods') }}</flux:button>
+            </div>
+        </div>
+    </flux:modal>
+
+    <flux:modal wire:model="showReturnModal" class="max-w-lg">
+        <div class="space-y-4">
+            <flux:heading size="lg">{{ __('scf.purchase_workflow.return_goods') }}</flux:heading>
+            <div class="space-y-3">
+                @foreach ($purchaseOrder->lines as $line)
+                    @if ($line->quantityRemainingToReturn() > 0.0001)
+                        <div class="flex items-center justify-between gap-3 text-sm">
+                            <div class="min-w-0 flex-1">
+                                <p class="font-medium truncate">{{ $line->product?->name ?? $line->description }}</p>
+                                <p class="text-xs text-zinc-500">
+                                    {{ __('Remaining') }}: {{ $line->quantityRemainingToReturn() }}
+                                </p>
+                            </div>
+                            <flux:input
+                                type="number"
+                                min="0"
+                                step="1"
+                                class="w-24"
+                                wire:model="returnQuantities.{{ $line->id }}"
+                            />
+                        </div>
+                    @endif
+                @endforeach
+            </div>
+            <flux:textarea wire:model="returnNotes" :label="__('Notes')" rows="2" />
+            <div class="flex justify-end gap-2">
+                <flux:modal.close><flux:button variant="ghost">{{ __('Cancel') }}</flux:button></flux:modal.close>
+                <flux:button variant="danger" wire:click="returnGoods">{{ __('scf.purchase_workflow.return_goods') }}</flux:button>
             </div>
         </div>
     </flux:modal>

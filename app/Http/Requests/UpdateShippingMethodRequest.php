@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateShippingMethodRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('shipping-methods.update') ?? false;
@@ -17,7 +20,7 @@ class UpdateShippingMethodRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('shippingMethod')?->id;
+        $id = $this->routeModelId('shippingMethod');
 
         return [
             'name' => ['required', 'string', 'max:255'],

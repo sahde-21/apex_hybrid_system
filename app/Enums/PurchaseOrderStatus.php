@@ -64,6 +64,22 @@ enum PurchaseOrderStatus: string
         ], true);
     }
 
+    public function canReceive(): bool
+    {
+        return in_array($this, [
+            self::Confirmed,
+            self::Received,
+            self::Approved,
+            self::PartiallyBilled,
+            self::FullyBilled,
+        ], true);
+    }
+
+    public function canReturn(): bool
+    {
+        return $this->canReceive();
+    }
+
     /** @return list<self> */
     public function allowedTransitions(): array
     {

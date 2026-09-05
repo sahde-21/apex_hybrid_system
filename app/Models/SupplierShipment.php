@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Concerns\Auditable;
 use App\Enums\SupplierShipmentStatus;
+use Database\Factories\SupplierShipmentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -35,6 +36,7 @@ use Illuminate\Support\Carbon;
 ])]
 class SupplierShipment extends Model
 {
+    /** @use HasFactory<SupplierShipmentFactory> */
     use Auditable, HasFactory;
 
     protected function casts(): array

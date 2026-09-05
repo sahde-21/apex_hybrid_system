@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -70,7 +71,11 @@ class UserService extends BaseService
             $user = $this->repository->update($user, $data);
 
             if ($roles !== null || $permissions !== null) {
-                $this->syncAccess($user, $roles ?? $user->getRoleNames()->all(), $permissions ?? $user->getPermissionNames()->all());
+                $this->syncAccess(
+                    $user,
+                    $roles ?? array_values($user->getRoleNames()->all()),
+                    $permissions ?? array_values($user->getPermissionNames()->all()),
+                );
             }
 
             $this->audit($user, 'user_updated');
@@ -80,7 +85,7 @@ class UserService extends BaseService
     }
 
     /**
-     * @param  list<string|int>  $roles
+     * @param  array<int, string|int|mixed>  $roles
      * @return list<string|int>
      */
     public function sanitizeAssignableRoles(User $actor, array $roles): array
@@ -101,7 +106,7 @@ class UserService extends BaseService
     }
 
     /**
-     * @param  list<string|int>  $permissions
+     * @param  array<int, string|int|mixed>  $permissions
      * @return list<string|int>
      */
     public function sanitizeAssignablePermissions(User $actor, array $permissions): array
@@ -314,7 +319,43 @@ class UserService extends BaseService
 
     protected function storeAvatar(UploadedFile $avatar): string
     {
-        return $avatar->store('avatars', 'public');
+        $this->assertSafeAvatar($avatar);
+
+        $path = $avatar->store('avatars', 'public');
+
+        return is_string($path) ? $path : '';
+    }
+
+    protected function assertSafeAvatar(UploadedFile $avatar): void
+    {
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+
+        $mime = $avatar->getMimeType() ?: $avatar->getClientMimeType();
+        $extension = strtolower($avatar->getClientOriginalExtension() ?: pathinfo($avatar->getClientOriginalName(), PATHINFO_EXTENSION));
+
+        $extensionMimeMap = [
+            'jpg' => ['image/jpeg'],
+            'jpeg' => ['image/jpeg'],
+            'png' => ['image/png'],
+            'webp' => ['image/webp'],
+        ];
+
+        $compatible = $extensionMimeMap[$extension] ?? [];
+        $realPath = $avatar->getRealPath();
+        $imageInfo = is_string($realPath) && $realPath !== '' ? @getimagesize($realPath) : false;
+
+        $valid = $mime !== ''
+            && in_array($mime, $allowedMimes, true)
+            && in_array($extension, $allowedExtensions, true)
+            && in_array($mime, $compatible, true)
+            && $imageInfo !== false;
+
+        if (! $valid) {
+            throw ValidationException::withMessages([
+                'avatar' => __('validation.image', ['attribute' => 'avatar']),
+            ]);
+        }
     }
 
     protected function deleteAvatar(User $user): void

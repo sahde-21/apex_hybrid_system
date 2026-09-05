@@ -120,6 +120,9 @@ class RfqWorkflowService
         });
     }
 
+    /**
+     * @param  array<string, mixed>  $responseData
+     */
     public function recordVendorResponse(Rfq $rfq, User $user, int $contactId, array $responseData): Rfq
     {
         abort_unless($user->can('rfqs.update'), 403);
@@ -220,14 +223,14 @@ class RfqWorkflowService
             'notes' => $rfq->notes,
             'terms' => $rfq->terms,
             'total_amount' => $rfq->total_amount,
-        ], $rfq->lines->map(fn (RfqLine $line) => [
+        ], array_values($rfq->lines->map(fn (RfqLine $line) => [
             'product_id' => $line->product_id,
             'description' => $line->description,
             'quantity' => $line->quantity,
             'unit_price' => $line->unit_price,
             'discount_amount' => $line->discount_amount,
             'tax_amount' => $line->tax_amount,
-        ])->all(), $rfq->vendors->pluck('contact_id')->all());
+        ])->all()), array_values(array_map('intval', $rfq->vendors->pluck('contact_id')->all())));
     }
 
     public function convertToPurchaseOrder(Rfq $rfq, User $user): PurchaseOrder

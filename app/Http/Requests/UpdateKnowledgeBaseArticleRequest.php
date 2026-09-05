@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateKnowledgeBaseArticleRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('knowledge-base.update') ?? false;
@@ -17,7 +20,7 @@ class UpdateKnowledgeBaseArticleRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('knowledgeBaseArticle')?->id;
+        $id = $this->routeModelId('knowledgeBaseArticle');
 
         return [
             'title' => ['required', 'string', 'max:255'],

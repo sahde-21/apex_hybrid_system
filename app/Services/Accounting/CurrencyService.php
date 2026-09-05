@@ -157,7 +157,7 @@ class CurrencyService
     {
         $this->audit->log('exchange_rate.deleted', $rate, $user, [
             'currency_id' => $rate->currency_id,
-            'rate_date' => $rate->rate_date?->toDateString(),
+            'rate_date' => $rate->rate_date->toDateString(),
         ]);
 
         $rate->delete();

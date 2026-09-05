@@ -3,11 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Enums\CampaignStatus;
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateCampaignRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('campaigns.update') ?? false;
@@ -18,7 +21,7 @@ class UpdateCampaignRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('campaign')?->id;
+        $id = $this->routeModelId('campaign');
 
         return [
             'name' => ['required', 'string', 'max:255'],

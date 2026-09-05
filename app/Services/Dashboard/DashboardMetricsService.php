@@ -20,7 +20,6 @@ use App\Models\Ticket;
 use App\Models\User;
 use App\Support\Performance\PerformanceCache;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
 class DashboardMetricsService
@@ -44,13 +43,15 @@ class DashboardMetricsService
      */
     public function metrics(?User $user = null): array
     {
-        $user ??= Auth::user();
+        $resolved = $user ?? auth('web')->user();
+        $user = $resolved instanceof User ? $resolved : null;
         $ttl = (int) config('performance.cache.dashboard_ttl', config('bi.cache_ttl', 120));
 
         if ($user === null) {
             return $this->emptyMetrics();
         }
 
+        /** @var array{products: int, contacts: int, sale_orders: int, invoices: int, expenses_total: float, employees: int, open_tickets: int, low_stock_products: int, purchase_orders: int, payments_total: float, open_leads: int, production_orders: int, stock_transfers: int} */
         return Cache::remember(PerformanceCache::dashboardKey($user), $ttl, function () use ($user) {
             return [
                 'products' => $this->allowed($user, 'products.read') ? Product::query()->count() : 0,
@@ -77,7 +78,21 @@ class DashboardMetricsService
     }
 
     /**
-     * @return array<string, int|float>
+     * @return array{
+     *     products: int,
+     *     contacts: int,
+     *     sale_orders: int,
+     *     invoices: int,
+     *     expenses_total: float,
+     *     employees: int,
+     *     open_tickets: int,
+     *     low_stock_products: int,
+     *     purchase_orders: int,
+     *     payments_total: float,
+     *     open_leads: int,
+     *     production_orders: int,
+     *     stock_transfers: int
+     * }
      */
     protected function emptyMetrics(): array
     {
@@ -113,7 +128,7 @@ class DashboardMetricsService
             ['key' => 'production_orders', 'value' => $metrics['production_orders'] ?? 0],
         ];
 
-        $max = max(1, ...(array_column($items, 'value') ?: [1]));
+        $max = max(1, ...array_column($items, 'value'));
 
         return array_map(fn (array $item) => [
             'label' => __('scf.dashboard_page.'.$item['key']),
@@ -127,7 +142,8 @@ class DashboardMetricsService
      */
     public function recentActivity(int $limit = 8): Collection
     {
-        $user = Auth::user();
+        $resolved = auth('web')->user();
+        $user = $resolved instanceof User ? $resolved : null;
 
         if ($user === null || ! $user->can('audit-logs.read')) {
             return collect();

@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateVariantRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('variants.update') ?? false;
@@ -17,7 +20,7 @@ class UpdateVariantRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('variant')?->id;
+        $id = $this->routeModelId('variant');
 
         return [
             'product_id' => ['required', 'exists:products,id'],

@@ -8,16 +8,23 @@ use App\Models\User;
 use App\Services\Activity\ActivityService;
 use App\Services\Activity\DocumentTimelineService;
 use App\Services\Activity\MentionParser;
+use App\Support\Activity\TimelineEntry;
 use Flux\Flux;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
+/**
+ * @property-read Model $subject
+ */
 class ActivityTimeline extends Component
 {
     use WithFileUploads;
@@ -34,7 +41,7 @@ class ActivityTimeline extends Component
 
     public ?int $editingId = null;
 
-    public $attachment = null;
+    public ?TemporaryUploadedFile $attachment = null;
 
     public int $perPage = 15;
 
@@ -56,12 +63,15 @@ class ActivityTimeline extends Component
         return $class::query()->findOrFail($this->subjectId);
     }
 
+    /**
+     * @return LengthAwarePaginator<int, TimelineEntry>
+     */
     #[Computed]
-    public function entries()
+    public function entries(): LengthAwarePaginator
     {
         return app(DocumentTimelineService::class)->forSubject(
             $this->subject,
-            auth()->user(),
+            $this->authenticatedUser(),
             1,
             $this->perPage,
         );
@@ -77,7 +87,7 @@ class ActivityTimeline extends Component
             return collect();
         }
 
-        return app(MentionParser::class)->suggest(auth()->user(), $this->mentionQuery);
+        return app(MentionParser::class)->suggest($this->authenticatedUser(), $this->mentionQuery);
     }
 
     public function updatedBody(): void
@@ -106,7 +116,7 @@ class ActivityTimeline extends Component
     public function startEdit(int $id): void
     {
         $activity = Activity::query()->findOrFail($id);
-        abort_unless($activity->isEditableBy(auth()->user()), 403);
+        abort_unless($activity->isEditableBy($this->authenticatedUser()), 403);
         $this->editingId = $id;
         $this->body = $activity->body ?? '';
         $this->internal = $activity->visibility === ActivityVisibility::Internal;
@@ -123,12 +133,12 @@ class ActivityTimeline extends Component
         try {
             if ($this->editingId) {
                 $activity = Activity::query()->findOrFail($this->editingId);
-                $activities->updateComment($activity, auth()->user(), $this->body);
+                $activities->updateComment($activity, $this->authenticatedUser(), $this->body);
                 Flux::toast(variant: 'success', text: __('scf.activity.comment_updated'));
             } else {
                 $activities->addComment(
                     $this->subject,
-                    auth()->user(),
+                    $this->authenticatedUser(),
                     $this->body,
                     $this->replyToId,
                     $this->internal,
@@ -137,7 +147,7 @@ class ActivityTimeline extends Component
             }
 
             if ($this->attachment) {
-                $activities->attachFile($this->subject, auth()->user(), $this->attachment);
+                $activities->attachFile($this->subject, $this->authenticatedUser(), $this->attachment);
             }
 
             $this->cancelCompose();
@@ -154,7 +164,7 @@ class ActivityTimeline extends Component
     {
         try {
             $activity = Activity::query()->findOrFail($id);
-            $activities->deleteComment($activity, auth()->user());
+            $activities->deleteComment($activity, $this->authenticatedUser());
             Flux::toast(variant: 'success', text: __('scf.activity.comment_deleted'));
             unset($this->entries);
             $this->dispatch('activity-updated');
@@ -175,6 +185,10 @@ class ActivityTimeline extends Component
     {
         $user = auth()->user();
 
+        if (! $user instanceof User) {
+            return false;
+        }
+
         return $user->can('activities.comment')
             || $user->can('activities.create')
             || $user->can('activities.manage');
@@ -184,11 +198,26 @@ class ActivityTimeline extends Component
     {
         $user = auth()->user();
 
+        if (! $user instanceof User) {
+            return false;
+        }
+
         return $user->can('activities.internal_note') || $user->can('activities.manage');
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.activity.timeline');
+    }
+
+    private function authenticatedUser(): User
+    {
+        $user = auth()->user();
+
+        if (! $user instanceof User) {
+            abort(403);
+        }
+
+        return $user;
     }
 }

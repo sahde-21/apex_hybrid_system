@@ -75,7 +75,7 @@ final class BiFilter
 
     public function cacheKey(string $suffix = ''): string
     {
-        return config('bi.cache_prefix').md5(json_encode([
+        $payload = json_encode([
             $this->from->toDateString(),
             $this->to->toDateString(),
             $this->branchId,
@@ -89,7 +89,9 @@ final class BiFilter
             $this->dashboard,
             $suffix,
             auth()->id(),
-        ]));
+        ], JSON_THROW_ON_ERROR);
+
+        return config('bi.cache_prefix').md5($payload);
     }
 
     /**

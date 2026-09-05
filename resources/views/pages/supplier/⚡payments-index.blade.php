@@ -3,15 +3,12 @@
 use App\Enums\PaymentType;
 use App\Models\Payment;
 use App\Services\Supplier\SupplierPortalService;
-use App\Support\ScopesToSupplierContact;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 use Livewire\WithPagination;
 
-new #[Layout('layouts.supplier')] #[Title('Payments')] class extends Component {
-    use ScopesToSupplierContact;
+new #[Layout('layouts.supplier')] #[Title('Payments')] class extends \App\Livewire\ConcernBases\ScopesToSupplierContactBase {
     use WithPagination;
 
     #[Computed]

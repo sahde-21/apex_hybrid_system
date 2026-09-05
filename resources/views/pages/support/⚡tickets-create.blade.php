@@ -1,16 +1,13 @@
 <?php
 
-use App\Concerns\TicketValidationRules;
 use App\Models\Ticket;
 use App\Enums\TicketStatus;
 use App\Models\Contact;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Create Tickets')] class extends Component {
-    use TicketValidationRules;
+new #[Title('Create Tickets')] class extends \App\Livewire\ConcernBases\TicketValidationRulesBase {
     public string $reference_number = '';
     public ?int $contact_id = null;
     public string $subject = '';

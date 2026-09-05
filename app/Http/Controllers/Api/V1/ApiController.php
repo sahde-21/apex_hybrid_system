@@ -18,8 +18,11 @@ abstract class ApiController extends Controller
 
     protected function actor(Request $request): User
     {
-        /** @var User $user */
         $user = $request->user();
+
+        if (! $user instanceof User) {
+            abort(401);
+        }
 
         return $user;
     }
@@ -29,6 +32,10 @@ abstract class ApiController extends Controller
         return app(ApiAuditService::class);
     }
 
+    /**
+     * @param  array<string, mixed>  $extra
+     * @return array<string, mixed>
+     */
     protected function meta(Request $request, array $extra = []): array
     {
         return array_merge([
@@ -51,7 +58,7 @@ abstract class ApiController extends Controller
         return $this->respond($data, $message, $request, 201);
     }
 
-    protected function respondDeleted(string $message = null): JsonResponse
+    protected function respondDeleted(?string $message = null): JsonResponse
     {
         return ApiResponse::success(null, $message ?? __('scf.api.deleted_successfully'));
     }

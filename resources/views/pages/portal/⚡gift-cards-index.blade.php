@@ -2,14 +2,11 @@
 
 use App\Models\GiftCard;
 use App\Models\Payment;
-use App\Support\ScopesToPortalContact;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Layout('layouts.portal')] #[Title('Gift cards')] class extends Component {
-    use ScopesToPortalContact;
+new #[Layout('layouts.portal')] #[Title('Gift cards')] class extends \App\Livewire\ConcernBases\ScopesToPortalContactBase {
 
     #[Computed]
     public function giftCards()

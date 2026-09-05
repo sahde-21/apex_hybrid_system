@@ -23,8 +23,11 @@ class TokenController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        /** @var User $user */
         $user = $request->user();
+
+        if (! $user instanceof User) {
+            abort(401);
+        }
 
         $tokens = $user->tokens()
             ->latest()
@@ -38,8 +41,11 @@ class TokenController extends Controller
 
     public function store(StoreTokenRequest $request): JsonResponse
     {
-        /** @var User $user */
         $user = $request->user();
+
+        if (! $user instanceof User) {
+            abort(401);
+        }
 
         $abilities = $request->input('abilities', config('api.tokens.default_abilities', ['*']));
         $name = $request->string('name')->toString();
@@ -75,7 +81,13 @@ class TokenController extends Controller
     public function destroy(Request $request, string $token): JsonResponse
     {
         $accessToken = $this->findOwnedToken($request, $token);
-        $this->audit->tokenRevoked($request->user(), $accessToken->id);
+        $user = $request->user();
+
+        if (! $user instanceof User) {
+            abort(401);
+        }
+
+        $this->audit->tokenRevoked($user, $accessToken->id);
         $accessToken->delete();
 
         return ApiResponse::success(null, __('Token revoked successfully.'));
@@ -83,9 +95,15 @@ class TokenController extends Controller
 
     public function destroyOthers(Request $request): JsonResponse
     {
-        /** @var User $user */
         $user = $request->user();
-        $currentId = $user->currentAccessToken()?->id;
+
+        if (! $user instanceof User) {
+            abort(401);
+        }
+
+        $currentId = $request->bearerToken() !== null
+            ? $user->currentAccessToken()->id
+            : null;
 
         $user->tokens()
             ->when($currentId !== null, fn ($query) => $query->where('id', '!=', $currentId))
@@ -96,8 +114,11 @@ class TokenController extends Controller
 
     private function findOwnedToken(Request $request, string $tokenId): PersonalAccessToken
     {
-        /** @var User $user */
         $user = $request->user();
+
+        if (! $user instanceof User) {
+            abort(401);
+        }
 
         /** @var PersonalAccessToken $accessToken */
         $accessToken = $user->tokens()->whereKey($tokenId)->firstOrFail();

@@ -12,12 +12,16 @@ class PurchaseRequestResource extends JsonResource
 {
     use FormatsApiValues;
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
             'reference_number' => $this->reference_number,
-            'contact_id' => $this->contact_id,
+            // Legacy API fields — not modeled on PurchaseRequest; remain null when absent.
+            'contact_id' => $this->resource->getAttribute('contact_id'),
             'request_date' => $this->dateOnly($this->request_date),
             'needed_by' => $this->dateOnly($this->needed_by),
             'requester_id' => $this->requester_id,
@@ -30,7 +34,9 @@ class PurchaseRequestResource extends JsonResource
             'total_amount' => $this->money($this->total_amount, $this->currency_code),
             'currency_code' => $this->currency_code,
             'notes' => $this->notes,
-            'contact' => $this->whenLoaded('contact', fn () => new ContactResource($this->contact)),
+            'contact' => $this->whenLoaded('contact', function () {
+                return new ContactResource($this->resource->getAttribute('contact'));
+            }),
             'lines' => DocumentLineResource::collection($this->whenLoaded('lines')),
             'created_at' => $this->isoDate($this->created_at),
             'updated_at' => $this->isoDate($this->updated_at),

@@ -2,10 +2,13 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateShiftRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('shift-management.update') ?? false;
@@ -16,7 +19,7 @@ class UpdateShiftRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('shift')?->id;
+        $id = $this->routeModelId('shift');
 
         return [
             'name' => ['required', 'string', 'max:255'],

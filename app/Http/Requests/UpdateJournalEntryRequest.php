@@ -3,11 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Enums\JournalEntryStatus;
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateJournalEntryRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('journal-entries.update') ?? false;
@@ -18,7 +21,7 @@ class UpdateJournalEntryRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('journalEntry')?->id;
+        $id = $this->routeModelId('journalEntry');
 
         return [
             'reference_number' => ['required', 'string', 'max:100', Rule::unique('journal_entries', 'reference_number')->ignore($id)],

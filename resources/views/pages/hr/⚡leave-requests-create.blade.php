@@ -1,16 +1,13 @@
 <?php
 
-use App\Concerns\LeaveRequestValidationRules;
 use App\Models\LeaveRequest;
 use App\Enums\LeaveRequestStatus;
 use App\Models\Employee;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Create Leave requests')] class extends Component {
-    use LeaveRequestValidationRules;
+new #[Title('Create Leave requests')] class extends \App\Livewire\ConcernBases\LeaveRequestValidationRulesBase {
     public ?int $employee_id = null;
     public string $leave_type = '';
     public string $start_date = '';

@@ -7,6 +7,7 @@ use App\Services\Intelligence\IntelligenceSnapshotService;
 use App\Support\Analytics\AnalyticsFilter;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Log;
 
 class GenerateDailyExecutiveSnapshotJob implements ShouldQueue
 {
@@ -18,8 +19,12 @@ class GenerateDailyExecutiveSnapshotJob implements ShouldQueue
             return;
         }
 
-        $admin = User::role('super-admin')->first() ?? User::query()->first();
+        $admin = User::role('super-admin')->first();
         if (! $admin) {
+            Log::warning('intelligence.job.aborted_no_super_admin', [
+                'job' => static::class,
+            ]);
+
             return;
         }
 

@@ -131,14 +131,14 @@ class PurchaseRequestWorkflowService
             'currency_code' => $pr->currency_code,
             'notes' => $pr->notes,
             'total_amount' => $pr->total_amount,
-        ], $pr->lines->map(fn (PurchaseRequestLine $line) => [
+        ], array_values($pr->lines->map(fn (PurchaseRequestLine $line) => [
             'product_id' => $line->product_id,
             'description' => $line->description,
             'quantity' => $line->quantity,
             'unit_price' => $line->unit_price,
             'discount_amount' => $line->discount_amount,
             'tax_amount' => $line->tax_amount,
-        ])->all());
+        ])->all()));
     }
 
     public function convertToRfq(PurchaseRequest $pr, User $user): Rfq

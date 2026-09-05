@@ -30,7 +30,7 @@ class BackupBeforeDestructiveDatabaseCommand
             return;
         }
 
-        if (! filter_var((string) env('ALLOW_DESTRUCTIVE_DB', false), FILTER_VALIDATE_BOOLEAN)) {
+        if (! filter_var((string) config('database.allow_destructive', false), FILTER_VALIDATE_BOOLEAN)) {
             return;
         }
 

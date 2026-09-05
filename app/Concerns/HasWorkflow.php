@@ -7,6 +7,8 @@ use App\Models\WorkflowInstance;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 /**
+ * @property-read WorkflowInstance|null $workflowInstance
+ *
  * @mixin Workflowable
  */
 trait HasWorkflow

@@ -4,6 +4,11 @@ namespace App\Support\Accounting;
 
 final class JournalLineData
 {
+    /**
+     * @param  numeric-string  $debit
+     * @param  numeric-string  $credit
+     * @param  numeric-string  $exchangeRate
+     */
     public function __construct(
         public int $accountId,
         public string $debit,
