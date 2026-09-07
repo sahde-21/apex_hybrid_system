@@ -3,11 +3,16 @@
 namespace App\Support\Api;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 
+/**
+ * @template TModel of Model
+ */
 class ApiIndexQuery
 {
     /**
+     * @param  Builder<TModel>  $query
      * @param  list<string>  $sortable
      * @param  list<string>  $searchable
      * @param  list<string>  $includes
@@ -19,6 +24,9 @@ class ApiIndexQuery
         protected array $includes = [],
     ) {}
 
+    /**
+     * @return Builder<TModel>
+     */
     public function apply(Request $request): Builder
     {
         $this->applySearch($request);
@@ -132,9 +140,8 @@ class ApiIndexQuery
     protected function applyIncludes(Request $request): void
     {
         $requested = collect(explode(',', (string) $request->query('include', '')))
-            ->map(fn (string $value) => trim($value))
-            ->filter()
-            ->intersect($this->includes)
+            ->map(fn (string $value): string => trim($value))
+            ->filter(fn (string $value): bool => $value !== '' && in_array($value, $this->includes, true))
             ->values()
             ->all();
 

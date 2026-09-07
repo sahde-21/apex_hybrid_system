@@ -6,6 +6,7 @@ use App\Services\Bi\BiReportService;
 use App\Services\Export\ExportService;
 use App\Support\Bi\BiFilter;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -53,7 +54,7 @@ class BiExportController extends Controller
         return $pdf->download('bi-'.$type.'.pdf');
     }
 
-    public function print(Request $request, string $type)
+    public function print(Request $request, string $type): View
     {
         $report = $this->authorizeReport($request, $type);
 
@@ -74,6 +75,6 @@ class BiExportController extends Controller
 
         $filter = BiFilter::fromRequest($request);
 
-        return $this->reports->report($request->user(), $type, $filter);
+        return $this->reports->report($request->user('web'), $type, $filter);
     }
 }

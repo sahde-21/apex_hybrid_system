@@ -120,7 +120,7 @@ class AppServiceProvider extends ServiceProvider
     protected function configureDatabaseSafety(): void
     {
         $allowDestructive = filter_var(
-            (string) env('ALLOW_DESTRUCTIVE_DB', false),
+            (string) config('database.allow_destructive', false),
             FILTER_VALIDATE_BOOLEAN
         );
 

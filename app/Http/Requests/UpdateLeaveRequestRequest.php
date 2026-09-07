@@ -3,11 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Enums\LeaveRequestStatus;
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateLeaveRequestRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('leave-requests.update') ?? false;
@@ -18,7 +21,7 @@ class UpdateLeaveRequestRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('leaveRequest')?->id;
+        $id = $this->routeModelId('leaveRequest');
 
         return [
             'employee_id' => ['required', 'exists:employees,id'],

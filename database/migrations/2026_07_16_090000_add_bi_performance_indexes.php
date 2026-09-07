@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\Database\SchemaIndexHelper;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -48,7 +49,7 @@ return new class extends Migration
                 foreach ($indexes as $index) {
                     try {
                         $blueprint->dropIndex($index);
-                    } catch (\Throwable) {
+                    } catch (Throwable) {
                         // Ignore missing indexes on rollback.
                     }
                 }
@@ -66,10 +67,10 @@ return new class extends Migration
         }
 
         Schema::table($table, function (Blueprint $blueprint) use ($columns, $indexName): void {
-            $sm = Schema::getConnection()->getSchemaBuilder();
-            $existing = method_exists($sm, 'getIndexListing')
-                ? $sm->getIndexListing($blueprint->getTable())
-                : [];
+            $existing = SchemaIndexHelper::listing(
+                Schema::getConnection()->getSchemaBuilder(),
+                $blueprint->getTable(),
+            );
 
             if (in_array($indexName, $existing, true)) {
                 return;
@@ -77,7 +78,7 @@ return new class extends Migration
 
             try {
                 $blueprint->index($columns, $indexName);
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 // Index may already exist under another name.
             }
         });

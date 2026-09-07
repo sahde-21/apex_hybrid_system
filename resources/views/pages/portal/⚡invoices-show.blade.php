@@ -1,13 +1,10 @@
 <?php
 
 use App\Models\Invoice;
-use App\Support\ScopesToPortalContact;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Layout('layouts.portal')] #[Title('Invoice')] class extends Component {
-    use ScopesToPortalContact;
+new #[Layout('layouts.portal')] #[Title('Invoice')] class extends \App\Livewire\ConcernBases\ScopesToPortalContactBase {
 
     public Invoice $invoice;
 

@@ -1,15 +1,12 @@
 <?php
 
-use App\Concerns\FinancialReportValidationRules;
 use App\Enums\FinancialReportStatus;
 use App\Enums\FinancialReportType;
 use App\Models\FinancialReport;
 use Flux\Flux;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Edit financial report')] class extends Component {
-    use FinancialReportValidationRules;
+new #[Title('Edit financial report')] class extends \App\Livewire\ConcernBases\FinancialReportValidationRulesBase {
 
     public FinancialReport $financialReport;
 

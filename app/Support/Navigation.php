@@ -8,7 +8,7 @@ namespace App\Support;
 class Navigation
 {
     /**
-     * @return array<string, string> route name prefix/key => permission
+     * @return string|null route name prefix/key => permission
      */
     public static function permissionForRoute(string $routeName): ?string
     {

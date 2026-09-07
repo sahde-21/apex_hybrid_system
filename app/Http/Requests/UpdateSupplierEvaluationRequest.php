@@ -2,10 +2,13 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateSupplierEvaluationRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('supplier-evaluations.update') ?? false;
@@ -16,7 +19,7 @@ class UpdateSupplierEvaluationRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('supplierEvaluation')?->id;
+        $id = $this->routeModelId('supplierEvaluation');
 
         return [
             'contact_id' => ['required', 'exists:contacts,id'],

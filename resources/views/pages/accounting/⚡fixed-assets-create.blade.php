@@ -1,15 +1,12 @@
 <?php
 
-use App\Concerns\FixedAssetValidationRules;
 use App\Models\FixedAsset;
 use App\Models\Branch;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Create Fixed assets')] class extends Component {
-    use FixedAssetValidationRules;
+new #[Title('Create Fixed assets')] class extends \App\Livewire\ConcernBases\FixedAssetValidationRulesBase {
     public string $name = '';
     public string $asset_code = '';
     public string $purchase_date = '';

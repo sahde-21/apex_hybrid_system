@@ -2,9 +2,13 @@
 
 namespace App\Services\Bi;
 
+use App\Models\Employee;
+use App\Models\PurchaseOrder;
 use App\Models\User;
 use App\Support\Bi\BiFilter;
+use App\Support\Bi\BiValueFormatter;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class BiAnalyticsService
 {
@@ -66,8 +70,8 @@ class BiAnalyticsService
      */
     protected function topSuppliers(BiFilter $filter): array
     {
-        $rows = \App\Models\PurchaseOrder::query()
-            ->select('contact_id', \Illuminate\Support\Facades\DB::raw('SUM(total_amount) as total'))
+        $rows = PurchaseOrder::query()
+            ->select('contact_id', DB::raw('SUM(total_amount) as total'))
             ->whereBetween('order_date', [$filter->from->toDateString(), $filter->to->toDateString()])
             ->with('contact:id,name')
             ->groupBy('contact_id')
@@ -77,7 +81,7 @@ class BiAnalyticsService
 
         return [
             'type' => 'bar',
-            'labels' => $rows->map(fn ($r) => $r->contact?->name ?? '#'.$r->contact_id)->all(),
+            'labels' => BiValueFormatter::listLabels($rows->map(fn ($r) => $r->contact !== null ? $r->contact->name : '#'.$r->contact_id)),
             'datasets' => [[
                 'label' => __('scf.bi.chart_purchases'),
                 'data' => $rows->pluck('total')->map(fn ($v) => round((float) $v, 2))->all(),
@@ -90,7 +94,7 @@ class BiAnalyticsService
      */
     protected function topEmployees(): array
     {
-        $employees = \App\Models\Employee::query()
+        $employees = Employee::query()
             ->where('is_active', true)
             ->orderByDesc('salary')
             ->limit(8)
@@ -98,7 +102,7 @@ class BiAnalyticsService
 
         return [
             'type' => 'bar',
-            'labels' => $employees->map(fn ($e) => trim($e->first_name.' '.$e->last_name) ?: '#'.$e->id)->all(),
+            'labels' => BiValueFormatter::listLabels($employees->map(fn ($e) => trim($e->first_name.' '.$e->last_name) ?: '#'.$e->id)),
             'datasets' => [[
                 'label' => __('scf.bi.kpi_payroll_cost'),
                 'data' => $employees->map(fn ($e) => round((float) $e->salary, 2))->all(),

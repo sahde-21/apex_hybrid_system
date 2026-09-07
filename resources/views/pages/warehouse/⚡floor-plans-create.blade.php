@@ -1,16 +1,13 @@
 <?php
 
-use App\Concerns\FloorPlanValidationRules;
 use App\Models\FloorPlan;
 use App\Models\Warehouse;
 use App\Models\Branch;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Create Floor plans')] class extends Component {
-    use FloorPlanValidationRules;
+new #[Title('Create Floor plans')] class extends \App\Livewire\ConcernBases\FloorPlanValidationRulesBase {
     public string $name = '';
     public ?int $warehouse_id = null;
     public ?int $branch_id = null;

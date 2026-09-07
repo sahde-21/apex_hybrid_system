@@ -36,16 +36,25 @@ class SaleOrderLine extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<SaleOrder, $this>
+     */
     public function saleOrder(): BelongsTo
     {
         return $this->belongsTo(SaleOrder::class);
     }
 
+    /**
+     * @return BelongsTo<Product, $this>
+     */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
 
+    /**
+     * @return BelongsTo<QuotationLine, $this>
+     */
     public function quotationLine(): BelongsTo
     {
         return $this->belongsTo(QuotationLine::class);

@@ -48,6 +48,7 @@ class PerformanceCache
     {
         $ttl = (int) config('performance.cache.reference_ttl', 3600);
 
+        /** @var list<array{id: int, code: string, name: string}> */
         return Cache::remember(self::key('currencies'), $ttl, function () {
             if (! class_exists(Currency::class)) {
                 return [];
@@ -61,6 +62,7 @@ class PerformanceCache
                     'code' => $currency->code,
                     'name' => $currency->name,
                 ])
+                ->values()
                 ->all();
         });
     }
@@ -72,6 +74,7 @@ class PerformanceCache
     {
         $ttl = (int) config('performance.cache.reference_ttl', 3600);
 
+        /** @var list<array{id: int, name: string, rate: string}> */
         return Cache::remember(self::key('tax-rates'), $ttl, function () {
             if (! class_exists(TaxRate::class)) {
                 return [];
@@ -85,6 +88,7 @@ class PerformanceCache
                     'name' => $rate->name,
                     'rate' => (string) $rate->rate,
                 ])
+                ->values()
                 ->all();
         });
     }

@@ -1,16 +1,13 @@
 <?php
 
-use App\Concerns\TimeLogValidationRules;
 use App\Models\TimeLog;
 use App\Models\ProjectTask;
 use App\Models\Employee;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Create Time logs')] class extends Component {
-    use TimeLogValidationRules;
+new #[Title('Create Time logs')] class extends \App\Livewire\ConcernBases\TimeLogValidationRulesBase {
     public ?int $project_task_id = null;
     public ?int $employee_id = null;
     public string $log_date = '';

@@ -1,16 +1,13 @@
 <?php
 
-use App\Concerns\CrmInteractionValidationRules;
 use App\Enums\CrmInteractionType;
 use App\Models\Contact;
 use App\Models\CrmInteraction;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Edit CRM interaction')] class extends Component {
-    use CrmInteractionValidationRules;
+new #[Title('Edit CRM interaction')] class extends \App\Livewire\ConcernBases\CrmInteractionValidationRulesBase {
 
     public CrmInteraction $crmInteraction;
 

@@ -16,9 +16,9 @@ use Illuminate\Support\Carbon;
  * @property string $code
  * @property string|null $discount_type
  * @property string $discount_value
- * @property Carbon $valid_from
- * @property Carbon $valid_until
- * @property int $usage_limit
+ * @property Carbon|null $valid_from
+ * @property Carbon|null $valid_until
+ * @property int|null $usage_limit
  * @property int $usage_count
  * @property bool $is_active
  * @property int|null $created_by

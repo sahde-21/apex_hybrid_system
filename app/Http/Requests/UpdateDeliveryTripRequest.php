@@ -3,11 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Enums\DeliveryTripStatus;
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateDeliveryTripRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('delivery-trips.update') ?? false;
@@ -18,7 +21,7 @@ class UpdateDeliveryTripRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('deliveryTrip')?->id;
+        $id = $this->routeModelId('deliveryTrip');
 
         return [
             'reference_number' => ['required', 'string', 'max:255', Rule::unique('delivery_trips', 'reference_number')->ignore($id)],

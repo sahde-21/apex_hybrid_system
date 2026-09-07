@@ -2,6 +2,8 @@
 
 namespace App\Http\Responses;
 
+use Illuminate\Contracts\Pagination\LengthAwarePaginator as LengthAwarePaginatorContract;
+use Illuminate\Contracts\Pagination\Paginator as PaginatorContract;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Resources\Json\ResourceCollection;
@@ -56,7 +58,7 @@ class ApiResponse
         return array_filter([
             'version' => config('api.version', 'v1'),
             'timestamp' => now()->toIso8601String(),
-            'request_id' => $request?->attributes->get('request_id'),
+            'request_id' => $request->attributes->get('request_id'),
         ], fn ($value) => $value !== null && $value !== '');
     }
 
@@ -86,20 +88,23 @@ class ApiResponse
             ];
         } elseif ($collection->resource instanceof AbstractPaginator) {
             $paginator = $collection->resource;
+            $isLengthAware = $paginator instanceof LengthAwarePaginatorContract;
+            $hasPageUrls = $paginator instanceof PaginatorContract;
+
             $pagination = [
                 'pagination' => [
                     'current_page' => $paginator->currentPage(),
                     'from' => $paginator->firstItem(),
-                    'last_page' => $paginator->lastPage(),
+                    'last_page' => $isLengthAware ? $paginator->lastPage() : null,
                     'path' => $paginator->path(),
                     'per_page' => $paginator->perPage(),
                     'to' => $paginator->lastItem(),
-                    'total' => $paginator->total(),
+                    'total' => $isLengthAware ? $paginator->total() : null,
                     'links' => [
                         'first' => $paginator->url(1),
-                        'last' => $paginator->url($paginator->lastPage()),
-                        'prev' => $paginator->previousPageUrl(),
-                        'next' => $paginator->nextPageUrl(),
+                        'last' => $isLengthAware ? $paginator->url($paginator->lastPage()) : null,
+                        'prev' => $hasPageUrls ? $paginator->previousPageUrl() : null,
+                        'next' => $hasPageUrls ? $paginator->nextPageUrl() : null,
                     ],
                 ],
             ];

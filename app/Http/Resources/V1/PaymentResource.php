@@ -12,8 +12,15 @@ class PaymentResource extends JsonResource
 {
     use FormatsApiValues;
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
+        // Optional totals/currency are read via getAttribute so missing columns
+        // remain null in the JSON payload without inventing model @property docs.
+        $currency = $this->resource->getAttribute('currency_code');
+
         return [
             'id' => $this->id,
             'reference_number' => $this->reference_number,
@@ -26,11 +33,11 @@ class PaymentResource extends JsonResource
             'payment_method' => $this->payment_method,
             'posted_at' => $this->isoDate($this->posted_at),
             'status' => $this->enumValue($this->status),
-            'subtotal_amount' => $this->money($this->subtotal_amount, $this->currency_code),
-            'discount_amount' => $this->money($this->discount_amount, $this->currency_code),
-            'tax_amount' => $this->money($this->tax_amount, $this->currency_code),
-            'total_amount' => $this->money($this->total_amount, $this->currency_code),
-            'currency_code' => $this->currency_code,
+            'subtotal_amount' => $this->money($this->resource->getAttribute('subtotal_amount'), is_string($currency) ? $currency : null),
+            'discount_amount' => $this->money($this->resource->getAttribute('discount_amount'), is_string($currency) ? $currency : null),
+            'tax_amount' => $this->money($this->resource->getAttribute('tax_amount'), is_string($currency) ? $currency : null),
+            'total_amount' => $this->money($this->resource->getAttribute('total_amount'), is_string($currency) ? $currency : null),
+            'currency_code' => $currency,
             'notes' => $this->notes,
             'contact' => $this->whenLoaded('contact', fn () => new ContactResource($this->contact)),
             'lines' => DocumentLineResource::collection($this->whenLoaded('lines')),

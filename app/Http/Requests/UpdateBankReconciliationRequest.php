@@ -3,11 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Enums\BankReconciliationStatus;
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateBankReconciliationRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('bank-reconciliation.update') ?? false;
@@ -18,7 +21,7 @@ class UpdateBankReconciliationRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('bankReconciliation')?->id;
+        $id = $this->routeModelId('bankReconciliation');
 
         return [
             'reference_number' => ['required', 'string', 'max:255', Rule::unique('bank_reconciliations', 'reference_number')->ignore($id)],

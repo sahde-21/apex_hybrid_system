@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateLoyaltyProgramRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('loyalty-programs.update') ?? false;
@@ -17,7 +20,7 @@ class UpdateLoyaltyProgramRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('loyaltyProgram')?->id;
+        $id = $this->routeModelId('loyaltyProgram');
 
         return [
             'name' => ['required', 'string', 'max:255'],

@@ -1,6 +1,5 @@
 <?php
 
-use App\Concerns\InventoryAdjustmentValidationRules;
 use App\Enums\InventoryAdjustmentReason;
 use App\Models\InventoryAdjustment;
 use App\Models\Product;
@@ -10,10 +9,8 @@ use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Edit inventory adjustment')] class extends Component {
-    use InventoryAdjustmentValidationRules;
+new #[Title('Edit inventory adjustment')] class extends \App\Livewire\ConcernBases\InventoryAdjustmentValidationRulesBase {
 
     public InventoryAdjustment $inventoryAdjustment;
 

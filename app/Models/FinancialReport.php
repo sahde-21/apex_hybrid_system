@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Concerns\Auditable;
 use App\Enums\FinancialReportStatus;
 use App\Enums\FinancialReportType;
+use Database\Factories\FinancialReportFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -37,6 +38,7 @@ use Illuminate\Support\Carbon;
 ])]
 class FinancialReport extends Model
 {
+    /** @use HasFactory<FinancialReportFactory> */
     use Auditable, HasFactory;
 
     /**

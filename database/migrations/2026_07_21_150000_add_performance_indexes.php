@@ -67,7 +67,10 @@ return new class extends Migration
         $this->dropIndexIfExists('sales_document_events', 'sales_doc_events_timeline_idx');
     }
 
-    private function indexIfMissing(string $table, callable $callback): void
+    /**
+     * @param  Closure(Blueprint): void  $callback
+     */
+    private function indexIfMissing(string $table, Closure $callback): void
     {
         if (! Schema::hasTable($table)) {
             return;

@@ -118,7 +118,7 @@ class ExportController extends Controller
             ->map(fn (Contact $contact): array => [
                 $contact->id,
                 $contact->name,
-                $contact->type?->value ?? $contact->type,
+                $contact->type->value,
                 $contact->email,
                 $contact->phone,
                 $contact->company_name,
@@ -148,9 +148,9 @@ class ExportController extends Controller
                 $invoice->id,
                 $invoice->reference_number,
                 $invoice->contact?->name,
-                $invoice->invoice_date?->format('Y-m-d'),
+                $invoice->invoice_date->format('Y-m-d'),
                 $invoice->due_date?->format('Y-m-d'),
-                $invoice->status?->value ?? $invoice->status,
+                $invoice->status->value,
                 $invoice->tax_amount,
                 $invoice->total_amount,
             ]);

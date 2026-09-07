@@ -4,11 +4,14 @@ namespace App\Http\Requests;
 
 use App\Enums\FinancialReportStatus;
 use App\Enums\FinancialReportType;
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateFinancialReportRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('financial-reports.update') ?? false;
@@ -19,7 +22,7 @@ class UpdateFinancialReportRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('financialReport')?->id;
+        $id = $this->routeModelId('financialReport');
 
         return [
             'reference_number' => ['required', 'string', 'max:100', Rule::unique('financial_reports', 'reference_number')->ignore($id)],

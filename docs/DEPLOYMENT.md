@@ -6,10 +6,17 @@
 2. Run `php artisan scf:release-readiness`
 3. Run `php artisan scf:migrations:inspect`
 4. Run `php artisan scf:health --detailed`
-5. Ensure `APP_DEBUG=false` in production
-6. Ensure `APP_KEY` is set and backed up
-7. Build frontend assets: `npm ci && npm run build`
-8. Review `docs/SECURITY_CHECKLIST.md`
+5. Ensure `APP_ENV=production`
+6. Ensure `APP_DEBUG=false` in production
+7. Ensure a strong unique `APP_KEY` is set and backed up securely (never commit it)
+8. Ensure `APP_URL` uses HTTPS (`https://…`)
+9. Ensure `SESSION_SECURE_COOKIE=true` under HTTPS
+10. Set `TRUSTED_PROXIES` when behind Nginx/Apache/LB (`*` or proxy CIDRs)
+11. Use real production database credentials (never reuse `.env.example` placeholders)
+12. Set `SCF_CORS_ALLOWED_ORIGINS` to explicit browser origins (never `*` in production)
+13. Keep `INVENTORY_LEDGER_ENABLED=false` until an explicit inventory cutover is approved
+14. Build frontend assets: `npm ci && npm run build`
+15. Review `docs/SECURITY_CHECKLIST.md`
 
 ## Deployment sequence
 
@@ -43,10 +50,12 @@ php artisan up
 
 1. Verify `GET /health/ready` returns 200
 2. Verify `GET /api/v1/health` returns 200
-3. Confirm scheduler cron is active (`scf:schedule:list`)
-4. Confirm queue worker is running (`scf:queue-status`)
-5. Run `php artisan db:backup --label=post-deploy`
-6. Run `php artisan scf:release-info`
+3. Confirm scheduler cron is active (`scf:schedule:list` / system crontab for `schedule:run`)
+4. Confirm queue worker is running (`scf:queue-status` / Supervisor — see `infrastructure/SUPERVISOR_EXAMPLE.md`)
+5. Confirm `storage:link` is present and public assets resolve
+6. Run `php artisan db:backup --label=post-deploy`
+7. Run `php artisan scf:release-info`
+8. Re-run `php artisan scf:deploy-check --production` and `php artisan scf:release-readiness`
 
 ## First production administrator
 
@@ -64,7 +73,7 @@ php artisan scf:backup:restore database_YYYYMMDD_HHMMSS.sqlite
 php artisan scf:backup:restore database_YYYYMMDD_HHMMSS.sqlite --execute --force
 ```
 
-Restore requires maintenance mode and creates a pre-restore safety backup.
+Restore requires maintenance mode and creates a pre-restore safety backup. See `docs/BACKUP_OPERATIONS.md`.
 
 ## Rollback
 

@@ -13,6 +13,9 @@ class StorePaymentRequest extends FormRequest
         return $this->user()?->can('payments.create') || $this->user()?->can('payments.record');
     }
 
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
         return [

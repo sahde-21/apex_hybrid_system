@@ -2,13 +2,10 @@
 
 use App\Enums\ContractStatus;
 use App\Models\Contract;
-use App\Support\ScopesToSupplierContact;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Layout('layouts.supplier')] #[Title('Contract')] class extends Component {
-    use ScopesToSupplierContact;
+new #[Layout('layouts.supplier')] #[Title('Contract')] class extends \App\Livewire\ConcernBases\ScopesToSupplierContactBase {
 
     public Contract $contract;
 

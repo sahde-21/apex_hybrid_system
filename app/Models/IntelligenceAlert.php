@@ -4,14 +4,44 @@ namespace App\Models;
 
 use App\Enums\Analytics\InsightSeverity;
 use App\Enums\Analytics\InsightStatus;
+use Database\Factories\IntelligenceAlertFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property string $rule_key
+ * @property string $category
+ * @property InsightSeverity $severity
+ * @property InsightStatus $status
+ * @property string $title
+ * @property string $summary
+ * @property string|null $explanation
+ * @property array<string, mixed>|null $metrics
+ * @property array<int|string, mixed>|null $source_references
+ * @property string|null $subject_type
+ * @property int|null $subject_id
+ * @property int|null $branch_id
+ * @property Carbon $detected_at
+ * @property Carbon|null $expires_at
+ * @property Carbon|null $acknowledged_at
+ * @property int|null $acknowledged_by
+ * @property Carbon|null $dismissed_at
+ * @property int|null $dismissed_by
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Model|null $subject
+ * @property-read User|null $acknowledgedBy
+ * @property-read User|null $dismissedBy
+ */
 class IntelligenceAlert extends Model
 {
+    /** @use HasFactory<IntelligenceAlertFactory> */
     use HasFactory;
+
     protected $fillable = [
         'rule_key', 'category', 'severity', 'status', 'title', 'summary', 'explanation',
         'metrics', 'source_references', 'subject_type', 'subject_id', 'branch_id',
@@ -19,6 +49,9 @@ class IntelligenceAlert extends Model
         'dismissed_at', 'dismissed_by',
     ];
 
+    /**
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -33,16 +66,25 @@ class IntelligenceAlert extends Model
         ];
     }
 
+    /**
+     * @return MorphTo<Model, $this>
+     */
     public function subject(): MorphTo
     {
         return $this->morphTo();
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function acknowledgedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'acknowledged_by');
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function dismissedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'dismissed_by');

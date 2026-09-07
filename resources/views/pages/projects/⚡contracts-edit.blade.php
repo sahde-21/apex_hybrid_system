@@ -1,16 +1,13 @@
 <?php
 
-use App\Concerns\ContractValidationRules;
 use App\Models\Contract;
 use App\Enums\ContractStatus;
 use App\Models\Contact;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Edit Contracts')] class extends Component {
-    use ContractValidationRules;
+new #[Title('Edit Contracts')] class extends \App\Livewire\ConcernBases\ContractValidationRulesBase {
     public Contract $contract;
 
     public string $reference_number = '';

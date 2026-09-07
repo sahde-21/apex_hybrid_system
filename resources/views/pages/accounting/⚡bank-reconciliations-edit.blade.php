@@ -1,15 +1,12 @@
 <?php
 
-use App\Concerns\BankReconciliationValidationRules;
 use App\Models\BankReconciliation;
 use App\Enums\BankReconciliationStatus;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Edit Bank reconciliation')] class extends Component {
-    use BankReconciliationValidationRules;
+new #[Title('Edit Bank reconciliation')] class extends \App\Livewire\ConcernBases\BankReconciliationValidationRulesBase {
     public BankReconciliation $bankReconciliation;
 
     public string $reference_number = '';

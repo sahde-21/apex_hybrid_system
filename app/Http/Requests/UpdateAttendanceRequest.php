@@ -2,10 +2,13 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateAttendanceRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('attendance.update') ?? false;
@@ -16,7 +19,7 @@ class UpdateAttendanceRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('attendance')?->id;
+        $id = $this->routeModelId('attendance');
 
         return [
             'employee_id' => ['required', 'exists:employees,id'],

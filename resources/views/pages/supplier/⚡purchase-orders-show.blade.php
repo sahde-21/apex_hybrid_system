@@ -3,14 +3,11 @@
 use App\Enums\PurchaseOrderStatus;
 use App\Models\PurchaseOrder;
 use App\Services\Supplier\SupplierPortalService;
-use App\Support\ScopesToSupplierContact;
 use Flux\Flux;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Layout('layouts.supplier')] #[Title('Purchase Order')] class extends Component {
-    use ScopesToSupplierContact;
+new #[Layout('layouts.supplier')] #[Title('Purchase Order')] class extends \App\Livewire\ConcernBases\ScopesToSupplierContactBase {
 
     public PurchaseOrder $purchaseOrder;
 

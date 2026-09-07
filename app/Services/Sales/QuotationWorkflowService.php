@@ -27,7 +27,7 @@ class QuotationWorkflowService
     {
         abort_unless($user->can('quotations.create'), 403);
 
-        return DB::transaction(function () use ($user, $data, $lines) {
+        return DB::transaction(function () use ($user, $data, $lines): Quotation {
             $totals = DocumentLineCalculator::summarize($lines);
 
             $quotation = Quotation::query()->create([
@@ -62,7 +62,7 @@ class QuotationWorkflowService
         abort_unless($user->can('quotations.update'), 403);
         $this->assertEditable($quotation);
 
-        return DB::transaction(function () use ($quotation, $user, $data, $lines) {
+        return DB::transaction(function () use ($quotation, $user, $data, $lines): Quotation {
             $totals = DocumentLineCalculator::summarize($lines);
 
             $quotation->update([
@@ -148,21 +148,21 @@ class QuotationWorkflowService
             'terms' => $quotation->terms,
             'salesperson_id' => $user->id,
             'total_amount' => $quotation->total_amount,
-        ], $quotation->lines->map(fn (QuotationLine $line) => [
+        ], array_values($quotation->lines->map(fn (QuotationLine $line) => [
             'product_id' => $line->product_id,
             'description' => $line->description,
             'quantity' => $line->quantity,
             'unit_price' => $line->unit_price,
             'discount_amount' => $line->discount_amount,
             'tax_amount' => $line->tax_amount,
-        ])->all());
+        ])->all()));
     }
 
     public function convertToSaleOrder(Quotation $quotation, User $user): SaleOrder
     {
         abort_unless($user->can('quotations.convert') || $user->can('quotations.approve'), 403);
 
-        return DB::transaction(function () use ($quotation, $user) {
+        return DB::transaction(function () use ($quotation, $user): SaleOrder {
             $locked = Quotation::query()->whereKey($quotation->id)->lockForUpdate()->firstOrFail();
             $locked->load('lines');
 
@@ -236,7 +236,7 @@ class QuotationWorkflowService
         string $event,
         ?string $reason = null,
     ): Quotation {
-        return DB::transaction(function () use ($quotation, $user, $to, $event, $reason) {
+        return DB::transaction(function () use ($quotation, $user, $to, $event, $reason): Quotation {
             $locked = Quotation::query()->whereKey($quotation->id)->lockForUpdate()->firstOrFail();
 
             if (! $locked->status->canTransitionTo($to)) {

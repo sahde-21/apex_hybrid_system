@@ -15,6 +15,9 @@ class StoreQuotationRequest extends FormRequest
         return $this->user()?->can('quotations.create') ?? false;
     }
 
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
         return array_merge([

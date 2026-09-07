@@ -93,16 +93,13 @@ class AccountingSeeder extends Seeder
             ['code' => '8200', 'name' => 'FX Loss', 'type' => AccountType::OtherExpense, 'key' => 'fx_loss'],
         ];
 
-        return array_map(function (array $def) use ($currency) {
-            /** @var AccountType $type */
-            $type = $def['type'];
-
+        return array_values(array_map(function (array $def) use ($currency) {
             return [
                 'code' => $def['code'],
                 'name' => $def['name'],
                 'parent_id' => null,
-                'type' => $type,
-                'normal_balance' => $def['normal'] ?? $type->normalBalance(),
+                'type' => $def['type'],
+                'normal_balance' => $def['normal'] ?? $def['type']->normalBalance(),
                 'currency_code' => $currency,
                 'is_active' => true,
                 'is_system' => true,
@@ -110,6 +107,6 @@ class AccountingSeeder extends Seeder
                 'system_key' => $def['key'],
                 'description' => 'System account',
             ];
-        }, $defs);
+        }, $defs));
     }
 }

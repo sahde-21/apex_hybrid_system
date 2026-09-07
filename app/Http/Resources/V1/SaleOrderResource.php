@@ -12,6 +12,9 @@ class SaleOrderResource extends JsonResource
 {
     use FormatsApiValues;
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
         return [
@@ -20,7 +23,8 @@ class SaleOrderResource extends JsonResource
             'contact_id' => $this->contact_id,
             'order_date' => $this->dateOnly($this->order_date),
             'quotation_id' => $this->quotation_id,
-            'confirmed_at' => $this->isoDate($this->confirmed_at),
+            // Legacy API field — column not present on sale_orders; null when absent.
+            'confirmed_at' => $this->isoDate($this->resource->getAttribute('confirmed_at')),
             'status' => $this->enumValue($this->status),
             'subtotal_amount' => $this->money($this->subtotal_amount, $this->currency_code),
             'discount_amount' => $this->money($this->discount_amount, $this->currency_code),

@@ -3,12 +3,14 @@
 namespace App\Http\Requests\Api\V1;
 
 use App\Http\Requests\Api\V1\Concerns\DocumentLineRules;
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdatePurchaseRequestRequest extends FormRequest
 {
     use DocumentLineRules;
+    use ResolvesRouteModelId;
 
     public function authorize(): bool
     {
@@ -17,12 +19,13 @@ class UpdatePurchaseRequestRequest extends FormRequest
         return $purchaseRequest && $this->user()?->can('update', $purchaseRequest);
     }
 
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
-        $purchaseRequest = $this->route('purchase_request');
-
         return array_merge([
-            'reference_number' => ['sometimes', 'string', 'max:100', Rule::unique('purchase_requests', 'reference_number')->ignore($purchaseRequest?->id)],
+            'reference_number' => ['sometimes', 'string', 'max:100', Rule::unique('purchase_requests', 'reference_number')->ignore($this->routeModelId('purchase_request'))],
             'requester_id' => ['sometimes', 'nullable', 'integer', 'exists:users,id'],
             'department' => ['sometimes', 'nullable', 'string', 'max:255'],
             'request_date' => ['sometimes', 'date'],

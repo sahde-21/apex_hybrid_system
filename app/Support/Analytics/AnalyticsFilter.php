@@ -38,12 +38,14 @@ final class AnalyticsFilter
 
     public function cacheKey(User $user, string $suffix = ''): string
     {
-        return config('intelligence.cache_prefix').md5(json_encode([
+        $payload = json_encode([
             $this->bi->toArray(),
             $suffix,
             $user->id,
             app()->getLocale(),
-        ]));
+        ], JSON_THROW_ON_ERROR);
+
+        return config('intelligence.cache_prefix').md5($payload);
     }
 
     public function from(): CarbonImmutable

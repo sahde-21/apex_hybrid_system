@@ -3,11 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Enums\VehicleMaintenanceStatus;
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateVehicleMaintenanceRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('vehicle-maintenance.update') ?? false;
@@ -18,7 +21,7 @@ class UpdateVehicleMaintenanceRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('vehicleMaintenance')?->id;
+        $id = $this->routeModelId('vehicleMaintenance');
 
         return [
             'vehicle_plate' => ['required', 'string', 'max:255'],

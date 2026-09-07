@@ -3,11 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Enums\TicketStatus;
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateTicketRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('tickets.update') ?? false;
@@ -18,7 +21,7 @@ class UpdateTicketRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('ticket')?->id;
+        $id = $this->routeModelId('ticket');
 
         return [
             'reference_number' => ['required', 'string', 'max:255', Rule::unique('tickets', 'reference_number')->ignore($id)],

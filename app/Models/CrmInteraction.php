@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Concerns\Auditable;
 use App\Enums\CrmInteractionType;
+use Database\Factories\CrmInteractionFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -32,6 +33,7 @@ use Illuminate\Support\Carbon;
 ])]
 class CrmInteraction extends Model
 {
+    /** @use HasFactory<CrmInteractionFactory> */
     use Auditable, HasFactory;
 
     /**

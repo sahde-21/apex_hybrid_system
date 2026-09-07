@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdatePriceListRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('price-lists.update') ?? false;
@@ -17,7 +20,7 @@ class UpdatePriceListRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('priceList')?->id;
+        $id = $this->routeModelId('priceList');
 
         return [
             'name' => ['required', 'string', 'max:255'],

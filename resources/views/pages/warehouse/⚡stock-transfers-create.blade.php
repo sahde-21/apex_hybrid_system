@@ -1,6 +1,5 @@
 <?php
 
-use App\Concerns\StockTransferValidationRules;
 use App\Models\Product;
 use App\Models\Warehouse;
 use App\Services\Inventory\StockTransferWorkflowService;
@@ -8,10 +7,8 @@ use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Create Stock transfers')] class extends Component {
-    use StockTransferValidationRules;
+new #[Title('Create Stock transfers')] class extends \App\Livewire\ConcernBases\StockTransferValidationRulesBase {
 
     public string $reference_number = '';
 

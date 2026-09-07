@@ -13,6 +13,9 @@ class StoreSupplierRequest extends FormRequest
         return $this->user()?->can('contacts.create') ?? false;
     }
 
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
         return [

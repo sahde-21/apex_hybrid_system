@@ -1,6 +1,5 @@
 <?php
 
-use App\Concerns\QualityControlValidationRules;
 use App\Models\QualityControl;
 use App\Enums\QualityControlStatus;
 use App\Models\ProductionOrder;
@@ -8,10 +7,8 @@ use App\Models\Product;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Create Quality control')] class extends Component {
-    use QualityControlValidationRules;
+new #[Title('Create Quality control')] class extends \App\Livewire\ConcernBases\QualityControlValidationRulesBase {
     public string $reference_number = '';
     public ?int $production_order_id = null;
     public ?int $product_id = null;

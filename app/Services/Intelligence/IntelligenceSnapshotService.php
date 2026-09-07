@@ -6,6 +6,7 @@ use App\Models\IntelligenceRun;
 use App\Models\IntelligenceSnapshot;
 use App\Models\User;
 use App\Support\Analytics\AnalyticsFilter;
+use Illuminate\Support\Carbon;
 
 class IntelligenceSnapshotService
 {
@@ -36,7 +37,7 @@ class IntelligenceSnapshotService
             'status' => 'completed',
             'records_generated' => 1,
             'finished_at' => now(),
-            'duration_ms' => (int) $run->started_at->diffInMilliseconds(now()),
+            'duration_ms' => (int) Carbon::parse($run->started_at)->diffInMilliseconds(now()),
         ]);
 
         return $snapshot;

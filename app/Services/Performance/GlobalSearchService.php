@@ -11,12 +11,16 @@ use App\Models\PurchaseOrder;
 use App\Models\Quotation;
 use App\Models\SaleOrder;
 use App\Models\User;
-use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Builder;
 
+/**
+ * @phpstan-type SearchItem array{id: int, title: string, subtitle: string|null, url: string|null}
+ * @phpstan-type SearchGroup array{module: string, label: string, items: list<SearchItem>}
+ */
 class GlobalSearchService
 {
     /**
-     * @return array<int, array{module: string, label: string, items: list<array{id: int, title: string, subtitle: string|null, url: string|null}>}>
+     * @return list<SearchGroup>
      */
     public function search(User $user, string $term): array
     {
@@ -161,13 +165,15 @@ class GlobalSearchService
     }
 
     /**
-     * @param  \Illuminate\Database\Eloquent\Builder<\Illuminate\Database\Eloquent\Model>  $query
-     * @return array{module: string, label: string, items: list<array{id: int, title: string, subtitle: string|null, url: string|null}>}|null
+     * @template TModel of Bill|Invoice|PurchaseOrder|Quotation|SaleOrder
+     *
+     * @param  Builder<TModel>  $query
+     * @return SearchGroup|null
      */
     private function documentGroup(
         string $module,
         string $label,
-        $query,
+        Builder $query,
         string $indexRoute,
         string $safe,
         int $limit,
@@ -178,10 +184,10 @@ class GlobalSearchService
             ->latest('id')
             ->limit($limit)
             ->get()
-            ->map(fn ($model) => [
+            ->map(fn (Bill|Invoice|PurchaseOrder|Quotation|SaleOrder $model) => [
                 'id' => $model->id,
                 'title' => $model->reference_number,
-                'subtitle' => is_object($model->status) ? $model->status->label() : (string) $model->status,
+                'subtitle' => $model->status->label(),
                 'url' => route("{$indexRoute}", ['search' => $model->reference_number], false),
             ])
             ->all();
@@ -190,15 +196,15 @@ class GlobalSearchService
     }
 
     /**
-     * @param  list<array{id: int, title: string, subtitle: string|null, url: string|null}>  $items
-     * @return array{module: string, label: string, items: list<array{id: int, title: string, subtitle: string|null, url: string|null}>}
+     * @param  array<int, SearchItem>  $items
+     * @return SearchGroup
      */
     private function group(string $module, string $label, array $items): array
     {
         return [
             'module' => $module,
             'label' => $label,
-            'items' => $items,
+            'items' => array_values($items),
         ];
     }
 }

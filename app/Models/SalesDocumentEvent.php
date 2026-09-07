@@ -34,16 +34,25 @@ class SalesDocumentEvent extends Model
         ];
     }
 
+    /**
+     * @return MorphTo<Model, $this>
+     */
     public function document(): MorphTo
     {
         return $this->morphTo();
     }
 
+    /**
+     * @return MorphTo<Model, $this>
+     */
     public function related(): MorphTo
     {
         return $this->morphTo();
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

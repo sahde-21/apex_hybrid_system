@@ -1,14 +1,11 @@
 <?php
 
-use App\Concerns\PriceListValidationRules;
 use App\Models\PriceList;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Create Price lists')] class extends Component {
-    use PriceListValidationRules;
+new #[Title('Create Price lists')] class extends \App\Livewire\ConcernBases\PriceListValidationRulesBase {
     public string $name = '';
     public string $code = '';
     public string $currency = 'USD';

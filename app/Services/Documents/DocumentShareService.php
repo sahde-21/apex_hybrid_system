@@ -6,6 +6,7 @@ use App\Enums\DocumentActivityAction;
 use App\Models\DocumentShare;
 use App\Models\ManagedDocument;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -48,13 +49,39 @@ class DocumentShareService
         return $share->refresh();
     }
 
-    public function recordDownload(DocumentShare $share): void
+    /**
+     * Atomically claim one download against the share limit.
+     *
+     * @return bool False when the share is no longer downloadable (expired, inactive, or limit reached).
+     */
+    public function recordDownload(DocumentShare $share): bool
     {
-        $share->increment('download_count');
+        $affected = DocumentShare::query()
+            ->whereKey($share->id)
+            ->where('is_active', true)
+            ->where(function ($query): void {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
+            ->where(function ($query): void {
+                $query->whereNull('download_limit')
+                    ->orWhereColumn('download_count', '<', 'download_limit');
+            })
+            ->update([
+                'download_count' => DB::raw('download_count + 1'),
+            ]);
+
+        if ($affected !== 1) {
+            return false;
+        }
+
+        $share->refresh();
         $this->activity->log($share->document, DocumentActivityAction::Download, null, [
             'share_id' => $share->id,
             'via' => 'share_link',
         ]);
+
+        return true;
     }
 
     public function findAccessible(string $token): ?DocumentShare

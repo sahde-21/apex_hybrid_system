@@ -18,7 +18,8 @@ class ManagedDocumentFactory extends Factory
     public function definition(): array
     {
         $disk = config('documents.disk', 'local');
-        $name = fake()->words(3, true);
+        $words = fake()->words(3, true);
+        $name = is_array($words) ? implode(' ', $words) : $words;
         $path = 'documents/test/'.fake()->uuid().'.txt';
         Storage::disk($disk)->put($path, fake()->paragraph());
 

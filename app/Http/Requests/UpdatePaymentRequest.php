@@ -3,11 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Enums\PaymentType;
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdatePaymentRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('payments.update') ?? false;
@@ -18,7 +21,7 @@ class UpdatePaymentRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('payment')?->id;
+        $id = $this->routeModelId('payment');
 
         return [
             'reference_number' => ['required', 'string', 'max:100', Rule::unique('payments', 'reference_number')->ignore($id)],

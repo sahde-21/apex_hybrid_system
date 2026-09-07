@@ -11,13 +11,13 @@ use Illuminate\Validation\ValidationException;
 class ApprovalEngine
 {
     /**
-     * @param  array{mode?: string, levels: list<array{name: string, label?: string, permissions?: list<string>}>}  $config
+     * @param  array{mode?: string, levels?: list<array{name: string, label?: string, permissions?: list<string>}>}  $config
      * @return array{complete: bool, level: int, level_name: string}
      */
     public function recordApproval(WorkflowInstance $instance, User $user, string $action, array $config, ?string $comment = null): array
     {
         $mode = $config['mode'] ?? 'single';
-        $levels = array_values($config['levels'] ?? []);
+        $levels = $config['levels'] ?? [];
 
         if ($levels === []) {
             return ['complete' => true, 'level' => 1, 'level_name' => 'default'];
@@ -33,12 +33,12 @@ class ApprovalEngine
     }
 
     /**
-     * @param  array{mode?: string, levels: list<array{name: string, label?: string, permissions?: list<string>}>}  $config
+     * @param  array{mode?: string, levels?: list<array{name: string, label?: string, permissions?: list<string>}>}  $config
      */
     public function userCanActOnCurrentLevel(WorkflowInstance $instance, User $user, array $config): bool
     {
         $mode = $config['mode'] ?? 'single';
-        $levels = array_values($config['levels'] ?? []);
+        $levels = $config['levels'] ?? [];
 
         if ($levels === []) {
             return true;

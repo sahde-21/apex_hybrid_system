@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Concerns\Auditable;
 use App\Enums\PurchaseOrderStatus;
 use App\Enums\SupplierResponseStatus;
+use Database\Factories\PurchaseOrderFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -68,6 +69,7 @@ use Illuminate\Support\Carbon;
 ])]
 class PurchaseOrder extends Model
 {
+    /** @use HasFactory<PurchaseOrderFactory> */
     use Auditable, HasFactory;
 
     /**
@@ -150,6 +152,22 @@ class PurchaseOrder extends Model
     public function bills(): HasMany
     {
         return $this->hasMany(Bill::class);
+    }
+
+    /**
+     * @return HasMany<PurchaseReceipt, $this>
+     */
+    public function receipts(): HasMany
+    {
+        return $this->hasMany(PurchaseReceipt::class);
+    }
+
+    /**
+     * @return HasMany<PurchaseReturn, $this>
+     */
+    public function returns(): HasMany
+    {
+        return $this->hasMany(PurchaseReturn::class);
     }
 
     /**

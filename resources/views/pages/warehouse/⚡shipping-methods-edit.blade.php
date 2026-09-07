@@ -1,14 +1,11 @@
 <?php
 
-use App\Concerns\ShippingMethodValidationRules;
 use App\Models\ShippingMethod;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Edit Shipping methods')] class extends Component {
-    use ShippingMethodValidationRules;
+new #[Title('Edit Shipping methods')] class extends \App\Livewire\ConcernBases\ShippingMethodValidationRulesBase {
     public ShippingMethod $shippingMethod;
 
     public string $name = '';

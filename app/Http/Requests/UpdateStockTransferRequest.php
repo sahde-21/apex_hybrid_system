@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateStockTransferRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         $transfer = $this->route('stockTransfer');
@@ -19,7 +22,7 @@ class UpdateStockTransferRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('stockTransfer')?->id;
+        $id = $this->routeModelId('stockTransfer');
 
         return [
             'reference_number' => ['required', 'string', 'max:255', Rule::unique('stock_transfers', 'reference_number')->ignore($id)],

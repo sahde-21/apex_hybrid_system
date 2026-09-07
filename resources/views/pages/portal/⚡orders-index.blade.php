@@ -1,16 +1,13 @@
 <?php
 
 use App\Models\SaleOrder;
-use App\Support\ScopesToPortalContact;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
-use Livewire\Component;
 use Livewire\WithPagination;
 
-new #[Layout('layouts.portal')] #[Title('Orders')] class extends Component {
-    use ScopesToPortalContact;
+new #[Layout('layouts.portal')] #[Title('Orders')] class extends \App\Livewire\ConcernBases\ScopesToPortalContactBase {
     use WithPagination;
 
     #[Url(as: 'q')]

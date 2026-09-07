@@ -1,15 +1,12 @@
 <?php
 
-use App\Concerns\BillOfMaterialValidationRules;
 use App\Models\BillOfMaterial;
 use App\Models\Product;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Create Bill of materials')] class extends Component {
-    use BillOfMaterialValidationRules;
+new #[Title('Create Bill of materials')] class extends \App\Livewire\ConcernBases\BillOfMaterialValidationRulesBase {
     public ?int $product_id = null;
     public ?int $component_product_id = null;
     public string $quantity = '0';

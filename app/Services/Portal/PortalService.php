@@ -31,6 +31,9 @@ class PortalService
         ]);
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function updateProfile(PortalCustomer $customer, array $data, ?UploadedFile $avatar = null): PortalCustomer
     {
         return DB::transaction(function () use ($customer, $data, $avatar) {
@@ -54,6 +57,10 @@ class PortalService
         });
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     * @param  array<int, mixed>  $files
+     */
     public function createTicket(PortalCustomer $customer, array $data, array $files = []): Ticket
     {
         return DB::transaction(function () use ($customer, $data, $files) {
@@ -96,6 +103,9 @@ class PortalService
         });
     }
 
+    /**
+     * @param  array<int, mixed>  $files
+     */
     public function replyToTicket(Ticket $ticket, PortalCustomer $customer, string $body, array $files = []): TicketReply
     {
         return DB::transaction(function () use ($ticket, $customer, $body, $files) {
@@ -112,7 +122,7 @@ class PortalService
                 }
             }
 
-            if ($ticket->status?->value === 'closed' || $ticket->status?->value === 'resolved') {
+            if ($ticket->status->value === 'closed' || $ticket->status->value === 'resolved') {
                 $ticket->update(['status' => 'open']);
             }
 

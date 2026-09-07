@@ -3,6 +3,10 @@
 namespace App\Services\Supplier;
 
 use App\Models\PortalSupplier;
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Writer;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Validation\ValidationException;
@@ -21,7 +25,7 @@ class SupplierTwoFactorService
     public function beginSetup(PortalSupplier $supplier): array
     {
         $secret = $this->provider->generateSecretKey();
-        $recoveryCodes = Collection::times(8, fn () => RecoveryCode::generate())->all();
+        $recoveryCodes = array_values(Collection::times(8, fn () => RecoveryCode::generate())->all());
 
         $supplier->forceFill([
             'two_factor_secret' => Crypt::encrypt($secret),
@@ -99,10 +103,10 @@ class SupplierTwoFactorService
     {
         $url = $this->provider->qrCodeUrl(config('app.name').' Supplier', $supplier->email, $secret);
 
-        $svg = (new \BaconQrCode\Writer(
-            new \BaconQrCode\Renderer\ImageRenderer(
-                new \BaconQrCode\Renderer\RendererStyle\RendererStyle(192, 0),
-                new \BaconQrCode\Renderer\Image\SvgImageBackEnd
+        $svg = (new Writer(
+            new ImageRenderer(
+                new RendererStyle(192, 0),
+                new SvgImageBackEnd
             )
         ))->writeString($url);
 

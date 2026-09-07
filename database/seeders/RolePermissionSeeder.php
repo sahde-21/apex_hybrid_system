@@ -44,7 +44,14 @@ class RolePermissionSeeder extends Seeder
                 'payments.record',
                 'payments.post',
             ])),
-            'warehouse' => $this->prefixPermissions(['products', 'warehouses', 'inventory-adjustments', 'stock-transfers', 'variants', 'shipping-methods', 'delivery-trips', 'documents']),
+            'warehouse' => array_values(array_unique([
+                ...$this->prefixPermissions(['products', 'warehouses', 'inventory-adjustments', 'stock-transfers', 'variants', 'shipping-methods', 'delivery-trips', 'documents']),
+                'inventory-adjustments.approve',
+                'stock-transfers.approve',
+                'purchase-orders.read',
+                'purchase-orders.receive',
+                'purchase-orders.return',
+            ])),
             'sales' => array_values(array_unique([
                 ...$this->prefixPermissions(['sale-orders', 'quotations', 'invoices', 'contacts', 'leads', 'crm-interactions', 'customer-feedback', 'campaigns', 'loyalty-programs', 'coupons', 'pos', 'documents']),
                 'quotations.send',
@@ -81,6 +88,8 @@ class RolePermissionSeeder extends Seeder
                 'purchase-orders.confirm',
                 'purchase-orders.approve',
                 'purchase-orders.bill',
+                'purchase-orders.receive',
+                'purchase-orders.return',
                 'bills.issue',
                 'bills.approve',
                 'payments.record',
@@ -110,14 +119,12 @@ class RolePermissionSeeder extends Seeder
         ];
 
         foreach (['manager', 'sales', 'purchasing', 'accountant', 'hr', 'cashier'] as $roleName) {
-            if (isset($roleMap[$roleName])) {
-                $roleMap[$roleName] = array_values(array_unique([
-                    ...$roleMap[$roleName],
-                    ...$this->prefixPermissions(['activities']),
-                    ...$activityExtras,
-                    'activities.internal_note',
-                ]));
-            }
+            $roleMap[$roleName] = array_values(array_unique([
+                ...$roleMap[$roleName],
+                ...$this->prefixPermissions(['activities']),
+                ...$activityExtras,
+                'activities.internal_note',
+            ]));
         }
 
         $roleMap['manager'] = array_values(array_unique([

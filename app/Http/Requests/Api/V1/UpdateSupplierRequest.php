@@ -15,6 +15,9 @@ class UpdateSupplierRequest extends FormRequest
         return $supplier && $this->user()?->can('update', $supplier);
     }
 
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
         return [

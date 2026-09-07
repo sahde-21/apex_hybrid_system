@@ -197,4 +197,17 @@ return [
 
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Destructive Database Commands
+    |--------------------------------------------------------------------------
+    |
+    | When false (default), destructive Artisan commands such as migrate:fresh
+    | are prohibited outside the testing environment. Set ALLOW_DESTRUCTIVE_DB=true
+    | in .env to permit them in local/staging (see BackupBeforeDestructiveDatabaseCommand).
+    |
+    */
+
+    'allow_destructive' => env('ALLOW_DESTRUCTIVE_DB', false),
+
 ];

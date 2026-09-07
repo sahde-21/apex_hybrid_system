@@ -22,7 +22,7 @@ class PosShiftApiService
      */
     public function store(array $data, User $user): PosShift
     {
-        $register = PosRegister::query()->findOrFail($data['pos_register_id']);
+        $register = PosRegister::query()->findOrFail((int) $data['pos_register_id']);
 
         try {
             return $this->shifts->open(

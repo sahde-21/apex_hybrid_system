@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests\Api\V1;
 
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdatePaymentRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         $payment = $this->route('payment');
@@ -14,12 +17,13 @@ class UpdatePaymentRequest extends FormRequest
         return $payment && $this->user()?->can('update', $payment);
     }
 
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
-        $payment = $this->route('payment');
-
         return [
-            'reference_number' => ['sometimes', 'string', 'max:100', Rule::unique('payments', 'reference_number')->ignore($payment?->id)],
+            'reference_number' => ['sometimes', 'string', 'max:100', Rule::unique('payments', 'reference_number')->ignore($this->routeModelId('payment'))],
             'contact_id' => ['sometimes', 'nullable', 'integer', 'exists:contacts,id'],
             'payment_date' => ['sometimes', 'date'],
             'amount' => ['sometimes', 'numeric', 'min:0.01'],

@@ -8,22 +8,20 @@ use App\Enums\PaymentType;
 use App\Enums\PosSaleStatus;
 use App\Models\Attendance;
 use App\Models\Branch;
-use App\Models\Contact;
 use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\Lead;
 use App\Models\Payment;
+use App\Models\Payroll;
 use App\Models\PosSale;
 use App\Models\PosSaleItem;
 use App\Models\Product;
 use App\Models\ProductionOrder;
-use App\Models\PurchaseOrder;
 use App\Models\QualityControl;
-use App\Models\SaleOrder;
 use App\Models\User;
 use App\Support\Bi\BiFilter;
+use App\Support\Bi\BiValueFormatter;
 use Carbon\CarbonPeriod;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -83,7 +81,7 @@ class BiChartService
 
         $months = $this->monthLabels($filter);
         $invoice = Invoice::query()
-            ->selectRaw($this->periodExpr('invoice_date').' as period, SUM(total_amount) as total')
+            ->selectRaw($this->periodSelect('invoice_date', 'period').', SUM(total_amount) as total')
             ->whereIn('status', [InvoiceStatus::Sent, InvoiceStatus::Paid, InvoiceStatus::Overdue])
             ->whereBetween('invoice_date', [$filter->from->toDateString(), $filter->to->toDateString()])
             ->when($filter->customerId, fn ($q) => $q->where('contact_id', $filter->customerId))
@@ -91,7 +89,7 @@ class BiChartService
             ->pluck('total', 'period');
 
         $pos = PosSale::query()
-            ->selectRaw($this->periodExpr('created_at').' as period, SUM(total_amount) as total')
+            ->selectRaw($this->periodSelect('created_at', 'period').', SUM(total_amount) as total')
             ->where('status', PosSaleStatus::Completed)
             ->where('is_return', false)
             ->whereBetween('created_at', [$filter->from, $filter->to])
@@ -126,7 +124,7 @@ class BiChartService
 
         $months = $this->monthLabels($filter);
         $rows = Expense::query()
-            ->selectRaw($this->periodExpr('expense_date').' as period, SUM(amount) as total')
+            ->selectRaw($this->periodSelect('expense_date', 'period').', SUM(amount) as total')
             ->whereBetween('expense_date', [$filter->from->toDateString(), $filter->to->toDateString()])
             ->groupBy('period')
             ->pluck('total', 'period');
@@ -152,13 +150,13 @@ class BiChartService
 
         $months = $this->monthLabels($filter);
         $in = Payment::query()
-            ->selectRaw($this->periodExpr('payment_date').' as period, SUM(amount) as total')
+            ->selectRaw($this->periodSelect('payment_date', 'period').', SUM(amount) as total')
             ->where('type', PaymentType::Incoming)
             ->whereBetween('payment_date', [$filter->from->toDateString(), $filter->to->toDateString()])
             ->groupBy('period')
             ->pluck('total', 'period');
         $out = Payment::query()
-            ->selectRaw($this->periodExpr('payment_date').' as period, SUM(amount) as total')
+            ->selectRaw($this->periodSelect('payment_date', 'period').', SUM(amount) as total')
             ->where('type', PaymentType::Outgoing)
             ->whereBetween('payment_date', [$filter->from->toDateString(), $filter->to->toDateString()])
             ->groupBy('period')
@@ -231,7 +229,7 @@ class BiChartService
 
             return [
                 'type' => 'bar',
-                'labels' => $products->pluck('name')->all(),
+                'labels' => BiValueFormatter::listLabels($products->pluck('name')),
                 'datasets' => [[
                     'label' => __('scf.bi.chart_stock'),
                     'data' => $products->pluck('stock_quantity')->map(fn ($v) => (float) $v)->all(),
@@ -241,7 +239,7 @@ class BiChartService
 
         return [
             'type' => 'bar',
-            'labels' => $rows->map(fn ($r) => $r->product?->name ?? '#'.$r->product_id)->all(),
+            'labels' => BiValueFormatter::listLabels($rows->map(fn ($r) => $r->product !== null ? $r->product->name : '#'.$r->product_id)),
             'datasets' => [[
                 'label' => __('scf.bi.chart_revenue'),
                 'data' => $rows->pluck('revenue')->map(fn ($v) => round((float) $v, 2))->all(),
@@ -272,7 +270,7 @@ class BiChartService
 
         return [
             'type' => 'bar',
-            'labels' => $rows->map(fn ($r) => $r->contact?->name ?? '#'.$r->contact_id)->all(),
+            'labels' => BiValueFormatter::listLabels($rows->map(fn ($r) => $r->contact !== null ? $r->contact->name : '#'.$r->contact_id)),
             'datasets' => [[
                 'label' => __('scf.bi.chart_revenue'),
                 'data' => $rows->pluck('total')->map(fn ($v) => round((float) $v, 2))->all(),
@@ -361,7 +359,7 @@ class BiChartService
 
         return [
             'type' => 'pie',
-            'labels' => $rows->map(fn ($r) => $r->category?->name ?? __('Uncategorized'))->all(),
+            'labels' => BiValueFormatter::listLabels($rows->map(fn ($r) => $r->category !== null ? $r->category->name : __('Uncategorized'))),
             'datasets' => [[
                 'data' => $rows->pluck('value')->map(fn ($v) => round((float) $v, 2))->all(),
             ]],
@@ -385,7 +383,7 @@ class BiChartService
 
         return [
             'type' => 'bar',
-            'labels' => $products->pluck('name')->all(),
+            'labels' => BiValueFormatter::listLabels($products->pluck('name')),
             'datasets' => [
                 [
                     'label' => __('scf.bi.chart_stock'),
@@ -433,8 +431,11 @@ class BiChartService
 
         $dateCol = DB::getSchemaBuilder()->hasColumn('production_orders', 'start_date') ? 'start_date' : 'created_at';
         $months = $this->monthLabels($filter);
+        $periodSelect = $dateCol === 'start_date'
+            ? $this->periodSelect('start_date', 'period')
+            : $this->periodSelect('created_at', 'period');
         $rows = ProductionOrder::query()
-            ->selectRaw($this->periodExpr($dateCol).' as period, COUNT(*) as total')
+            ->selectRaw($periodSelect.', COUNT(*) as total')
             ->whereBetween($dateCol, [$filter->from->toDateString(), $filter->to->toDateString()])
             ->groupBy('period')
             ->pluck('total', 'period');
@@ -466,7 +467,7 @@ class BiChartService
 
         return [
             'type' => 'pie',
-            'labels' => $rows->keys()->map(fn ($k) => (string) $k)->all(),
+            'labels' => BiValueFormatter::listLabels($rows->keys()),
             'datasets' => [['data' => $rows->values()->map(fn ($v) => (float) $v)->all()]],
         ];
     }
@@ -481,8 +482,8 @@ class BiChartService
         }
 
         $months = $this->monthLabels($filter);
-        $rows = \App\Models\Payroll::query()
-            ->selectRaw($this->periodExpr('pay_period_start').' as period, SUM(net_amount) as total')
+        $rows = Payroll::query()
+            ->selectRaw($this->periodSelect('pay_period_start', 'period').', SUM(net_amount) as total')
             ->whereBetween('pay_period_start', [$filter->from->toDateString(), $filter->to->toDateString()])
             ->groupBy('period')
             ->pluck('total', 'period');
@@ -507,7 +508,7 @@ class BiChartService
         }
 
         $rows = Attendance::query()
-            ->selectRaw($this->dayExpr('attendance_date').' as day, COUNT(*) as total')
+            ->selectRaw($this->daySelect('attendance_date', 'day').', COUNT(*) as total')
             ->whereBetween('attendance_date', [$filter->from->toDateString(), $filter->to->toDateString()])
             ->when($filter->branchId, fn ($q) => $q->where('branch_id', $filter->branchId))
             ->groupBy('day')
@@ -584,17 +585,53 @@ class BiChartService
         return $labels ?: [now()->format('Y-m')];
     }
 
-    protected function periodExpr(string $column): string
+    /**
+     * @param  literal-string  $column
+     * @param  literal-string  $alias
+     * @return literal-string
+     */
+    protected function periodSelect(string $column, string $alias): string
     {
-        return DB::connection()->getDriverName() === 'sqlite'
-            ? "strftime('%Y-%m', {$column})"
-            : "DATE_FORMAT({$column}, '%Y-%m')";
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            return match ($column) {
+                'invoice_date' => "strftime('%Y-%m', invoice_date) as {$alias}",
+                'created_at' => "strftime('%Y-%m', created_at) as {$alias}",
+                'expense_date' => "strftime('%Y-%m', expense_date) as {$alias}",
+                'payment_date' => "strftime('%Y-%m', payment_date) as {$alias}",
+                'pay_period_start' => "strftime('%Y-%m', pay_period_start) as {$alias}",
+                'start_date' => "strftime('%Y-%m', start_date) as {$alias}",
+                default => "strftime('%Y-%m', created_at) as {$alias}",
+            };
+        }
+
+        return match ($column) {
+            'invoice_date' => "DATE_FORMAT(invoice_date, '%Y-%m') as {$alias}",
+            'created_at' => "DATE_FORMAT(created_at, '%Y-%m') as {$alias}",
+            'expense_date' => "DATE_FORMAT(expense_date, '%Y-%m') as {$alias}",
+            'payment_date' => "DATE_FORMAT(payment_date, '%Y-%m') as {$alias}",
+            'pay_period_start' => "DATE_FORMAT(pay_period_start, '%Y-%m') as {$alias}",
+            'start_date' => "DATE_FORMAT(start_date, '%Y-%m') as {$alias}",
+            default => "DATE_FORMAT(created_at, '%Y-%m') as {$alias}",
+        };
     }
 
-    protected function dayExpr(string $column): string
+    /**
+     * @param  literal-string  $column
+     * @param  literal-string  $alias
+     * @return literal-string
+     */
+    protected function daySelect(string $column, string $alias): string
     {
-        return DB::connection()->getDriverName() === 'sqlite'
-            ? "strftime('%Y-%m-%d', {$column})"
-            : "DATE_FORMAT({$column}, '%Y-%m-%d')";
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            return match ($column) {
+                'attendance_date' => "strftime('%Y-%m-%d', attendance_date) as {$alias}",
+                default => "strftime('%Y-%m-%d', attendance_date) as {$alias}",
+            };
+        }
+
+        return match ($column) {
+            'attendance_date' => "DATE_FORMAT(attendance_date, '%Y-%m-%d') as {$alias}",
+            default => "DATE_FORMAT(attendance_date, '%Y-%m-%d') as {$alias}",
+        };
     }
 }

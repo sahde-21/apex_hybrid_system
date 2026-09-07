@@ -1,15 +1,12 @@
 <?php
 
-use App\Concerns\ShiftValidationRules;
 use App\Models\Shift;
 use App\Models\Branch;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Edit Shift management')] class extends Component {
-    use ShiftValidationRules;
+new #[Title('Edit Shift management')] class extends \App\Livewire\ConcernBases\ShiftValidationRulesBase {
     public Shift $shift;
 
     public string $name = '';

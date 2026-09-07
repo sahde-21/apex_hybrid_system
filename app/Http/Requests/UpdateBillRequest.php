@@ -3,11 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Enums\BillStatus;
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateBillRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('bills.update') ?? false;
@@ -18,7 +21,7 @@ class UpdateBillRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('bill')?->id;
+        $id = $this->routeModelId('bill');
 
         return [
             'reference_number' => ['required', 'string', 'max:100', Rule::unique('bills', 'reference_number')->ignore($id)],

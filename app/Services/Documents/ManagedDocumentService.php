@@ -43,7 +43,10 @@ class ManagedDocumentService extends BaseService
         $disk = config('documents.disk', 'local');
         $folderSegment = isset($meta['folder_id']) ? 'folder-'.$meta['folder_id'] : 'root';
         $storedPath = $file->store('documents/'.$folderSegment.'/'.now()->format('Y/m'), $disk);
-        $checksum = hash_file('sha256', $file->getRealPath() ?: Storage::disk($disk)->path($storedPath));
+        $realPath = $file->getRealPath();
+        $checksum = is_string($realPath) && $realPath !== ''
+            ? hash_file('sha256', $realPath)
+            : (is_string($storedPath) ? hash_file('sha256', Storage::disk($disk)->path($storedPath)) : '');
 
         $document = ManagedDocument::query()->create([
             'folder_id' => $meta['folder_id'] ?? null,
@@ -87,7 +90,7 @@ class ManagedDocumentService extends BaseService
     }
 
     /**
-     * @param  list<UploadedFile>  $files
+     * @param  array<int, mixed>  $files
      * @param  array<string, mixed>  $meta
      * @return list<ManagedDocument>
      */
@@ -212,7 +215,10 @@ class ManagedDocumentService extends BaseService
 
         $disk = $document->disk;
         $storedPath = $file->store('documents/versions/'.$document->id, $disk);
-        $checksum = hash_file('sha256', $file->getRealPath() ?: Storage::disk($disk)->path($storedPath));
+        $realPath = $file->getRealPath();
+        $checksum = is_string($realPath) && $realPath !== ''
+            ? hash_file('sha256', $realPath)
+            : (is_string($storedPath) ? hash_file('sha256', Storage::disk($disk)->path($storedPath)) : '');
         $version = $document->version + 1;
 
         DocumentVersion::query()->create([
@@ -261,31 +267,39 @@ class ManagedDocumentService extends BaseService
     protected function validateMime(UploadedFile $file): void
     {
         $allowed = config('documents.allowed_mimes', []);
-        $mime = $file->getMimeType();
+        $mime = $file->getMimeType() ?: $file->getClientMimeType();
         $extension = strtolower($file->getClientOriginalExtension() ?: pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION));
 
+        /** @var array<string, list<string>> $extensionMap */
         $extensionMap = [
-            'pdf' => 'application/pdf',
-            'doc' => 'application/msword',
-            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'xls' => 'application/vnd.ms-excel',
-            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'csv' => 'text/csv',
-            'txt' => 'text/plain',
-            'json' => 'application/json',
-            'zip' => 'application/zip',
-            'jpg' => 'image/jpeg',
-            'jpeg' => 'image/jpeg',
-            'png' => 'image/png',
-            'gif' => 'image/gif',
-            'webp' => 'image/webp',
-            'svg' => 'image/svg+xml',
+            'pdf' => ['application/pdf'],
+            'doc' => ['application/msword', 'application/octet-stream'],
+            'docx' => [
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/zip',
+            ],
+            'xls' => ['application/vnd.ms-excel', 'application/octet-stream'],
+            'xlsx' => [
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/zip',
+            ],
+            'csv' => ['text/csv', 'text/plain', 'application/csv'],
+            'txt' => ['text/plain'],
+            'json' => ['application/json', 'text/plain'],
+            'zip' => ['application/zip', 'application/x-zip-compressed'],
+            'jpg' => ['image/jpeg'],
+            'jpeg' => ['image/jpeg'],
+            'png' => ['image/png'],
+            'gif' => ['image/gif'],
+            'webp' => ['image/webp'],
         ];
 
-        $mapped = $extensionMap[$extension] ?? null;
+        $compatibleMimes = $extensionMap[$extension] ?? null;
 
-        $valid = ($mime && in_array($mime, $allowed, true))
-            || ($mapped && in_array($mapped, $allowed, true));
+        $valid = $mime !== ''
+            && is_array($compatibleMimes)
+            && in_array($mime, $allowed, true)
+            && in_array($mime, $compatibleMimes, true);
 
         abort_unless($valid, 422, __('scf.dms.invalid_file_type'));
     }

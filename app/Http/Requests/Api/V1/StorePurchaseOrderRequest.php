@@ -15,6 +15,9 @@ class StorePurchaseOrderRequest extends FormRequest
         return $this->user()?->can('purchase-orders.create') ?? false;
     }
 
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
         return array_merge([

@@ -3,17 +3,14 @@
 use App\Models\PurchaseOrder;
 use App\Models\SupplierShipment;
 use App\Services\Supplier\SupplierPortalService;
-use App\Support\ScopesToSupplierContact;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
-use Livewire\Component;
 use Livewire\WithPagination;
 
-new #[Layout('layouts.supplier')] #[Title('Deliveries')] class extends Component {
-    use ScopesToSupplierContact;
+new #[Layout('layouts.supplier')] #[Title('Deliveries')] class extends \App\Livewire\ConcernBases\ScopesToSupplierContactBase {
     use WithPagination;
 
     #[Url]

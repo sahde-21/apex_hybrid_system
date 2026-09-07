@@ -1,16 +1,13 @@
 <?php
 
-use App\Concerns\PerformanceReviewValidationRules;
 use App\Models\PerformanceReview;
 use App\Enums\PerformanceReviewStatus;
 use App\Models\Employee;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Edit Performance reviews')] class extends Component {
-    use PerformanceReviewValidationRules;
+new #[Title('Edit Performance reviews')] class extends \App\Livewire\ConcernBases\PerformanceReviewValidationRulesBase {
     public PerformanceReview $performanceReview;
 
     public ?int $employee_id = null;

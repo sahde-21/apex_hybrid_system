@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Concerns\Auditable;
 use App\Enums\JournalEntryStatus;
+use Database\Factories\JournalEntryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,11 +17,27 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property string $reference_number
  * @property Carbon $entry_date
+ * @property int|null $fiscal_period_id
+ * @property int|null $branch_id
+ * @property string|null $currency_code
+ * @property numeric-string $exchange_rate
  * @property string $description
  * @property JournalEntryStatus $status
- * @property string $total_debit
- * @property string $total_credit
+ * @property numeric-string $total_debit
+ * @property numeric-string $total_credit
  * @property string|null $notes
+ * @property string|null $reference_type
+ * @property int|null $reference_id
+ * @property string|null $idempotency_key
+ * @property int|null $created_by
+ * @property int|null $approved_by
+ * @property int|null $posted_by
+ * @property Carbon|null $posted_at
+ * @property int|null $reversed_by
+ * @property Carbon|null $reversed_at
+ * @property int|null $reversal_of_id
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  */
 #[Fillable([
     'reference_number',
@@ -47,6 +64,7 @@ use Illuminate\Support\Carbon;
 ])]
 class JournalEntry extends Model
 {
+    /** @use HasFactory<JournalEntryFactory> */
     use Auditable, HasFactory;
 
     /**
@@ -89,6 +107,9 @@ class JournalEntry extends Model
         return $this->belongsTo(Branch::class);
     }
 
+    /**
+     * @return MorphTo<Model, $this>
+     */
     public function reference(): MorphTo
     {
         return $this->morphTo();
@@ -128,7 +149,7 @@ class JournalEntry extends Model
 
     public function isBalanced(): bool
     {
-        return bccomp((string) $this->total_debit, (string) $this->total_credit, 2) === 0;
+        return bccomp($this->total_debit, $this->total_credit, 2) === 0;
     }
 
     public function isEditable(): bool

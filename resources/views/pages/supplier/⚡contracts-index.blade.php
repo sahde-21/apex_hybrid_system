@@ -2,15 +2,12 @@
 
 use App\Enums\ContractStatus;
 use App\Models\Contract;
-use App\Support\ScopesToSupplierContact;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 use Livewire\WithPagination;
 
-new #[Layout('layouts.supplier')] #[Title('Contracts')] class extends Component {
-    use ScopesToSupplierContact;
+new #[Layout('layouts.supplier')] #[Title('Contracts')] class extends \App\Livewire\ConcernBases\ScopesToSupplierContactBase {
     use WithPagination;
 
     #[Computed]

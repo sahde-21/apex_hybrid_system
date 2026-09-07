@@ -1,13 +1,10 @@
 <?php
 
-use App\Concerns\TaxRateValidationRules;
 use App\Models\TaxRate;
 use Flux\Flux;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Edit tax rate')] class extends Component {
-    use TaxRateValidationRules;
+new #[Title('Edit tax rate')] class extends \App\Livewire\ConcernBases\TaxRateValidationRulesBase {
 
     public TaxRate $taxRate;
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -13,7 +14,7 @@ class EnsureApiTokenAbility
     {
         $user = $request->user();
 
-        if ($user === null) {
+        if (! $user instanceof User) {
             abort(401);
         }
 

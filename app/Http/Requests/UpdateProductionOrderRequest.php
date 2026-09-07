@@ -3,11 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Enums\ProductionOrderStatus;
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateProductionOrderRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('production-orders.update') ?? false;
@@ -18,7 +21,7 @@ class UpdateProductionOrderRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('productionOrder')?->id;
+        $id = $this->routeModelId('productionOrder');
 
         return [
             'reference_number' => ['required', 'string', 'max:255', Rule::unique('production_orders', 'reference_number')->ignore($id)],

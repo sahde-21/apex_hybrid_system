@@ -16,14 +16,16 @@ trait Auditable
         static::creating(function (Model $model): void {
             $userId = static::staffUserId();
             if (in_array('created_by', $model->getFillable(), true) && $userId) {
-                $model->created_by = $userId;
+                // setAttribute preserves Eloquent attribute assignment without assuming
+                // every Auditable model declares $created_by as a typed property.
+                $model->setAttribute('created_by', $userId);
             }
         });
 
         static::updating(function (Model $model): void {
             $userId = static::staffUserId();
             if (in_array('updated_by', $model->getFillable(), true) && $userId) {
-                $model->updated_by = $userId;
+                $model->setAttribute('updated_by', $userId);
             }
         });
 
@@ -41,8 +43,11 @@ trait Auditable
             static::recordAudit($model, 'deleted');
         });
 
+        // SoftDeletes::restored() is a thin wrapper around registerModelEvent('restored').
+        // Call registerModelEvent directly so PHPStan does not require SoftDeletes on every
+        // Auditable consumer, while preserving the same runtime registration when SoftDeletes is present.
         if (in_array(SoftDeletes::class, class_uses_recursive(static::class), true)) {
-            static::restored(function (Model $model): void {
+            static::registerModelEvent('restored', function (Model $model): void {
                 static::recordAudit($model, 'restored');
             });
         }
@@ -91,9 +96,9 @@ trait Auditable
             return null;
         }
 
-        $hidden = method_exists($model, 'getHidden') ? $model->getHidden() : [];
+        // Model::getHidden() is part of the Eloquent Model contract.
         $sensitive = array_unique(array_merge(
-            $hidden,
+            $model->getHidden(),
             config('security.audit_redact', [])
         ));
 

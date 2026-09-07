@@ -1,14 +1,11 @@
 <?php
 
-use App\Concerns\NotificationTemplateValidationRules;
 use App\Models\NotificationTemplate;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Edit Notification templates')] class extends Component {
-    use NotificationTemplateValidationRules;
+new #[Title('Edit Notification templates')] class extends \App\Livewire\ConcernBases\NotificationTemplateValidationRulesBase {
     public NotificationTemplate $notificationTemplate;
 
     public string $name = '';

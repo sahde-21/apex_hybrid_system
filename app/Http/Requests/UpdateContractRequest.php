@@ -3,11 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Enums\ContractStatus;
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateContractRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('contracts.update') ?? false;
@@ -18,7 +21,7 @@ class UpdateContractRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('contract')?->id;
+        $id = $this->routeModelId('contract');
 
         return [
             'reference_number' => ['required', 'string', 'max:255', Rule::unique('contracts', 'reference_number')->ignore($id)],

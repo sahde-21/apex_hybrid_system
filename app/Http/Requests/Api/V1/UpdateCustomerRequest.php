@@ -15,6 +15,9 @@ class UpdateCustomerRequest extends FormRequest
         return $customer && $this->user()?->can('update', $customer);
     }
 
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
         return [

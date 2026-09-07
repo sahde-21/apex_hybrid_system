@@ -40,6 +40,9 @@ class TicketReply extends Model
         return $this->belongsTo(Ticket::class);
     }
 
+    /**
+     * @return MorphTo<Model, $this>
+     */
     public function author(): MorphTo
     {
         return $this->morphTo();

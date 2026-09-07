@@ -2,13 +2,10 @@
 
 use App\Enums\BillStatus;
 use App\Models\Bill;
-use App\Support\ScopesToSupplierContact;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Layout('layouts.supplier')] #[Title('Bill')] class extends Component {
-    use ScopesToSupplierContact;
+new #[Layout('layouts.supplier')] #[Title('Bill')] class extends \App\Livewire\ConcernBases\ScopesToSupplierContactBase {
 
     public Bill $bill;
 

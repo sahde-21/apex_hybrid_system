@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateEmployeeRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('employees.update') ?? false;
@@ -17,7 +20,7 @@ class UpdateEmployeeRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('employee')?->id;
+        $id = $this->routeModelId('employee');
 
         return [
             'employee_number' => ['required', 'string', 'max:100', Rule::unique('employees', 'employee_number')->ignore($id)],

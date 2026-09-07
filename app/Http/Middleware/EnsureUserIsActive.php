@@ -50,7 +50,7 @@ class EnsureUserIsActive
             return $next($request);
         }
 
-        if ($user instanceof User && method_exists($user, 'canAuthenticate') && ! $user->canAuthenticate()) {
+        if ($user instanceof User && ! $user->canAuthenticate()) {
             auth()->logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();

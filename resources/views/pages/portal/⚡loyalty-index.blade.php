@@ -4,15 +4,12 @@ use App\Models\LoyaltyBalance;
 use App\Models\LoyaltyProgram;
 use App\Models\LoyaltyRedemption;
 use App\Services\Portal\PortalService;
-use App\Support\ScopesToPortalContact;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Layout('layouts.portal')] #[Title('Loyalty')] class extends Component {
-    use ScopesToPortalContact;
+new #[Layout('layouts.portal')] #[Title('Loyalty')] class extends \App\Livewire\ConcernBases\ScopesToPortalContactBase {
 
     public string $rewardLabel = '';
 

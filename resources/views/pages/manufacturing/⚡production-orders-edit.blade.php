@@ -1,6 +1,5 @@
 <?php
 
-use App\Concerns\ProductionOrderValidationRules;
 use App\Models\ProductionOrder;
 use App\Enums\ProductionOrderStatus;
 use App\Models\Product;
@@ -9,10 +8,8 @@ use App\Models\Branch;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Edit Production orders')] class extends Component {
-    use ProductionOrderValidationRules;
+new #[Title('Edit Production orders')] class extends \App\Livewire\ConcernBases\ProductionOrderValidationRulesBase {
     public ProductionOrder $productionOrder;
 
     public string $reference_number = '';

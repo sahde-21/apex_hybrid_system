@@ -2,10 +2,13 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateFloorPlanRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('floor-plans.update') ?? false;
@@ -16,7 +19,7 @@ class UpdateFloorPlanRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('floorPlan')?->id;
+        $id = $this->routeModelId('floorPlan');
 
         return [
             'name' => ['required', 'string', 'max:255'],

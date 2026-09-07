@@ -33,6 +33,9 @@ class DocumentFolderService extends BaseService
         });
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function createFolder(User $user, array $data): DocumentFolder
     {
         $this->flushFolderCache();

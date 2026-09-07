@@ -15,7 +15,7 @@ final class DocumentLineCalculator
         $discount = 0.0;
         $tax = 0.0;
 
-        foreach (array_values($lines) as $index => $line) {
+        foreach ($lines as $index => $line) {
             $qty = max(0, (float) ($line['quantity'] ?? 0));
             $price = max(0, (float) ($line['unit_price'] ?? 0));
             $lineDiscount = max(0, (float) ($line['discount_amount'] ?? 0));

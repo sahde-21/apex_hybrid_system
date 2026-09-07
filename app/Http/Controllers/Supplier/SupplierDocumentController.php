@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Supplier;
 
+use App\Enums\PaymentType;
 use App\Http\Controllers\Controller;
 use App\Models\Bill;
 use App\Models\Contract;
@@ -10,6 +11,7 @@ use App\Models\PortalSupplier;
 use App\Models\PurchaseOrder;
 use App\Services\Print\PrintService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -17,7 +19,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class SupplierDocumentController extends Controller
 {
     /**
-     * @var array<string, class-string>
+     * @var array<string, class-string<Model>>
      */
     protected array $typeMap = [
         'purchase-order' => PurchaseOrder::class,
@@ -85,7 +87,7 @@ class SupplierDocumentController extends Controller
         $query = $this->typeMap[$type]::query()->where('contact_id', $supplier->contact_id);
 
         if ($type === 'payment') {
-            $query->where('type', \App\Enums\PaymentType::Outgoing);
+            $query->where('type', PaymentType::Outgoing);
         }
 
         if (! empty($this->eagerLoad[$type])) {

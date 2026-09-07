@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateGiftCardRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('gift-cards.update') ?? false;
@@ -24,7 +27,7 @@ class UpdateGiftCardRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('giftCard')?->id;
+        $id = $this->routeModelId('giftCard');
 
         return [
             'code' => ['required', 'string', 'max:255', Rule::unique('gift_cards', 'code')->ignore($id)],

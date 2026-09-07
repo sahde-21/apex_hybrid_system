@@ -2,8 +2,10 @@
 
 namespace App\Http\Resources\V1;
 
+use App\Enums\QuotationStatus;
 use App\Http\Resources\V1\Concerns\FormatsApiValues;
 use App\Models\Quotation;
+use App\Models\SaleOrder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
@@ -13,6 +15,9 @@ class QuotationResource extends JsonResource
 {
     use FormatsApiValues;
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
         $user = $request->user();
@@ -36,17 +41,27 @@ class QuotationResource extends JsonResource
             'salesperson_id' => $this->salesperson_id,
             'contact' => $this->whenLoaded('contact', fn () => new ContactResource($this->contact)),
             'lines' => DocumentLineResource::collection($this->whenLoaded('lines')),
-            'converted_sale_order' => $this->whenLoaded('convertedSaleOrder', fn () => [
-                'id' => $this->convertedSaleOrder?->id,
-                'reference_number' => $this->convertedSaleOrder?->reference_number,
-            ]),
-            'allowed_actions' => $user ? $this->allowedActions($user) : [],
+            'converted_sale_order' => $this->whenLoaded('convertedSaleOrder', function () {
+                $order = $this->resource->convertedSaleOrder;
+                if (! $order instanceof SaleOrder) {
+                    return null;
+                }
+
+                return [
+                    'id' => $order->id,
+                    'reference_number' => $order->reference_number,
+                ];
+            }),
+            'allowed_actions' => is_object($user) ? $this->allowedActions($user) : [],
             'created_at' => $this->isoDate($this->created_at),
             'updated_at' => $this->isoDate($this->updated_at),
         ];
     }
 
-    private function allowedActions($user): array
+    /**
+     * @return list<string>
+     */
+    private function allowedActions(object $user): array
     {
         $actions = [];
         foreach (['send', 'approve', 'reject', 'cancel', 'convert'] as $action) {
@@ -54,15 +69,18 @@ class QuotationResource extends JsonResource
                 $actions[] = $action === 'approve' ? 'accept' : $action;
             }
         }
-        if ($user->can('quotations.create')) {
+        if (method_exists($user, 'can') && $user->can('quotations.create')) {
             $actions[] = 'duplicate';
         }
-        if ($user->can('update', $this->resource) && $this->status->isEditable()) {
+
+        $status = $this->resource->status;
+        if (method_exists($user, 'can') && $user->can('update', $this->resource) && $status instanceof QuotationStatus && $status->isEditable()) {
             $actions[] = 'update';
         }
-        if ($user->can('delete', $this->resource)) {
+        if (method_exists($user, 'can') && $user->can('delete', $this->resource)) {
             $actions[] = 'delete';
         }
+
         return array_values(array_unique($actions));
     }
 }

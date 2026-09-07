@@ -1,15 +1,12 @@
 <?php
 
-use App\Concerns\SupplierEvaluationValidationRules;
 use App\Models\SupplierEvaluation;
 use App\Models\Contact;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Edit Supplier evaluations')] class extends Component {
-    use SupplierEvaluationValidationRules;
+new #[Title('Edit Supplier evaluations')] class extends \App\Livewire\ConcernBases\SupplierEvaluationValidationRulesBase {
     public SupplierEvaluation $supplierEvaluation;
 
     public ?int $contact_id = null;

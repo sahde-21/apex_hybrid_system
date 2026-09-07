@@ -1,15 +1,12 @@
 <?php
 
-use App\Concerns\ExpenseValidationRules;
 use App\Models\Contact;
 use App\Models\Expense;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Create expense')] class extends Component {
-    use ExpenseValidationRules;
+new #[Title('Create expense')] class extends \App\Livewire\ConcernBases\ExpenseValidationRulesBase {
 
     public string $reference_number = '';
     public ?int $contact_id = null;

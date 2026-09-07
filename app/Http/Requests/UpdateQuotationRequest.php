@@ -3,11 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Enums\QuotationStatus;
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateQuotationRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('quotations.update') ?? false;
@@ -18,7 +21,7 @@ class UpdateQuotationRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('quotation')?->id;
+        $id = $this->routeModelId('quotation');
 
         return [
             'reference_number' => ['required', 'string', 'max:100', Rule::unique('quotations', 'reference_number')->ignore($id)],

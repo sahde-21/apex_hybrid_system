@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Concerns\Auditable;
 use App\Enums\RfqStatus;
+use Database\Factories\RfqFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -54,6 +55,7 @@ use Illuminate\Support\Carbon;
 ])]
 class Rfq extends Model
 {
+    /** @use HasFactory<RfqFactory> */
     use Auditable, HasFactory;
 
     /**

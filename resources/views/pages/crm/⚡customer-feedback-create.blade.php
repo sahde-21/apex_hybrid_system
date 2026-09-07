@@ -1,15 +1,12 @@
 <?php
 
-use App\Concerns\CustomerFeedbackValidationRules;
 use App\Models\CustomerFeedback;
 use App\Models\Contact;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Create Customer feedback')] class extends Component {
-    use CustomerFeedbackValidationRules;
+new #[Title('Create Customer feedback')] class extends \App\Livewire\ConcernBases\CustomerFeedbackValidationRulesBase {
     public ?int $contact_id = null;
     public int $rating = 0;
     public string $subject = '';

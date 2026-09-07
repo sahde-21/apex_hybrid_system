@@ -1,16 +1,13 @@
 <?php
 
-use App\Concerns\ProfileValidationRules;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Profile settings')] class extends Component {
-    use ProfileValidationRules;
+new #[Title('Profile settings')] class extends \App\Livewire\ConcernBases\ProfileValidationRulesBase {
 
     public string $name = '';
     public string $email = '';

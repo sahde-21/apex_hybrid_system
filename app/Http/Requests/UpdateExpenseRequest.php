@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateExpenseRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('expenses.update') ?? false;
@@ -17,7 +20,7 @@ class UpdateExpenseRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('expense')?->id;
+        $id = $this->routeModelId('expense');
 
         return [
             'reference_number' => ['required', 'string', 'max:100', Rule::unique('expenses', 'reference_number')->ignore($id)],

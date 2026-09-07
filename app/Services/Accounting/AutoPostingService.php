@@ -57,7 +57,7 @@ class AutoPostingService
             }
 
             return $this->journals->createDraft($actor, [
-                'entry_date' => $invoice->invoice_date?->toDateString() ?? now()->toDateString(),
+                'entry_date' => $invoice->invoice_date->toDateString(),
                 'description' => __('scf.accounting_engine.posting_invoice', ['ref' => $invoice->reference_number]),
                 'reference' => $invoice,
                 'idempotency_key' => $this->key($invoice, 'invoice.posted'),
@@ -72,7 +72,11 @@ class AutoPostingService
             return null;
         }
 
-        if ($payment->status !== null && $payment->status !== PaymentStatus::Posted) {
+        $status = array_key_exists('status', $payment->getAttributes())
+            ? $payment->status
+            : null;
+
+        if ($status !== null && $status !== PaymentStatus::Posted) {
             return null;
         }
 
@@ -90,7 +94,7 @@ class AutoPostingService
             $cashKey = in_array($method, ['bank_transfer', 'card', 'bank'], true) ? 'bank' : 'cash';
 
             return $this->journals->createDraft($actor, [
-                'entry_date' => $payment->payment_date?->toDateString() ?? now()->toDateString(),
+                'entry_date' => $payment->payment_date->toDateString(),
                 'description' => __('scf.accounting_engine.posting_customer_payment', ['ref' => $payment->reference_number]),
                 'reference' => $payment,
                 'idempotency_key' => $this->key($payment, 'payment.incoming'),
@@ -126,7 +130,7 @@ class AutoPostingService
             }
 
             return $this->journals->createDraft($actor, [
-                'entry_date' => $bill->bill_date?->toDateString() ?? now()->toDateString(),
+                'entry_date' => $bill->bill_date->toDateString(),
                 'description' => __('scf.accounting_engine.posting_bill', ['ref' => $bill->reference_number]),
                 'reference' => $bill,
                 'idempotency_key' => $this->key($bill, 'bill.posted'),
@@ -141,7 +145,11 @@ class AutoPostingService
             return null;
         }
 
-        if ($payment->status !== null && $payment->status !== PaymentStatus::Posted) {
+        $status = array_key_exists('status', $payment->getAttributes())
+            ? $payment->status
+            : null;
+
+        if ($status !== null && $status !== PaymentStatus::Posted) {
             return null;
         }
 
@@ -155,7 +163,7 @@ class AutoPostingService
             $cashKey = in_array($method, ['bank_transfer', 'card', 'bank'], true) ? 'bank' : 'cash';
 
             return $this->journals->createDraft($actor, [
-                'entry_date' => $payment->payment_date?->toDateString() ?? now()->toDateString(),
+                'entry_date' => $payment->payment_date->toDateString(),
                 'description' => __('scf.accounting_engine.posting_supplier_payment', ['ref' => $payment->reference_number]),
                 'reference' => $payment,
                 'idempotency_key' => $this->key($payment, 'payment.outgoing'),
@@ -171,7 +179,7 @@ class AutoPostingService
     {
         return $this->idempotent($expense, 'expense.posted', $user, function (User $actor) use ($expense) {
             return $this->journals->createDraft($actor, [
-                'entry_date' => $expense->expense_date?->toDateString() ?? now()->toDateString(),
+                'entry_date' => $expense->expense_date->toDateString(),
                 'description' => __('scf.accounting_engine.posting_expense', ['ref' => $expense->reference_number]),
                 'reference' => $expense,
                 'idempotency_key' => $this->key($expense, 'expense.posted'),
@@ -190,14 +198,14 @@ class AutoPostingService
             $revenue = max(0, (float) $sale->total_amount - (float) $sale->tax_amount);
             $tax = (float) $sale->tax_amount;
             $cogs = round($sale->items->sum(function ($item) {
-                $cost = (float) ($item->product?->purchase_price ?? 0);
+                $cost = $item->product !== null ? (float) $item->product->purchase_price : 0.0;
 
                 return $cost * (float) $item->quantity;
             }), 2);
 
             $cashTotal = (float) $sale->payments->sum('amount');
             $cashAccount = $this->accounts->systemId('cash');
-            if ($sale->payments->contains(fn ($p) => in_array($p->method?->value ?? (string) $p->method, ['card', 'bank_transfer', 'bank'], true))) {
+            if ($sale->payments->contains(fn ($p) => in_array($p->method->value, ['card', 'bank_transfer', 'bank'], true))) {
                 $cashAccount = $this->accounts->systemId('card_clearing');
             }
 
@@ -216,7 +224,7 @@ class AutoPostingService
             }
 
             return $this->journals->createDraft($actor, [
-                'entry_date' => $sale->created_at?->toDateString() ?? now()->toDateString(),
+                'entry_date' => ($sale->created_at ?? now())->toDateString(),
                 'description' => __('scf.accounting_engine.posting_pos', ['ref' => $sale->reference_number]),
                 'reference' => $sale,
                 'idempotency_key' => $this->key($sale, 'pos.sale'),
@@ -231,7 +239,7 @@ class AutoPostingService
             $amount = (float) ($payroll->net_amount ?? $payroll->gross_amount ?? 0);
 
             return $this->journals->createDraft($actor, [
-                'entry_date' => $payroll->pay_period_start?->toDateString() ?? now()->toDateString(),
+                'entry_date' => $payroll->pay_period_start->toDateString(),
                 'description' => __('scf.accounting_engine.posting_payroll', ['ref' => $payroll->reference_number ?? $payroll->id]),
                 'reference' => $payroll,
                 'idempotency_key' => $this->key($payroll, 'payroll.posted'),
@@ -263,7 +271,7 @@ class AutoPostingService
         }
 
         $actor = $user ?? auth()->user() ?? User::query()->orderBy('id')->first();
-        if ($actor === null) {
+        if (! $actor instanceof User) {
             return null;
         }
 

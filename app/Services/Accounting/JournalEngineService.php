@@ -8,6 +8,7 @@ use App\Models\JournalEntry;
 use App\Models\JournalEntryLine;
 use App\Models\User;
 use App\Support\Accounting\JournalLineData;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -43,7 +44,7 @@ class JournalEngineService
         $this->assertBalanced($normalized);
 
         return DB::transaction(function () use ($user, $header, $normalized) {
-            $entryDate = \Carbon\CarbonImmutable::parse($header['entry_date']);
+            $entryDate = CarbonImmutable::parse($header['entry_date']);
             $period = $this->periods->ensureOpenPeriodFor(
                 $entryDate,
                 (bool) ($header['allow_period_override'] ?? false),
@@ -96,7 +97,7 @@ class JournalEngineService
         $this->assertBalanced($normalized);
 
         return DB::transaction(function () use ($entry, $user, $header, $normalized) {
-            $entryDate = \Carbon\CarbonImmutable::parse($header['entry_date'] ?? $entry->entry_date);
+            $entryDate = CarbonImmutable::parse($header['entry_date'] ?? $entry->entry_date);
             $period = $this->periods->ensureOpenPeriodFor(
                 $entryDate,
                 (bool) ($header['allow_period_override'] ?? false),
@@ -142,11 +143,11 @@ class JournalEngineService
 
             $this->assertEditable($locked);
             $locked->load('lines');
-            $this->assertBalanced($locked->lines->map(fn (JournalEntryLine $line) => new JournalLineData(
+            $this->assertBalanced(array_values($locked->lines->map(fn (JournalEntryLine $line) => new JournalLineData(
                 (int) $line->account_id,
-                (string) $line->debit,
-                (string) $line->credit,
-            ))->all());
+                number_format((float) $line->debit, 2, '.', ''),
+                number_format((float) $line->credit, 2, '.', ''),
+            ))->all()));
 
             $this->periods->ensureOpenPeriodFor(
                 $locked->entry_date,
@@ -182,16 +183,16 @@ class JournalEngineService
                 ]);
             }
 
-            $reversalLines = $locked->lines->map(fn (JournalEntryLine $line) => new JournalLineData(
+            $reversalLines = array_values($locked->lines->map(fn (JournalEntryLine $line) => new JournalLineData(
                 accountId: (int) $line->account_id,
-                debit: (string) $line->credit,
-                credit: (string) $line->debit,
+                debit: number_format((float) $line->credit, 2, '.', ''),
+                credit: number_format((float) $line->debit, 2, '.', ''),
                 description: __('scf.accounting_engine.reversal_of', ['ref' => $locked->reference_number]),
                 contactId: $line->contact_id,
                 branchId: $line->branch_id,
                 currencyCode: $line->currency_code,
-                exchangeRate: (string) $line->exchange_rate,
-            ))->all();
+                exchangeRate: number_format((float) $line->exchange_rate, 8, '.', ''),
+            ))->all());
 
             $reversal = $this->createDraft($user, [
                 'entry_date' => now()->toDateString(),
@@ -233,7 +234,12 @@ class JournalEngineService
         $normalized = [];
 
         foreach ($lines as $line) {
-            $data = $line instanceof JournalLineData ? $line : JournalLineData::fromArray($line);
+            if ($line instanceof JournalLineData) {
+                $data = $line;
+            } else {
+                /** @var array{account_id: int, debit?: float|int|string, credit?: float|int|string, description?: string|null, contact_id?: int|null, branch_id?: int|null, currency_code?: string|null, exchange_rate?: float|int|string|null} $line */
+                $data = JournalLineData::fromArray($line);
+            }
 
             if (bccomp($data->debit, '0', 2) === 0 && bccomp($data->credit, '0', 2) === 0) {
                 continue;
@@ -285,7 +291,8 @@ class JournalEngineService
 
     /**
      * @param  list<JournalLineData>  $lines
-     * @return array{debit: string, credit: string}
+     * @param  numeric-string  $rate
+     * @return array{debit: numeric-string, credit: numeric-string}
      */
     protected function sumLines(array $lines, string $rate): array
     {
@@ -303,10 +310,11 @@ class JournalEngineService
 
     /**
      * @param  list<JournalLineData>  $lines
+     * @param  numeric-string  $rate
      */
     protected function syncLines(JournalEntry $entry, array $lines, string $currency, string $rate): void
     {
-        foreach (array_values($lines) as $index => $line) {
+        foreach ($lines as $index => $line) {
             $lineRate = $line->exchangeRate !== '0' ? $line->exchangeRate : $rate;
 
             JournalEntryLine::query()->create([

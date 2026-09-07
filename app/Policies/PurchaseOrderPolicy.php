@@ -52,6 +52,18 @@ class PurchaseOrderPolicy
         return $user->can('purchase-orders.bill') || $user->can('bills.create');
     }
 
+    public function receive(User $user, PurchaseOrder $purchaseOrder): bool
+    {
+        return $user->can('purchase-orders.receive')
+            && $purchaseOrder->status->canReceive();
+    }
+
+    public function returnGoods(User $user, PurchaseOrder $purchaseOrder): bool
+    {
+        return $user->can('purchase-orders.return')
+            && $purchaseOrder->status->canReturn();
+    }
+
     public function cancel(User $user, PurchaseOrder $purchaseOrder): bool
     {
         return $user->can('purchase-orders.update');

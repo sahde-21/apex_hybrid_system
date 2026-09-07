@@ -3,11 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Enums\InvoiceStatus;
+use App\Http\Requests\Concerns\ResolvesRouteModelId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateInvoiceRequest extends FormRequest
 {
+    use ResolvesRouteModelId;
+
     public function authorize(): bool
     {
         return $this->user()?->can('invoices.update') ?? false;
@@ -18,7 +21,7 @@ class UpdateInvoiceRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('invoice')?->id;
+        $id = $this->routeModelId('invoice');
 
         return [
             'reference_number' => ['required', 'string', 'max:100', Rule::unique('invoices', 'reference_number')->ignore($id)],

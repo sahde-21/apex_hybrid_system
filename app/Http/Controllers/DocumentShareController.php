@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Services\Documents\DocumentShareService;
+use App\Support\Http\SafeContentDisposition;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -17,7 +19,7 @@ class DocumentShareController extends Controller
     public function show(Request $request, string $token): View
     {
         $share = $this->shares->findAccessible($token);
-        abort_unless($share, 404);
+        abort_if($share === null, 404);
 
         if ($share->password && ! $request->session()->get('dms_share_'.$token)) {
             return view('pages.documents.share-password', [
@@ -31,10 +33,10 @@ class DocumentShareController extends Controller
         ]);
     }
 
-    public function unlock(Request $request, string $token)
+    public function unlock(Request $request, string $token): RedirectResponse
     {
         $share = $this->shares->findAccessible($token);
-        abort_unless($share, 404);
+        abort_if($share === null, 404);
 
         $request->validate(['password' => ['required', 'string']]);
         abort_unless($share->checkPassword($request->string('password')->toString()), 403);
@@ -47,18 +49,18 @@ class DocumentShareController extends Controller
     public function download(Request $request, string $token): StreamedResponse
     {
         $share = $this->shares->findAccessible($token);
-        abort_unless($share, 404);
+        abort_if($share === null, 404);
 
         if ($share->password && ! $request->session()->get('dms_share_'.$token)) {
             abort(403);
         }
 
         $document = $share->document;
-        $this->shares->recordDownload($share);
+        abort_unless($this->shares->recordDownload($share), 404);
 
         return Storage::disk($document->disk)->download(
             $document->path,
-            $document->original_name,
+            SafeContentDisposition::sanitizeFilename($document->original_name),
         );
     }
 }

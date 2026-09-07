@@ -1,16 +1,13 @@
 <?php
 
-use App\Concerns\PayrollValidationRules;
 use App\Enums\PayrollStatus;
 use App\Models\Employee;
 use App\Models\Payroll;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Create payroll')] class extends Component {
-    use PayrollValidationRules;
+new #[Title('Create payroll')] class extends \App\Livewire\ConcernBases\PayrollValidationRulesBase {
 
     public string $reference_number = '';
     public ?int $employee_id = null;

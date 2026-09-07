@@ -10,6 +10,7 @@ use App\Models\Quotation;
 use App\Models\SaleOrder;
 use App\Services\Print\PrintService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -17,7 +18,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class PortalDocumentController extends Controller
 {
     /**
-     * @var array<string, class-string>
+     * @var array<string, class-string<Model>>
      */
     protected array $typeMap = [
         'invoice' => Invoice::class,

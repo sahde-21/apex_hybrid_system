@@ -2,14 +2,14 @@
 
 namespace App\Services;
 
-use App\Repositories\Contracts\RepositoryInterface;
+use App\Repositories\Contracts\RepositoryContract;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 abstract class BaseService
 {
     public function __construct(
-        protected RepositoryInterface $repository,
+        protected RepositoryContract $repository,
     ) {}
 
     /**

@@ -1,14 +1,11 @@
 <?php
 
-use App\Concerns\JournalEntryValidationRules;
 use App\Enums\JournalEntryStatus;
 use App\Models\JournalEntry;
 use Flux\Flux;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('Edit journal entry')] class extends Component {
-    use JournalEntryValidationRules;
+new #[Title('Edit journal entry')] class extends \App\Livewire\ConcernBases\JournalEntryValidationRulesBase {
 
     public JournalEntry $journalEntry;
 
